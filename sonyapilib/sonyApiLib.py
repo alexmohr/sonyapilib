@@ -47,8 +47,10 @@ class ApiDevice():
         self.ircc_url = ircc_location
         self.actionlist_url = None
         self.actions = {}
-        self.cookies = None
+        self.pin = None
         self.name = None
+        self.headers = {}
+        self.cookies = None
 
         if self.ircc_url == None:
             self.ircc_url = "http://{0}:{1}/Ircc.xml".format(host, port)
@@ -82,9 +84,10 @@ class ApiDevice():
             action = ApiAction(element.attrib)
             self.actions[action.name] = action
 
-    def _recreate_auth_cookie(self):
+    def recreate_auth_cookie(self):
         """
-        The default cookie is for URL/sony. For some commands we need it for the root path
+        The default cookie is for URL/sony. For some commands we need it for the root path.
+        Only for api v4
         """
         cookies = requests.cookies.RequestsCookieJar()
         cookies.set("auth", self.cookies.get("auth"))
@@ -105,6 +108,7 @@ class ApiDevice():
         registration_mode = int(registration_action.mode)
 
         if registration_mode < 4:
+            # the authenication later on is based on the device id and the mac address of the device
             self.registration_url = "{0}?name={1}&registrationType=initial&deviceId={1}".format(
                             registration_action.url, urllib.parse.quote(name))
             if registration_mode == 3: 
@@ -142,10 +146,8 @@ class ApiDevice():
                     "version": "1.0"}
             ).encode('utf-8')
 
-            headers = {}
-
             try:
-                response = requests.post(self.registration_url, data=authorization, headers=headers, timeout=10)
+                response = requests.post(self.registration_url, data=authorization, headers=self.headers, timeout=10)
                 response.raise_for_status()
 
             except requests.exceptions.HTTPError as exception_instance:
@@ -168,30 +170,34 @@ class ApiDevice():
 
         return registrataion_result
 
-    def send_auth_pin(self, pin):
+    def send_authentication(self, pin):
         registration_action = self.actions["register"]
         registration_mode = int(registration_action.mode)
 
-        headers = {}
+        
         username = ''
         base64string = base64.encodebytes(('%s:%s' % (username, pin)).encode()) \
                 .decode().replace('\n', '')
-        headers['Authorization'] = "Basic %s" % base64string
+        self.headers['Authorization'] = "Basic %s" % base64string
 
         if registration_mode == 3:
+            self.headers['X-CERS-DEVICE-ID'] = self.name
 
             try:
-                response = requests.get(self.registration_url, headers=headers, timeout=10)
+                response = requests.get(self.registration_url, headers=self.headers, cookies=self.cookies, timeout=10)
                 response.raise_for_status()
             except:
                 return False
             else:
                 if "[200]" in response:
+                    self.pin = pin
                     return True
             return False
            
 
         elif registration_mode == 4:
+            self.headers['Connection'] = "keep-alive"
+
             authorization=json.dumps(
                 {
                     "id": 13,
@@ -214,17 +220,15 @@ class ApiDevice():
                 }
             ).encode('utf-8')
 
-            headers['Connection'] = "keep-alive"
-
             try:
-                response = requests.post(self.registration_url, data=authorization, headers=headers, timeout=10)
+                response = requests.post(self.registration_url, data=authorization, headers=self.headers, cookies=self.cookies, timeout=10)
                 response.raise_for_status()
             except:
                 return False
             else:
                 resp = response.json()
                 _LOGGER.debug(json.dumps(resp, indent=4))
-                if resp is None or not resp.get('error'):
+                if resp http://10.0.0.102:50002/getStatuis None or not resp.get('error'):
                     self.cookies = response.cookies
                     return True
             return False
@@ -246,7 +250,7 @@ class SonyApiLib:
         """
         discovery = ssdp.SSDPDiscovery()
         devices = []
-        for device in discovery.discover("urn:schemas-sony-com:service:IRCC:1"):
+        for device in discovery.discover("urn:schemas-sony-com:service:headersIRCC:1"):
             host = device.location.split(":")[1].split("//")[1]
             devices.append(self.create_device(host, device.location))
 
@@ -267,13 +271,13 @@ if __name__ == '__main__':
         device = lib.create_device("10.0.0.102")
         device.register("SonyApiLib Python Test")
         pin = input("Enter the PIN displayed at your device: ")
-        device.send_auth_pin(pin)
+        device.send_authentication(pin)
         data = device.save_to_json()
         text_file = open("bluray.json", "w")
         text_file.write(data)
         text_file.close()
 
+    requests.get(device.actions["getStatus"].url, headers=device.headers, cookies=device.cookies, timeout=10)
     
-
-# for device in lib.discover():
-# device.register("SonyApiLib Python Test")
+    # for device in lib.discover():
+        # device.register("SonyApiLib Python Test")

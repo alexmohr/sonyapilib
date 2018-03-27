@@ -13,14 +13,14 @@ CURRENT_DIR = os.path.dirname(__file__)
 # make pythonpack
 # python setup.py register sdist upload
 # and be sure to test it firstly using "python setup.py register sdist upload -r pypitest"
-setup(name='braviarc',
-      version='0.1.0',
-      description=open(os.path.join(CURRENT_DIR, 'README.md')).read(),
-      install_requires=['requests'],
-      maintainer='Alexander Mohr',
-      maintainer_email='sonyapilib@mohr.io',
-      zip_safe=False,
-      packages=find_packages(),
-      include_package_data=True,
-      url='https://github.com/alexmohr/sonyapilib.git')
-1
+setup(name='sonyapilib',
+  packages = ['sonyapilib'], # this must be the same as the name above
+  version = '0.1',
+  description = 'Lib to control sony devices with theier soap api',
+  author = 'Alexander Mohr',
+  author_email = 'sonyapilib@mohr.io',
+  url = 'https://github.com/alexmohr/sonyapilib', # use the URL to the github repo
+  download_url = 'https://codeload.github.com/alexmohr/sonyapilib/tar.gz/0.1',
+  keywords = ['soap', 'sony', 'api'], # arbitrary keywords
+  classifiers = [],
+)

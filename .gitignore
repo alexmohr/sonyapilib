@@ -1,6 +1,7 @@
 # Files used for testing
 bluray.json
 
+.pypirc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

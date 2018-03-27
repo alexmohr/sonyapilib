@@ -5,32 +5,35 @@ It may not contains all functionality which is implemented in the project from K
 # Example
 The example will load a json file with all data if it exists or connects to device and registers it, storing the json afterwards
 ```
-stored_config = "bluray.json"
-device = None
-import os.path
-if os.path.exists(stored_config):
-    with open(stored_config, 'r') as content_file:
-        json_data = content_file.read()
-        device = SonyDevice.load_from_json(json_data)
-else:
-    host = "10.0.0.102"
-    device = SonyDevice(host)
-    device.register("SonyApiLib Python Test")
-    pin = input("Enter the PIN displayed at your device: ")
-    device.send_authentication(pin)
+from sonyapilib.device import SonyDevice
+if __name__ == "__main__":
 
-    data = device.save_to_json()
-    text_file = open("bluray.json", "w")
-    text_file.write(data)
-    text_file.close()
+    stored_config = "bluray.json"
+    device = None
+    import os.path
+    if os.path.exists(stored_config):
+        with open(stored_config, 'r') as content_file:
+            json_data = content_file.read()
+            device = SonyDevice.load_from_json(json_data)
+    else:
+        host = "10.0.0.102"
+        device = SonyDevice(host)
+        device.register("SonyApiLib Python Test")
+        pin = input("Enter the PIN displayed at your device: ")
+        device.send_authentication(pin)
 
-# wake device
-is_on = device.get_power_status()
-if not is_on:
-    device.power(True)
+        data = device.save_to_json()
+        text_file = open("bluray.json", "w")
+        text_file.write(data)
+        text_file.close()
 
-# Play media
-device.play()
+    # wake device
+    is_on = device.get_power_status()
+    if not is_on:
+        device.power(True)
+
+    # Play media
+    device.play()
 ```
 
 # Compatability List

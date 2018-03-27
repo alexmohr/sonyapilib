@@ -3,7 +3,8 @@ Sony API lib. This is a python3 conversion from this project https://github.com/
 It may not contains all functionality which is implemented in the project from KHerron because it is used as base implementation for usage in home assistant
 
 # Example
-`
+The example will load a json file with all data if it exists or connects to device and registers it, storing the json afterwards
+```
 stored_config = "bluray.json"
 device = None
 import os.path
@@ -23,14 +24,14 @@ else:
     text_file.write(data)
     text_file.close()
 
+# wake device
 is_on = device.get_power_status()
 if not is_on:
-    device.wakeonlan()
-device.update_service_urls()
-device.update_commands()
+    device.power(True)
 
+# Play media
 device.play()
-`
+```
 
 #Compatability List
 

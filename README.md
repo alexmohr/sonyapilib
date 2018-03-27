@@ -33,7 +33,7 @@ if not is_on:
 device.play()
 ```
 
-#Compatability List
+# Compatability List
 
 LCD TV BRAVIA
 2016 model or later:

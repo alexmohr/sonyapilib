@@ -17,7 +17,7 @@ from enum import Enum
 
 import jsonpickle
 
-import ssdp
+import sonyapilib.ssdp
 _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = 10
@@ -81,6 +81,9 @@ class SonyDevice():
             self.ircc_url = "http://{0}:{1}/Ircc.xml".format(host, port)
         self.dmr_port = dmr_port
 
+        if len(self.actions) == 0:
+            self.update_service_urls()
+
     @staticmethod
     def discover():
         """
@@ -130,9 +133,9 @@ class SonyDevice():
 
     def update_service_urls(self):
         """ Initalizes the device by reading the necessary resources from it """
+
         lirc_url = urllib.parse.urlparse(self.ircc_url)
-        
-        
+
         response = self.send_http(self.ircc_url, method=HttpMethod.GET)
         raw_data = response.text
         xml_data = xml.etree.ElementTree.fromstring(raw_data)
@@ -613,4 +616,3 @@ class SonyDevice():
         
     def list(self):
         self.send_req_ircc(self.commands['List'].value)
-        

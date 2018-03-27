@@ -217,6 +217,9 @@ class SonyDevice():
         The tested sd5500 has no separte mode but allows registration in the overview "
         """
 
+        if not "register" in self.actions:
+            self.update_service_urls()
+
         self.name = name
         registrataion_result = AuthenicationResult.ERROR
         registration_action = self.actions["register"]
@@ -356,7 +359,6 @@ class SonyDevice():
             if data is not None:
                 params = data.encode("UTF-8")
 
-            # url = "http://10.0.0.102:50001/Ircc.xml"
             if method == HttpMethod.POST:
                 response = requests.post(url,
                                          data=params,
@@ -437,122 +439,178 @@ class SonyDevice():
             self.update_commands()
 
     def get_playing_info(self):
-        data = "<m:GetPositionInfo xmlns:m=\"urn:schemas-upnp-org:service:AVTransport:1\">" +\
-            "<InstanceID>0</InstanceID>" +\
-            "</m:GetPositionInfo>"
-        action = "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo"
-        content = self.post_soap_request(url=self.av_transport_url, params=data, action=action)
-        # if resp is not None and not resp.get('error'):
-        #     playing_content_data = resp.get('result')[0]
-        #     return_value['programTitle'] = playing_content_data.get('programTitle')
-        #     return_value['title'] = playing_content_data.get('title')
-        #     return_value['programMediaType'] = playing_content_data.get('programMediaType')
-        #     return_value['dispNum'] = playing_content_data.get('dispNum')
-        #     return_value['source'] = playing_content_data.get('source')
-        #     return_value['uri'] = playing_content_data.get('uri')
-        #     return_value['durationSec'] = playing_content_data.get('durationSec')
-        #     return_value['startDateTime'] = playing_content_data.get('startDateTime')
-        # return return_value
+        # the device which i got for testing only deliviers default values
+        # therefore not implemented
+        pass
+    
 
     def get_power_status(self):
-        pass
+        url = self.ircc_url
+        try:
+            self.send_http(url, HttpMethod.GET, log_errors=False, raise_errors=True)
+        except: 
+            return False
+        return True
 
-    def get_volume_info(self):
-        """Get volume info."""
-        pass
+    # def get_source(self, source):
+    #     pass
 
-    def get_source(self, source):
-        pass
+    # def load_app_list(self, log_errors=True):
+    #     pass
 
-    def set_volume_level(self, volume):
-        pass
+    # def start_app(self, app_name, log_errors=True):
+    #     """Start an app by name"""
+    #     pass
 
-    def select_source(self, source):
-        """Set the input source."""
-        pass
-
-    def load_app_list(self, log_errors=True):
-        pass
-
-    def start_app(self, app_name, log_errors=True):
-        """Start an app by name"""
-        pass
-
-    def turn_on(self):
-        """Turn the media player on."""
-        self.wakeonlan()
+    def up(self):
+            self.send_req_ircc(self.commands['Up'].value)
+        
+    def confirm(self):
+        self.send_req_ircc(self.commands['Confirm'].value)
+        
+    def down(self):
+        self.send_req_ircc(self.commands['Down'].value)
+        
+    def right(self):
+        self.send_req_ircc(self.commands['Right'].value)
+        
+    def left(self):
+        self.send_req_ircc(self.commands['Left'].value)
+        
+    def home(self):
+        self.send_req_ircc(self.commands['Home'].value)
+        
+    def options(self):
+        self.send_req_ircc(self.commands['Options'].value)
+        
+    def returns(self):
+        self.send_req_ircc(self.commands['Return'].value)
+        
+    def num1(self):
+        self.send_req_ircc(self.commands['Num1'].value)
+        
+    def num2(self):
+        self.send_req_ircc(self.commands['Num2'].value)
+        
+    def num3(self):
+        self.send_req_ircc(self.commands['Num3'].value)
+        
+    def num4(self):
+        self.send_req_ircc(self.commands['Num4'].value)
+        
+    def num5(self):
+        self.send_req_ircc(self.commands['Num5'].value)
+        
+    def num6(self):
+        self.send_req_ircc(self.commands['Num6'].value)
+        
+    def num7(self):
+        self.send_req_ircc(self.commands['Num7'].value)
+        
+    def num8(self):
+        self.send_req_ircc(self.commands['Num8'].value)
+        
+    def num9(self):
+        self.send_req_ircc(self.commands['Num9'].value)
+        
+    def num0(self):
+        self.send_req_ircc(self.commands['Num0'].value)
+        
+    def power(self, on):
+        if (on):
+            self.wakeonlan()
+        
         # Try using the power on command incase the WOL doesn't work
-        if not self.get_power_status():
-            self.send_req_ircc(self.commands['TvPower'].value)
-
-    def turn_off(self):
-        """Turn off media player."""
-        self.send_req_ircc(self.commands['PowerOff'].value)
-
-    def volume_up(self):
-        """Volume up the media player."""
-        self.send_req_ircc(self.commands['VolumeUp'].value)
-
-    def volume_down(self):
-        """Volume down media player."""
-        self.send_req_ircc(self.commands['VolumeDown'].value)
-
-    def mute_volume(self, mute):
-        """Send mute command."""
-        self.send_req_ircc(self.commands['Mute'].value)
-
-    def media_play(self):
-        """Send play command."""
+        if on and not self.get_power_status():
+            self.send_req_ircc(self.commands['Power'].value)
+        
+    def display(self):
+        self.send_req_ircc(self.commands['Display'].value)
+        
+    def audio(self):
+        self.send_req_ircc(self.commands['Audio'].value)
+        
+    def subTitle(self):
+        self.send_req_ircc(self.commands['SubTitle'].value)
+        
+    def favorites(self):
+        self.send_req_ircc(self.commands['Favorites'].value)
+        
+    def yellow(self):
+        self.send_req_ircc(self.commands['Yellow'].value)
+        
+    def blue(self):
+        self.send_req_ircc(self.commands['Blue'].value)
+        
+    def red(self):
+        self.send_req_ircc(self.commands['Red'].value)
+        
+    def green(self):
+        self.send_req_ircc(self.commands['Green'].value)
+        
+    def play(self):
         self.send_req_ircc(self.commands['Play'].value)
-
-    def media_pause(self):
-        """Send media pause command to media player."""
+        
+    def stop(self):
+        self.send_req_ircc(self.commands['Stop'].value)
+        
+    def pause(self):
         self.send_req_ircc(self.commands['Pause'].value)
-
-    def media_next_track(self):
-        """Send next track command."""
-        self.send_req_ircc(self.commands['Next'].value)
-
-    def media_previous_track(self):
-        """Send the previous track command."""
+        
+    def rewind(self):
+        self.send_req_ircc(self.commands['Rewind'].value)
+        
+    def forward(self):
+        self.send_req_ircc(self.commands['Forward'].value)
+        
+    def prev(self):
         self.send_req_ircc(self.commands['Prev'].value)
-
-
-if __name__ == '__main__':
-
-    stored_config = "bluray.json"
-    device = None
-    import os.path
-    if os.path.exists(stored_config):
-        pass
-    #    with open(stored_config, 'r') as content_file:
-    #        json_data = content_file.read()
-    #        device = SonyDevice.load_from_json(json_data)
-    # else:
-    host = "10.0.0.102"
-    device = SonyDevice(host)
-
-    # hack for debugging, to allow access
-    device.headers = {"Authorization": "Basic OjE1MDY=",
-                      "X-CERS-DEVICE-ID": "SonyApiLib Python Test"}
-    # device.register("SonyApiLib Python Test")
-    # pin = input("Enter the PIN displayed at your device: ")
-    # device.send_authentication(pin)
-    # data = device.save_to_json()
-    # text_file = open("bluray.json", "w")
-    # text_file.write(data)
-    # text_file.close()
-
-    device.mac = "30-52-cb-cc-16-ee"
-    device.wakeonlan()
-    device.update_service_urls()
-    device.update_commands()
-
-    #device.media_pause()
-    playing = device.get_playing_info()
-
-    requests.get(device.actions["getStatus"].url,
-                 headers=device.headers, cookies=device.cookies, timeout=10)
-
-    # for device in lib.discover():
-    # device.register("SonyApiLib Python Test")
+        
+    def next(self):
+        self.send_req_ircc(self.commands['Next'].value)
+        
+    def replay(self):
+        self.send_req_ircc(self.commands['Replay'].value)
+        
+    def advance(self):
+        self.send_req_ircc(self.commands['Advance'].value)
+        
+    def angle(self):
+        self.send_req_ircc(self.commands['Angle'].value)
+        
+    def topMenu(self):
+        self.send_req_ircc(self.commands['TopMenu'].value)
+        
+    def popUpMenu(self):
+        self.send_req_ircc(self.commands['PopUpMenu'].value)
+        
+    def eject(self):
+        self.send_req_ircc(self.commands['Eject'].value)
+        
+    def karaoke(self):
+        self.send_req_ircc(self.commands['Karaoke'].value)
+        
+    def netflix(self):
+        self.send_req_ircc(self.commands['Netflix'].value)
+        
+    def mode3D(self):
+        self.send_req_ircc(self.commands['Mode3D'].value)
+        
+    def zoomIn(self):
+        self.send_req_ircc(self.commands['ZoomIn'].value)
+        
+    def zoomOut(self):
+        self.send_req_ircc(self.commands['ZoomOut'].value)
+        
+    def browserBack(self):
+        self.send_req_ircc(self.commands['BrowserBack'].value)
+        
+    def browserForward(self):
+        self.send_req_ircc(self.commands['BrowserForward'].value)
+        
+    def browserBookmarkList(self):
+        self.send_req_ircc(self.commands['BrowserBookmarkList'].value)
+        
+    def list(self):
+        self.send_req_ircc(self.commands['List'].value)
+        

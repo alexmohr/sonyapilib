@@ -2,6 +2,35 @@
 Sony API lib. This is a python3 conversion from this project https://github.com/KHerron/SonyAPILib and some things have been taken from here: https://github.com/aparraga/braviarc. 
 It may not contains all functionality which is implemented in the project from KHerron because it is used as base implementation for usage in home assistant
 
+# Example
+`
+stored_config = "bluray.json"
+device = None
+import os.path
+if os.path.exists(stored_config):
+    with open(stored_config, 'r') as content_file:
+        json_data = content_file.read()
+        device = SonyDevice.load_from_json(json_data)
+else:
+    host = "10.0.0.102"
+    device = SonyDevice(host)
+    device.register("SonyApiLib Python Test")
+    pin = input("Enter the PIN displayed at your device: ")
+    device.send_authentication(pin)
+
+    data = device.save_to_json()
+    text_file = open("bluray.json", "w")
+    text_file.write(data)
+    text_file.close()
+
+is_on = device.get_power_status()
+if not is_on:
+    device.wakeonlan()
+device.update_service_urls()
+device.update_commands()
+
+device.play()
+`
 
 #Compatability List
 

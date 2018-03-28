@@ -84,6 +84,8 @@ class SonyDevice():
         if len(self.actions) == 0:
             self.update_service_urls()
 
+        # http://10.0.0.102:50202/appslist
+
     @staticmethod
     def discover():
         """
@@ -458,161 +460,205 @@ class SonyDevice():
     # def get_source(self, source):
     #     pass
 
-    # def load_app_list(self, log_errors=True):
-    #     pass
+    def load_app_list(self, log_errors=True):
+        # http://10.0.0.102:50202/appslist
+        pass
 
-    # def start_app(self, app_name, log_errors=True):
-    #     """Start an app by name"""
-    #     pass
+    def start_app(self, app_name, log_errors=True):
+        """Start an app by name"""
+        # post 
+       
+        # http://10.0.0.102:50202/apps/Netflix
+        data = "LOCATION: http://10.0.0.102:50202/apps/com.sony.iptv.type.NRDP/run"
+        self.send_http("http://10.0.0.102:50202/apps/com.sony.iptv.type.NRDP", HttpMethod.POST, data=data)
+        pass
 
-    def up(self):
-            self.send_req_ircc(self.commands['Up'].value)
+    def send_command(self, name):
+        if len(self.commands) == 0: 
+            self.update_commands()
         
-    def confirm(self):
-        self.send_req_ircc(self.commands['Confirm'].value)
-        
-    def down(self):
-        self.send_req_ircc(self.commands['Down'].value)
-        
-    def right(self):
-        self.send_req_ircc(self.commands['Right'].value)
-        
-    def left(self):
-        self.send_req_ircc(self.commands['Left'].value)
-        
-    def home(self):
-        self.send_req_ircc(self.commands['Home'].value)
-        
-    def options(self):
-        self.send_req_ircc(self.commands['Options'].value)
-        
-    def returns(self):
-        self.send_req_ircc(self.commands['Return'].value)
-        
-    def num1(self):
-        self.send_req_ircc(self.commands['Num1'].value)
-        
-    def num2(self):
-        self.send_req_ircc(self.commands['Num2'].value)
-        
-    def num3(self):
-        self.send_req_ircc(self.commands['Num3'].value)
-        
-    def num4(self):
-        self.send_req_ircc(self.commands['Num4'].value)
-        
-    def num5(self):
-        self.send_req_ircc(self.commands['Num5'].value)
-        
-    def num6(self):
-        self.send_req_ircc(self.commands['Num6'].value)
-        
-    def num7(self):
-        self.send_req_ircc(self.commands['Num7'].value)
-        
-    def num8(self):
-        self.send_req_ircc(self.commands['Num8'].value)
-        
-    def num9(self):
-        self.send_req_ircc(self.commands['Num9'].value)
-        
-    def num0(self):
-        self.send_req_ircc(self.commands['Num0'].value)
-        
+        self.send_req_ircc(self.commands[name].value)
+
     def power(self, on):
-        if (on):
+            if (on):
             self.wakeonlan()
         
         # Try using the power on command incase the WOL doesn't work
         if on and not self.get_power_status():
-            self.send_req_ircc(self.commands['Power'].value)
+            self.send_command('Power')
+    
+    def up(self):
+        self.send_command('Up')
+        
+    def confirm(self):
+        self.send_command('Confirm')
+        
+    def down(self):
+        self.send_command('Down')
+        
+    def right(self):
+        self.send_command('Right')
+        
+    def left(self):
+        self.send_command('Left')
+        
+    def home(self):
+        self.send_command('Home')
+        
+    def options(self):
+        self.send_command('Options')
+        
+    def returns(self):
+        self.send_command('Return')
+        
+    def num1(self):
+        self.send_command('Num1')
+        
+    def num2(self):
+        self.send_command('Num2')
+        
+    def num3(self):
+        self.send_command('Num3')
+        
+    def num4(self):
+        self.send_command('Num4')
+        
+    def num5(self):
+        self.send_command('Num5')
+        
+    def num6(self):
+        self.send_command('Num6')
+        
+    def num7(self):
+        self.send_command('Num7')
+        
+    def num8(self):
+        self.send_command('Num8')
+        
+    def num9(self):
+        self.send_command('Num9')
+        
+    def num0(self):
+        self.send_command('Num0')
         
     def display(self):
-        self.send_req_ircc(self.commands['Display'].value)
+        self.send_command('Display')
         
     def audio(self):
-        self.send_req_ircc(self.commands['Audio'].value)
+        self.send_command('Audio')
         
     def subTitle(self):
-        self.send_req_ircc(self.commands['SubTitle'].value)
+        self.send_command('SubTitle')
         
     def favorites(self):
-        self.send_req_ircc(self.commands['Favorites'].value)
+        self.send_command('Favorites')
         
     def yellow(self):
-        self.send_req_ircc(self.commands['Yellow'].value)
+        self.send_command('Yellow')
         
     def blue(self):
-        self.send_req_ircc(self.commands['Blue'].value)
+        self.send_command('Blue')
         
     def red(self):
-        self.send_req_ircc(self.commands['Red'].value)
+        self.send_command('Red')
         
     def green(self):
-        self.send_req_ircc(self.commands['Green'].value)
+        self.send_command('Green')
         
     def play(self):
-        self.send_req_ircc(self.commands['Play'].value)
+        self.send_command('Play')
         
     def stop(self):
-        self.send_req_ircc(self.commands['Stop'].value)
+        self.send_command('Stop')
         
     def pause(self):
-        self.send_req_ircc(self.commands['Pause'].value)
+        self.send_command('Pause')
         
     def rewind(self):
-        self.send_req_ircc(self.commands['Rewind'].value)
+        self.send_command('Rewind')
         
     def forward(self):
-        self.send_req_ircc(self.commands['Forward'].value)
+        self.send_command('Forward')
         
     def prev(self):
-        self.send_req_ircc(self.commands['Prev'].value)
+        self.send_command('Prev')
         
     def next(self):
-        self.send_req_ircc(self.commands['Next'].value)
+        self.send_command('Next')
         
     def replay(self):
-        self.send_req_ircc(self.commands['Replay'].value)
+        self.send_command('Replay')
         
     def advance(self):
-        self.send_req_ircc(self.commands['Advance'].value)
+        self.send_command('Advance')
         
     def angle(self):
-        self.send_req_ircc(self.commands['Angle'].value)
+        self.send_command('Angle')
         
     def topMenu(self):
-        self.send_req_ircc(self.commands['TopMenu'].value)
+        self.send_command('TopMenu')
         
     def popUpMenu(self):
-        self.send_req_ircc(self.commands['PopUpMenu'].value)
+        self.send_command('PopUpMenu')
         
     def eject(self):
-        self.send_req_ircc(self.commands['Eject'].value)
+        self.send_command('Eject')
         
     def karaoke(self):
-        self.send_req_ircc(self.commands['Karaoke'].value)
+        self.send_command('Karaoke')
         
     def netflix(self):
-        self.send_req_ircc(self.commands['Netflix'].value)
+        self.send_command('Netflix')
         
     def mode3D(self):
-        self.send_req_ircc(self.commands['Mode3D'].value)
+        self.send_command('Mode3D')
         
     def zoomIn(self):
-        self.send_req_ircc(self.commands['ZoomIn'].value)
+        self.send_command('ZoomIn')
         
     def zoomOut(self):
-        self.send_req_ircc(self.commands['ZoomOut'].value)
+        self.send_command('ZoomOut')
         
     def browserBack(self):
-        self.send_req_ircc(self.commands['BrowserBack'].value)
+        self.send_command('BrowserBack')
         
     def browserForward(self):
-        self.send_req_ircc(self.commands['BrowserForward'].value)
+        self.send_command('BrowserForward')
         
     def browserBookmarkList(self):
-        self.send_req_ircc(self.commands['BrowserBookmarkList'].value)
+        self.send_command('BrowserBookmarkList')
         
     def list(self):
-        self.send_req_ircc(self.commands['List'].value)
+        self.send_command('List')
+    
+
+if __name__ == "__main__":
+    
+    stored_config = "bluray.json"
+    device = None
+    import os.path
+    if os.path.exists(stored_config):
+        with open(stored_config, 'r') as content_file:
+            json_data = content_file.read()
+            device = SonyDevice.load_from_json(json_data)
+    else:
+        host = "10.0.0.102"
+        device = SonyDevice(host)
+        device.register("SonyApiLib Python Test")
+        pin = input("Enter the PIN displayed at your device: ")
+        device.send_authentication(pin)
+
+        data = device.save_to_json()
+        text_file = open("bluray.json", "w")
+        text_file.write(data)
+        text_file.close()
+
+    # wake device
+    is_on = device.get_power_status()
+    if not is_on:
+        device.power(True)
+
+   # device.update_commands()
+    device.start_app("fo")
+    # Play media
+    device.play()

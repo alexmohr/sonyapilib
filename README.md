@@ -11,6 +11,15 @@ pip install sonyapilib
 The example will load a json file with all data if it exists or connects to device and registers it, storing the json afterwards
 ```
 from sonyapilib.device import SonyDevice
+
+
+def save_device():
+    data = device.save_to_json()
+    text_file = open("bluray.json", "w")
+    text_file.write(data)
+    text_file.close()
+
+
 if __name__ == "__main__":
 
     stored_config = "bluray.json"
@@ -21,24 +30,31 @@ if __name__ == "__main__":
             json_data = content_file.read()
             device = SonyDevice.load_from_json(json_data)
     else:
+        # device must be on for registration
         host = "10.0.0.102"
         device = SonyDevice(host)
         device.register("SonyApiLib Python Test")
         pin = input("Enter the PIN displayed at your device: ")
         device.send_authentication(pin)
-
-        data = device.save_to_json()
-        text_file = open("bluray.json", "w")
-        text_file.write(data)
-        text_file.close()
-
+        save_device()
+    
     # wake device
     is_on = device.get_power_status()
     if not is_on:
         device.power(True)
 
+
+    apps = device.get_apps()
+    
+    device.start_app(apps[0])
+    import time
+    time.sleep(5)
+    
+    device.start_app(apps[1])
     # Play media
     device.play()
+
+
 ```
 
 # Compatability List

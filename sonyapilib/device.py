@@ -17,7 +17,7 @@ from enum import Enum
 
 import jsonpickle
 
-import sonyapilib.ssdp
+from sonyapilib import ssdp
 _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = 10
@@ -34,25 +34,27 @@ class HttpMethod(Enum):
     POST = 1
 
 
-class ApiAction():
+class XmlApiObject():
     """ Holds data for a device action or a command """
 
     def __init__(self, xml_data):
-        self.name = xml_data["name"]
+        self.name = None
         self.mode = None
         self.url = None
         self.type = None
         self.value = None
         self.mac = None
+        self.id = None
 
-        for arg in self.__dict__:
-            if "_" in arg:
-                continue
-            if arg in xml_data:
-                if (arg == "mode"):
-                    setattr(self, arg, int(xml_data[arg]))
-                else:
-                    setattr(self, arg, xml_data[arg])
+        if xml_data is not None:
+            for arg in self.__dict__:
+                if "_" in arg:
+                    continue
+                if arg in xml_data:
+                    if (arg == "mode"):
+                        setattr(self, arg, int(xml_data[arg]))
+                    else:
+                        setattr(self, arg, xml_data[arg])
 
 
 class SonyDevice():
@@ -60,17 +62,21 @@ class SonyDevice():
     Contains all data for the device
     """
 
-    def __init__(self, host, port=50001, dmr_port=52323, ircc_location=None):
+    def __init__(self, host, port=50001, dmr_port=52323, app_port=50202, ircc_location=None):
         """ Init the device with the entry point"""
         self.host = host
         self.ircc_url = ircc_location
         self.actionlist_url = None
         self.control_url = None
         self.av_transport_url = None
+        self.app_url = None
+
+        self.app_port = app_port
 
         self.actions = {}
         self.headers = {}
         self.commands = {}
+        self.apps = {}
 
         self.pin = None
         self.name = None
@@ -79,9 +85,14 @@ class SonyDevice():
 
         if self.ircc_url == None:
             self.ircc_url = "http://{0}:{1}/Ircc.xml".format(host, port)
+
         self.dmr_port = dmr_port
 
-        if len(self.actions) == 0:
+        self.dmr_url = "http://{0}:{1}/dmr.xml".format(
+            self.host, self.dmr_port)
+        self.app_url = "http://{0}:{1}".format(self.host, self.app_port)
+
+        if len(self.actions) == 0 and self.pin is not None:
             self.update_service_urls()
 
         # http://10.0.0.102:50202/appslist
@@ -160,7 +171,7 @@ class SonyDevice():
         raw_data = response.text
         xml_data = xml.etree.ElementTree.fromstring(raw_data)
         for element in xml_data.findall("action"):
-            action = ApiAction(element.attrib)
+            action = XmlApiObject(element.attrib)
             self.actions[action.name] = action
 
         # overwrite urls for api version 4 to be consistent later.
@@ -192,18 +203,62 @@ class SonyDevice():
                 if function.attrib["name"] == "WOL":
                     self.mac = function.find("functionItem").attrib["value"]
 
-        self.dmr_url = "{0}://{1}:{2}/dmr.xml".format(lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port)
         response = self.send_http(self.dmr_url, method=HttpMethod.GET)
         raw_data = response.text
         xml_data = xml.etree.ElementTree.fromstring(raw_data)
         for device in xml_data.findall("{0}device".format(urn_upnp_device)):
             serviceList = device.find("{0}serviceList".format(urn_upnp_device))
             for service in serviceList:
-                service_id = service.find("{0}serviceId".format(urn_upnp_device))
+                service_id = service.find(
+                    "{0}serviceId".format(urn_upnp_device))
                 if "urn:upnp-org:serviceId:AVTransport" not in service_id.text:
                     continue
-                transport_location = service.find("{0}controlURL".format(urn_upnp_device)).text
-                self.av_transport_url ="{0}://{1}:{2}{3}".format(lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
+                transport_location = service.find(
+                    "{0}controlURL".format(urn_upnp_device)).text
+                self.av_transport_url = "{0}://{1}:{2}{3}".format(
+                    lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
+
+        self.update_commands()
+        self.update_applist()
+
+    def update_commands(self):
+        
+        # needs to be registred to do that 
+        if self.pin is None:
+            return
+
+        url = self.actions["getRemoteCommandList"].url
+        if self.actions["register"].mode < 4:
+            response = self.send_http(url, method=HttpMethod.GET)
+            xml_data = xml.etree.ElementTree.fromstring(response.text)
+
+            for command in xml_data.findall("command"):
+                name = command.get("name")
+                self.commands[name] = XmlApiObject(command.attrib)
+        else:
+            response = self.send_http(
+                url, method=HttpMethod.POST, data=self.create_json_v4("getRemoteControllerInfo"))
+            json = response.json()
+            if not json.get('error'):
+                # todo this does not fit 100% with the structure of this lib.
+                # see github issue#2
+                self.commands = json.get('result')[1]
+            else:
+                _LOGGER.error("JSON request error: " +
+                              json.dumps(json, indent=4))
+
+    def update_applist(self, log_errors=True):
+        url = self.app_url + "/appslist"
+        response = self.send_http(url, method=HttpMethod.GET)
+        xml_data = xml.etree.ElementTree.fromstring(response.text)
+        apps = xml_data.findall(".//app")
+        for app in apps:
+            name = app.find("name").text
+            id = app.find("id").text
+            data = XmlApiObject(None)
+            data.name = name
+            data.id = id
+            self.apps[name] = data
 
     def recreate_auth_cookie(self):
         """
@@ -391,27 +446,6 @@ class SonyDevice():
         else:
             return response
 
-    def update_commands(self):
-        url = self.actions["getRemoteCommandList"].url
-        if self.actions["register"].mode < 4:
-            response = self.send_http(url, method=HttpMethod.GET)
-            xml_data = xml.etree.ElementTree.fromstring(response.text)
-
-            for command in xml_data.findall("command"):
-                name = command.get("name")
-                self.commands[name] = ApiAction(command.attrib)
-        else:
-            response = self.send_http(
-                url, method=HttpMethod.POST, data=self.create_json_v4("getRemoteControllerInfo"))
-            json = response.json()
-            if not json.get('error'):
-                # todo this does not fit 100% with the structure of this lib.
-                # see github issue#2
-                self.commands = json.get('result')[1]
-            else:
-                _LOGGER.error("JSON request error: " +
-                              json.dumps(json, indent=4))
-
     def post_soap_request(self, url, params, action):
         headers = {
             'SOAPACTION': '"{0}"'.format(action),
@@ -425,7 +459,7 @@ class SonyDevice():
             "</SOAP-ENV:Body>" +\
             "</SOAP-ENV:Envelope>"
         return self.send_http(url, method=HttpMethod.POST,
-                                  headers=headers, data=data).content.decode("utf-8")
+                              headers=headers, data=data).content.decode("utf-8")
 
     def send_req_ircc(self, params, log_errors=True):
         """Send an IRCC command via HTTP to Sony Bravia."""
@@ -435,230 +469,193 @@ class SonyDevice():
             "</u:X_SendIRCC>"
         action = "urn:schemas-sony-com:service:IRCC:1#X_SendIRCC"
 
-        content = self.post_soap_request(url=self.control_url, params=data, action=action)
+        content = self.post_soap_request(
+            url=self.control_url, params=data, action=action)
         return content
-
-    def send_command(self, command):
-        """Sends a command to the Device."""
-        if not self.commands:
-            self.update_commands()
 
     def get_playing_info(self):
         # the device which i got for testing only deliviers default values
         # therefore not implemented
         pass
-    
 
     def get_power_status(self):
         url = self.ircc_url
         try:
-            self.send_http(url, HttpMethod.GET, log_errors=False, raise_errors=True)
-        except: 
+            self.send_http(url, HttpMethod.GET,
+                           log_errors=False, raise_errors=True)
+        except:
             return False
         return True
 
     # def get_source(self, source):
     #     pass
 
-    def load_app_list(self, log_errors=True):
-        # http://10.0.0.102:50202/appslist
-        pass
-
     def start_app(self, app_name, log_errors=True):
         """Start an app by name"""
-        # post 
-       
-        # http://10.0.0.102:50202/apps/Netflix
-        data = "LOCATION: http://10.0.0.102:50202/apps/com.sony.iptv.type.NRDP/run"
-        self.send_http("http://10.0.0.102:50202/apps/com.sony.iptv.type.NRDP", HttpMethod.POST, data=data)
+        # sometimes device does not start app if already running one
+        self.home()
+        url = "{0}/apps/{1}".format(self.app_url, self.apps[app_name].id)
+        data = "LOCATION: {0}/run".format(url)
+        self.send_http(url, HttpMethod.POST, data=data)
         pass
 
     def send_command(self, name):
-        if len(self.commands) == 0: 
+        if len(self.commands) == 0:
             self.update_commands()
-        
+
         self.send_req_ircc(self.commands[name].value)
 
     def power(self, on):
-            if (on):
+        if (on):
             self.wakeonlan()
-        
+
         # Try using the power on command incase the WOL doesn't work
         if on and not self.get_power_status():
             self.send_command('Power')
-    
+
+    def get_apps(self):
+        return list(self.apps.keys())
+
     def up(self):
         self.send_command('Up')
-        
+
     def confirm(self):
         self.send_command('Confirm')
-        
+
     def down(self):
         self.send_command('Down')
-        
+
     def right(self):
         self.send_command('Right')
-        
+
     def left(self):
         self.send_command('Left')
-        
+
     def home(self):
         self.send_command('Home')
-        
+
     def options(self):
         self.send_command('Options')
-        
+
     def returns(self):
         self.send_command('Return')
-        
+
     def num1(self):
         self.send_command('Num1')
-        
+
     def num2(self):
         self.send_command('Num2')
-        
+
     def num3(self):
         self.send_command('Num3')
-        
+
     def num4(self):
         self.send_command('Num4')
-        
+
     def num5(self):
         self.send_command('Num5')
-        
+
     def num6(self):
         self.send_command('Num6')
-        
+
     def num7(self):
         self.send_command('Num7')
-        
+
     def num8(self):
         self.send_command('Num8')
-        
+
     def num9(self):
         self.send_command('Num9')
-        
+
     def num0(self):
         self.send_command('Num0')
-        
+
     def display(self):
         self.send_command('Display')
-        
+
     def audio(self):
         self.send_command('Audio')
-        
+
     def subTitle(self):
         self.send_command('SubTitle')
-        
+
     def favorites(self):
         self.send_command('Favorites')
-        
+
     def yellow(self):
         self.send_command('Yellow')
-        
+
     def blue(self):
         self.send_command('Blue')
-        
+
     def red(self):
         self.send_command('Red')
-        
+
     def green(self):
         self.send_command('Green')
-        
+
     def play(self):
         self.send_command('Play')
-        
+
     def stop(self):
         self.send_command('Stop')
-        
+
     def pause(self):
         self.send_command('Pause')
-        
+
     def rewind(self):
         self.send_command('Rewind')
-        
+
     def forward(self):
         self.send_command('Forward')
-        
+
     def prev(self):
         self.send_command('Prev')
-        
+
     def next(self):
         self.send_command('Next')
-        
+
     def replay(self):
         self.send_command('Replay')
-        
+
     def advance(self):
         self.send_command('Advance')
-        
+
     def angle(self):
         self.send_command('Angle')
-        
+
     def topMenu(self):
         self.send_command('TopMenu')
-        
+
     def popUpMenu(self):
         self.send_command('PopUpMenu')
-        
+
     def eject(self):
         self.send_command('Eject')
-        
+
     def karaoke(self):
         self.send_command('Karaoke')
-        
+
     def netflix(self):
         self.send_command('Netflix')
-        
+
     def mode3D(self):
         self.send_command('Mode3D')
-        
+
     def zoomIn(self):
         self.send_command('ZoomIn')
-        
+
     def zoomOut(self):
         self.send_command('ZoomOut')
-        
+
     def browserBack(self):
         self.send_command('BrowserBack')
-        
+
     def browserForward(self):
         self.send_command('BrowserForward')
-        
+
     def browserBookmarkList(self):
         self.send_command('BrowserBookmarkList')
-        
+
     def list(self):
         self.send_command('List')
-    
-
-if __name__ == "__main__":
-    
-    stored_config = "bluray.json"
-    device = None
-    import os.path
-    if os.path.exists(stored_config):
-        with open(stored_config, 'r') as content_file:
-            json_data = content_file.read()
-            device = SonyDevice.load_from_json(json_data)
-    else:
-        host = "10.0.0.102"
-        device = SonyDevice(host)
-        device.register("SonyApiLib Python Test")
-        pin = input("Enter the PIN displayed at your device: ")
-        device.send_authentication(pin)
-
-        data = device.save_to_json()
-        text_file = open("bluray.json", "w")
-        text_file.write(data)
-        text_file.close()
-
-    # wake device
-    is_on = device.get_power_status()
-    if not is_on:
-        device.power(True)
-
-   # device.update_commands()
-    device.start_app("fo")
-    # Play media
-    device.play()

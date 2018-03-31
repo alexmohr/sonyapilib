@@ -485,8 +485,9 @@ class SonyDevice():
             params +\
             "</SOAP-ENV:Body>" +\
             "</SOAP-ENV:Envelope>"
-        return self.send_http(url, method=HttpMethod.POST,
-                              headers=headers, data=data).content.decode("utf-8")
+        response = self.send_http(url, method=HttpMethod.POST,headers=headers, data=data)
+        if response is not None:
+            return response.content.decode("utf-8")
 
     def send_req_ircc(self, params, log_errors=True):
         """Send an IRCC command via HTTP to Sony Bravia."""
@@ -507,9 +508,10 @@ class SonyDevice():
 
         action = "urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo"
 
-
         content = self.post_soap_request(
             url=self.av_transport_url, params=data, action=action)
+        if None is content:
+            return "OFF"
         response = xml.etree.ElementTree.fromstring(content)
         state = response.find(".//CurrentTransportState").text
         return state
@@ -517,7 +519,7 @@ class SonyDevice():
     def get_power_status(self):
         url = self.actionlist_url
         try:
-            self.send_http(url, HttpMethod.GET,
+            responst = self.send_http(url, HttpMethod.GET,
                            log_errors=False, raise_errors=True)
         except Exception as ex:
             _LOGGER.debug(ex)

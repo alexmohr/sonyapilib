@@ -20,7 +20,7 @@ import jsonpickle
 from sonyapilib import ssdp
 _LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 10
+TIMEOUT = 50
 
 
 class AuthenicationResult(Enum):
@@ -54,17 +54,17 @@ class XmlApiObject():
                     if (arg == "mode"):
                         setattr(self, arg, int(xml_data[arg]))
                     else:
-                        setattr(self, arg, xml_data[arg])
-
+                        setattr(self, arg, xml_data[arg])  
 
 class SonyDevice():
     """
     Contains all data for the device
     """
 
-    def __init__(self, host, port=50001, dmr_port=52323, app_port=50202, ircc_location=None):
+    def __init__(self, host, nickname, port=50001, dmr_port=52323, app_port=50202, ircc_location=None):
         """ Init the device with the entry point"""
         self.host = host
+        self.nickname = nickname
         self.ircc_url = ircc_location
         self.actionlist_url = None
         self.control_url = None
@@ -82,6 +82,7 @@ class SonyDevice():
         self.name = None
         self.cookies = None
         self.mac = None
+        self.authenticated = False
 
         if self.ircc_url == None:
             self.ircc_url = "http://{0}:{1}/Ircc.xml".format(host, port)
@@ -94,9 +95,7 @@ class SonyDevice():
 
         if len(self.actions) == 0 and self.pin is not None:
             self.update_service_urls()
-
-        # http://10.0.0.102:50202/appslist
-
+            
     @staticmethod
     def discover():
         """
@@ -116,6 +115,7 @@ class SonyDevice():
         return jsonpickle.decode(data)
 
     def save_to_json(self):
+        
         return jsonpickle.dumps(self)
 
     def create_json_v4(self, method, params=None):
@@ -148,8 +148,9 @@ class SonyDevice():
         """ Initalizes the device by reading the necessary resources from it """
 
         lirc_url = urllib.parse.urlparse(self.ircc_url)
-
         response = self.send_http(self.ircc_url, method=HttpMethod.GET)
+        if response is None:
+            return
         raw_data = response.text
         xml_data = xml.etree.ElementTree.fromstring(raw_data)
 
@@ -168,58 +169,78 @@ class SonyDevice():
 
         # read action list
         response = self.send_http(self.actionlist_url, method=HttpMethod.GET)
-        raw_data = response.text
-        xml_data = xml.etree.ElementTree.fromstring(raw_data)
-        for element in xml_data.findall("action"):
-            action = XmlApiObject(element.attrib)
-            self.actions[action.name] = action
+        if response is not None:
+            raw_data = response.text
+            xml_data = xml.etree.ElementTree.fromstring(raw_data)
+            for element in xml_data.findall("action"):
+                action = XmlApiObject(element.attrib)
+                self.actions[action.name] = action
+                
+                # some data has to overwritten for the registration to work properly
+                if action.name == "register":
+                    if action.mode < 4:
+                        # the authenication later on is based on the device id and the mac
+                        action.url = "{0}?name={1}&registrationType=initial&deviceId={1}".format(
+                        action.url, urllib.parse.quote(self.nickname))
+                        if action.mode == 3:
+                            action.url = action.url + "&wolSupport=true"
+                    elif action.mode == 4:
+                        pass
+                        # overwrite urls for api version 4 to be consistent later.
+                        # todo check if this is necessary
+                        # if self.actions["register"].mode == 4:
+                        #    self.actions["getRemoteCommandList"].url = "http://{0}/sony/system".format(
+                        #        lirc_url.netloc.split(":")[0])
+        
+        # make sure we are authenticated before
+        self.recreate_authentication()
+        
+        if services is not None:
+            # read service list
+            for service in services:
+                service_id = service.find("{0}serviceId".format(urn_upnp_device))
+                if service_id == None:
+                    continue
+                if "urn:schemas-sony-com:serviceId:IRCC" not in service_id.text:
+                    continue
 
-        # overwrite urls for api version 4 to be consistent later.
-        # todo check if this is necessary
-        # if self.actions["register"].mode == 4:
-        #    self.actions["getRemoteCommandList"].url = "http://{0}/sony/system".format(
-        #        lirc_url.netloc.split(":")[0])
-
-        # read service list
-        for service in services:
-            service_id = service.find("{0}serviceId".format(urn_upnp_device))
-            if service_id == None:
-                continue
-            if "urn:schemas-sony-com:serviceId:IRCC" not in service_id.text:
-                continue
-
-            service_location = service.find(
-                "{0}controlURL".format(urn_upnp_device)).text
-            service_url = lirc_url.scheme + "://" + lirc_url.netloc
-            self.control_url = service_url + service_location
+                service_location = service.find(
+                    "{0}controlURL".format(urn_upnp_device)).text
+                service_url = lirc_url.scheme + "://" + lirc_url.netloc
+                self.control_url = service_url + service_location
 
         # get systeminformation
         response = self.send_http(
-            self.actions["getSystemInformation"].url, method=HttpMethod.GET)
-        raw_data = response.text
-        xml_data = xml.etree.ElementTree.fromstring(raw_data)
-        for element in xml_data.findall("supportFunction"):
-            for function in element.findall("function"):
-                if function.attrib["name"] == "WOL":
-                    self.mac = function.find("functionItem").attrib["value"]
+            self.get_action("getSystemInformation").url, method=HttpMethod.GET)
 
+        if response is not None:
+            raw_data = response.text
+            xml_data = xml.etree.ElementTree.fromstring(raw_data)
+            for element in xml_data.findall("supportFunction"):
+                for function in element.findall("function"):
+                    if function.attrib["name"] == "WOL":
+                        self.mac = function.find("functionItem").attrib["value"]
+
+        # get control data for sending commands
         response = self.send_http(self.dmr_url, method=HttpMethod.GET)
-        raw_data = response.text
-        xml_data = xml.etree.ElementTree.fromstring(raw_data)
-        for device in xml_data.findall("{0}device".format(urn_upnp_device)):
-            serviceList = device.find("{0}serviceList".format(urn_upnp_device))
-            for service in serviceList:
-                service_id = service.find(
-                    "{0}serviceId".format(urn_upnp_device))
-                if "urn:upnp-org:serviceId:AVTransport" not in service_id.text:
-                    continue
-                transport_location = service.find(
-                    "{0}controlURL".format(urn_upnp_device)).text
-                self.av_transport_url = "{0}://{1}:{2}{3}".format(
-                    lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
+        if response is not None:
+            raw_data = response.text
+            xml_data = xml.etree.ElementTree.fromstring(raw_data)
+            for device in xml_data.findall("{0}device".format(urn_upnp_device)):
+                serviceList = device.find("{0}serviceList".format(urn_upnp_device))
+                for service in serviceList:
+                    service_id = service.find(
+                        "{0}serviceId".format(urn_upnp_device))
+                    if "urn:upnp-org:serviceId:AVTransport" not in service_id.text:
+                        continue
+                    transport_location = service.find(
+                        "{0}controlURL".format(urn_upnp_device)).text
+                    self.av_transport_url = "{0}://{1}:{2}{3}".format(
+                        lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
 
-        self.update_commands()
-        self.update_applist()
+        if len(self.commands) > 0:
+            self.update_commands()
+            self.update_applist()
 
     def update_commands(self):
         
@@ -227,72 +248,79 @@ class SonyDevice():
         if self.pin is None:
             return
 
-        url = self.actions["getRemoteCommandList"].url
-        if self.actions["register"].mode < 4:
+        url = self.get_action("getRemoteCommandList").url
+        if self.get_action("register").mode < 4:
             response = self.send_http(url, method=HttpMethod.GET)
-            xml_data = xml.etree.ElementTree.fromstring(response.text)
+            if response is not None:
+                xml_data = xml.etree.ElementTree.fromstring(response.text)
 
-            for command in xml_data.findall("command"):
-                name = command.get("name")
-                self.commands[name] = XmlApiObject(command.attrib)
+                for command in xml_data.findall("command"):
+                    name = command.get("name")
+                    self.commands[name] = XmlApiObject(command.attrib)
         else:
             response = self.send_http(
                 url, method=HttpMethod.POST, data=self.create_json_v4("getRemoteControllerInfo"))
-            json = response.json()
-            if not json.get('error'):
-                # todo this does not fit 100% with the structure of this lib.
-                # see github issue#2
-                self.commands = json.get('result')[1]
-            else:
-                _LOGGER.error("JSON request error: " +
-                              json.dumps(json, indent=4))
+            if response is not None:
+                json = response.json()
+                if not json.get('error'):
+                    # todo this does not fit 100% with the structure of this lib.
+                    # see github issue#2
+                    self.commands = json.get('result')[1]
+                else:
+                    _LOGGER.error("JSON request error: " +
+                                json.dumps(json, indent=4))
 
     def update_applist(self, log_errors=True):
         url = self.app_url + "/appslist"
         response = self.send_http(url, method=HttpMethod.GET)
-        xml_data = xml.etree.ElementTree.fromstring(response.text)
-        apps = xml_data.findall(".//app")
-        for app in apps:
-            name = app.find("name").text
-            id = app.find("id").text
-            data = XmlApiObject(None)
-            data.name = name
-            data.id = id
-            self.apps[name] = data
+        if response is not None:
+            xml_data = xml.etree.ElementTree.fromstring(response.text)
+            apps = xml_data.findall(".//app")
+            for app in apps:
+                name = app.find("name").text
+                id = app.find("id").text
+                data = XmlApiObject(None)
+                data.name = name
+                data.id = id
+                self.apps[name] = data
 
-    def recreate_auth_cookie(self):
+    def recreate_authentication(self):
         """
         The default cookie is for URL/sony. For some commands we need it for the root path.
         Only for api v4
         """
-        cookies = requests.cookies.RequestsCookieJar()
-        cookies.set("auth", self.cookies.get("auth"))
+
+        if self.pin == None:
+            return
+
+        # todo fix cookies
+        cookies = None
+        #cookies = requests.cookies.RequestsCookieJar()
+        #cookies.set("auth", self.cookies.get("auth"))
+        
+        username = ''
+        base64string = base64.encodebytes(('%s:%s' % (username, self.pin)).encode()) \
+            .decode().replace('\n', '')
+        
+        registration_action = self.get_action("register")
+
+        self.headers['Authorization'] = "Basic %s" % base64string
+        if registration_action.mode == 3:
+            self.headers['X-CERS-DEVICE-ID'] = self.nickname
+        elif registration_action.mode == 4:
+            self.headers['Connection'] = "keep-alive"
+
         return cookies
 
-    def register(self, name):
+    def register(self):
         """
         Register at the api.50001
         :param str name: The name which will be displayed in the UI of the device. Make sure this name does not exist yet
         For this the device must be put in registration mode.
         The tested sd5500 has no separte mode but allows registration in the overview "
         """
-
-        if not "register" in self.actions:
-            self.update_service_urls()
-
-        self.name = name
         registrataion_result = AuthenicationResult.ERROR
-        registration_action = self.actions["register"]
-
-        if registration_action.mode < 4:
-            # the authenication later on is based on the device id and the mac
-            # address of the device
-            registration_action.url = "{0}?name={1}&registrationType=initial&deviceId={1}".format(
-                registration_action.url, urllib.parse.quote(name))
-            if registration_action.mode == 3:
-                registration_action.url = registration_action.url + "&wolSupport=true"
-        else:
-            registration_action.url = registration_action.url
+        registration_action = registration_action = self.get_action("register")
 
         # protocoll version 1 and 2
         if registration_action.mode < 3:
@@ -317,8 +345,8 @@ class SonyDevice():
             authorization = json.dumps(
                 {
                     "method": "actRegister",
-                    "params": [{"clientid": name,
-                                "nickname": name,
+                    "params": [{"clientid": self.nickname,
+                                "nickname": self.nickname,
                                 "level": "private"},
                                [{"value": "yes",
                                  "function": "WOL"}]],
@@ -349,19 +377,15 @@ class SonyDevice():
         return registrataion_result
 
     def send_authentication(self, pin):
-        registration_action = self.actions["register"]
+        registration_action = self.get_action("register")
 
-        username = ''
-        base64string = base64.encodebytes(('%s:%s' % (username, pin)).encode()) \
-            .decode().replace('\n', '')
-        self.headers['Authorization'] = "Basic %s" % base64string
+        self.pin = pin
+        self.recreate_authentication()
 
         if registration_action.mode == 3:
-            self.headers['X-CERS-DEVICE-ID'] = self.name
-
             try:
                 self.send_http(
-                    self.actions["register"].url, method=HttpMethod.GET, raise_errors=True)
+                    self.get_action("register").url, method=HttpMethod.GET, raise_errors=True)
             except:
                 return False
             else:
@@ -370,8 +394,6 @@ class SonyDevice():
             return False
 
         elif registration_action.mode == 4:
-            self.headers['Connection'] = "keep-alive"
-
             authorization = json.dumps(
                 {
                     "id": 13,
@@ -395,7 +417,7 @@ class SonyDevice():
             )
 
             try:
-                response = self.send_http(self.actions["register"].url, method=HttpMethod.post,
+                response = self.send_http(self.get_action("register").url, method=HttpMethod.post,
                                           data=authorization, raise_errors=True)
             except:
                 return False
@@ -413,6 +435,11 @@ class SonyDevice():
 
         if headers is None:
             headers = self.headers
+
+        if url is None:
+            return
+
+        _LOGGER.debug("Calling http url {0} method {1}".format(url, str(method)))
 
         try:
             params = ""
@@ -473,17 +500,27 @@ class SonyDevice():
             url=self.control_url, params=data, action=action)
         return content
 
-    def get_playing_info(self):
-        # the device which i got for testing only deliviers default values
-        # therefore not implemented
-        pass
+    def get_playing_status(self):
+        data = '<m:GetTransportInfo xmlns:m="urn:schemas-upnp-org:service:AVTransport:1">' + \
+                '<InstanceID>0</InstanceID>' + \
+                '</m:GetTransportInfo>'
+
+        action = "urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo"
+
+
+        content = self.post_soap_request(
+            url=self.av_transport_url, params=data, action=action)
+        response = xml.etree.ElementTree.fromstring(content)
+        state = response.find(".//CurrentTransportState").text
+        return state
 
     def get_power_status(self):
-        url = self.ircc_url
+        url = self.actionlist_url
         try:
             self.send_http(url, HttpMethod.GET,
                            log_errors=False, raise_errors=True)
-        except:
+        except Exception as ex:
+            _LOGGER.debug(ex)
             return False
         return True
 
@@ -505,13 +542,24 @@ class SonyDevice():
 
         self.send_req_ircc(self.commands[name].value)
 
+    def get_action(self, name):
+        if not name in self.actions and len(self.actions) == 0: 
+            self.update_service_urls()
+            if not name in self.actions and len(self.actions) == 0:
+                raise ValueError('Failed to read action list from device.')
+
+        return self.actions[name]
+
     def power(self, on):
         if (on):
             self.wakeonlan()
+            if not self.get_power_status():
+                self.send_command('Power')
+        else:
+            self.send_command('Power')
 
         # Try using the power on command incase the WOL doesn't work
-        if on and not self.get_power_status():
-            self.send_command('Power')
+        
 
     def get_apps(self):
         return list(self.apps.keys())

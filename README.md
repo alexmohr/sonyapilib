@@ -12,13 +12,11 @@ The example will load a json file with all data if it exists or connects to devi
 ```
 from sonyapilib.device import SonyDevice
 
-
 def save_device():
     data = device.save_to_json()
     text_file = open("bluray.json", "w")
     text_file.write(data)
     text_file.close()
-
 
 if __name__ == "__main__":
 
@@ -32,8 +30,7 @@ if __name__ == "__main__":
     else:
         # device must be on for registration
         host = "10.0.0.102"
-        device = SonyDevice(host)
-        device.register("SonyApiLib Python Test")
+        device = SonyDevice(host, "SonyApiLib Python Test")
         pin = input("Enter the PIN displayed at your device: ")
         device.send_authentication(pin)
         save_device()
@@ -43,18 +40,12 @@ if __name__ == "__main__":
     if not is_on:
         device.power(True)
 
-
     apps = device.get_apps()
     
     device.start_app(apps[0])
-    import time
-    time.sleep(5)
-    
-    device.start_app(apps[1])
+
     # Play media
     device.play()
-
-
 ```
 
 # Compatability List

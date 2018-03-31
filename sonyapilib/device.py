@@ -20,7 +20,7 @@ import jsonpickle
 from sonyapilib import ssdp
 _LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 50
+TIMEOUT = 5
 
 
 class AuthenicationResult(Enum):

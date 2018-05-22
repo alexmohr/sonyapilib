@@ -1,11 +1,8 @@
 import json
 from sonyapilib.device import SonyDevice
 
+
 config_file = 'bluray.json'
-
-
-
-
 
 with open(config_file, 'r') as myfile:
     data=myfile.read()

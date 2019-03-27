@@ -31,6 +31,7 @@ if __name__ == "__main__":
         # device must be on for registration
         host = "10.0.0.102"
         device = SonyDevice(host, "SonyApiLib Python Test")
+        device.register()
         pin = input("Enter the PIN displayed at your device: ")
         device.send_authentication(pin)
         save_device()

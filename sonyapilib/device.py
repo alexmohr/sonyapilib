@@ -23,7 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = 5
 
 
-class AuthenticationResult(Enum):
+class AuthenicationResult(Enum):
     SUCCESS = 0
     ERROR = 1
     PIN_NEEDED = 2
@@ -179,19 +179,9 @@ class SonyDevice():
                 # some data has to overwritten for the registration to work properly
                 if action.name == "register":
                     if action.mode < 4:
-                        if action.mode == 1 or action.mode == 3: 
-                            action.url = "{0}?name={1}&registrationType=initial&deviceId={2}"\
-                            .format(
-                                action.url, 
-                                urllib.parse.quote(self.nickname),
-                                urllib.parse.quote(self.get_device_id()))
-                        elif action.mode == 2: 
-                            action.url = "{0}?name={1}&registrationType=new&deviceId={2}".format(
-                                action.url, 
-                                urllib.parse.quote(self.nickname)
-                                urllib.parse.quote(self.get_device_id()))
-                
                         # the authenication later on is based on the device id and the mac
+                        action.url = "{0}?name={1}&registrationType=initial&deviceId={1}".format(
+                        action.url, urllib.parse.quote(self.nickname))
                         if action.mode == 3:
                             action.url = action.url + "&wolSupport=true"
                     elif action.mode == 4:
@@ -326,26 +316,30 @@ class SonyDevice():
         """
         Register at the api. The name which will be displayed in the UI of the device. Make sure this name does not exist yet
         For this the device must be put in registration mode.
+        The tested sd5500 has no separte mode but allows registration in the overview "
         """
-        registration_result = AuthenticationResult.ERROR
+        registrataion_result = AuthenicationResult.ERROR
         registration_action = registration_action = self.get_action("register")
 
-        # protocol version 1 and 2
+        # protocoll version 1 and 2
         if registration_action.mode < 3:
             self.send_http(
                 registration_action.url, method=HttpMethod.GET, raise_errors=True)
-            registration_result = AuthenticationResult.SUCCESS
+            if registration_response.text == "":
+                registration_response = AuthenicationResult.SUCCESS
+            else:
+                registration_response = AuthenicationResult.ERROR
 
-        # protocol version 3
+        # protocoll version 3
         elif registration_action.mode == 3:
             try:
                 self.send_http(registration_action.url,
                                method=HttpMethod.GET, raise_errors=True)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("[W] HTTPError: " + str(ex))
-                registration_result = AuthenticationResult.PIN_NEEDED
+                registrataion_result = AuthenicationResult.PIN_NEEDED
 
-        # newest protocol version 4 this is the same method as braviarc uses
+        # newest protocoll version 4 this is the same method as braviarc uses
         elif registration_action.mode == 4:
             authorization = json.dumps(
                 {
@@ -364,7 +358,7 @@ class SonyDevice():
                                           data=authorization, raise_errors=True)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("[W] HTTPError: " + str(ex))
-                registration_result = AuthenticationResult.PIN_NEEDED
+                registrataion_result = AuthenicationResult.PIN_NEEDED
 
             except Exception as ex:  # pylint: disable=broad-except
                 _LOGGER.error("[W] Exception: " + str(ex))
@@ -373,13 +367,13 @@ class SonyDevice():
                 _LOGGER.debug(json.dumps(resp, indent=4))
                 if resp is None or not resp.get('error'):
                     self.cookies = response.cookies
-                    registration_result = AuthenticationResult.SUCCESS
+                    registrataion_result = AuthenicationResult.SUCCESS
 
         else:
             raise ValueError(
                 "Regisration mode {0} is not supported".format(registration_action.mode))
 
-        return registration_result
+        return registrataion_result
 
     def send_authentication(self, pin):
         

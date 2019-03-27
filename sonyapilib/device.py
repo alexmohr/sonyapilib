@@ -180,9 +180,16 @@ class SonyDevice():
                 if action.name == "register":
                     if action.mode < 4:
                         if action.mode == 1 or action.mode == 3: 
-                            action.url = "{0}?name={1}&registrationType=initial&deviceId={1}".format(action.url, urllib.parse.quote(self.nickname))
+                            action.url = "{0}?name={1}&registrationType=initial&deviceId={2}"\
+                            .format(
+                                action.url, 
+                                urllib.parse.quote(self.nickname),
+                                urllib.parse.quote(self.get_device_id()))
                         elif action.mode == 2: 
-                            action.url = "{0}?name={1}&registrationType=new&deviceId={1}".format(action.url, urllib.parse.quote(self.nickname))
+                            action.url = "{0}?name={1}&registrationType=new&deviceId={2}".format(
+                                action.url, 
+                                urllib.parse.quote(self.nickname)
+                                urllib.parse.quote(self.get_device_id()))
                 
                         # the authenication later on is based on the device id and the mac
                         if action.mode == 3:
@@ -309,7 +316,7 @@ class SonyDevice():
 
         self.headers['Authorization'] = "Basic %s" % base64string
         if registration_action.mode == 3:
-            self.headers['X-CERS-DEVICE-ID'] = self.nickname
+            self.headers['X-CERS-DEVICE-ID'] = self.get_device_id()
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 
@@ -317,8 +324,7 @@ class SonyDevice():
 
     def register(self):
         """
-        Register at the api.50001
-        :param str name: The name which will be displayed in the UI of the device. Make sure this name does not exist yet
+        Register at the api. The name which will be displayed in the UI of the device. Make sure this name does not exist yet
         For this the device must be put in registration mode.
         """
         registration_result = AuthenticationResult.ERROR
@@ -326,12 +332,9 @@ class SonyDevice():
 
         # protocol version 1 and 2
         if registration_action.mode < 3:
-            registration_response = self.send_http(
+            self.send_http(
                 registration_action.url, method=HttpMethod.GET, raise_errors=True)
-            if registration_response.text == "":
-                registration_result = AuthenticationResult.SUCCESS
-            else:
-                registration_result = AuthenticationResult.ERROR
+            registration_result = AuthenticationResult.SUCCESS
 
         # protocol version 3
         elif registration_action.mode == 3:
@@ -379,7 +382,12 @@ class SonyDevice():
         return registration_result
 
     def send_authentication(self, pin):
+        
         registration_action = self.get_action("register")
+
+        # they do not need a pin
+        if registration_action.mode < 3:
+            return True
 
         self.pin = pin
         self.recreate_authentication()
@@ -503,6 +511,9 @@ class SonyDevice():
             url=self.control_url, params=data, action=action)
         return content
 
+    def get_device_id(self):
+        return "TVSideView:{0}".format(self.mac)
+
     def get_playing_status(self):
         data = '<m:GetTransportInfo xmlns:m="urn:schemas-upnp-org:service:AVTransport:1">' + \
                 '<InstanceID>0</InstanceID>' + \
@@ -521,7 +532,7 @@ class SonyDevice():
     def get_power_status(self):
         url = self.actionlist_url
         try:
-            responst = self.send_http(url, HttpMethod.GET,
+            response = self.send_http(url, HttpMethod.GET,
                            log_errors=False, raise_errors=True)
         except Exception as ex:
             _LOGGER.debug(ex)

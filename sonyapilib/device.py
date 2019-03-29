@@ -315,7 +315,7 @@ class SonyDevice():
     def register(self):
         """
         Register at the api.50001
-        Register at the api The name which will be displayed in the UI of the device. Make sure this name does not exist yet
+        Register at the api. The name which will be displayed in the UI of the device. Make sure this name does not exist yet
         For this the device must be put in registration mode.
         The tested sd5500 has no separte mode but allows registration in the overview "
         """
@@ -377,7 +377,7 @@ class SonyDevice():
         return registration_result
 
     def send_authentication(self, pin):
-
+        
         registration_action = self.get_action("register")
 
         # they do not need a pin

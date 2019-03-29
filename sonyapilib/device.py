@@ -324,7 +324,7 @@ class SonyDevice():
 
         # protocoll version 1 and 2
         if registration_action.mode < 3:
-            self.send_http(
+            registration_response = self.send_http(
                 registration_action.url, method=HttpMethod.GET, raise_errors=True)
             if registration_response.text == "":
                 registration_result = AuthenicationResult.SUCCESS

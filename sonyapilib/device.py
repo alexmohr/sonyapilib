@@ -403,20 +403,38 @@ class SonyDevice():
             return True
 
         elif registration_action.mode == 4:
-            url = "http://{0}/sony/appControl".format(self.host)
+             
+            # todo refactor to remove duplicated code from register
+            authorization = json.dumps(
+               {
+                    "id": 13,
+                    "method": "actRegister",
+                    "version": "1.0",
+                    "params": [{
+                            "clientid": self.nickname,
+                            "nickname": self.nickname
+                        },
+                        [{
+                            "clientid": self.nickname,
+                            "nickname": self.nickname,
+                            "value": "yes",
+                            "function": "WOL"
+                        }]
+                    ]
+                })
 
             try:
-                response=self.send_http(url, method=HttpMethod.get, raise_errors=True)
-            except:
+                response=self.send_http(registration_action.url, method=HttpMethod.POST,
+                                          data=authorization, raise_errors=True)
+                self.cookies = response.cookies
+                self.cookies.set(name="auth", value=response.cookies['auth'], path="/")
+
+                # todo implement request json
+                foobar = self.send_http("http://192.168.178.23/DIAL/sony/applist", method=HttpMethod.GET,data=authorization, raise_errors=True)
+                _LOGGER.error(json.dumps(foobar))
+            except requests.exceptions.HTTPError as ex:
                 return False
-            else:
-                resp=response.json()
-                _LOGGER.debug(json.dumps(resp, indent=4))
-                if resp is None or not resp.get('error'):
-                    self.cookies=response.cookies
-                    self.pin=pin
-                    return True
-            return False
+            return True
 
     def send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
         """ Send request command via HTTP json to Sony Bravia."""
@@ -710,7 +728,7 @@ if __name__ == "__main__":
     device=None
     # device must be on for registration
     host="192.168.178.23"
-    device=SonyDevice(host, "SonyApiLib Python Test")
+    device=SonyDevice(host, "SonyApiLib Python Test10")
     device.register()
     pin=input("Enter the PIN displayed at your device: ")
     device.send_authentication(pin)

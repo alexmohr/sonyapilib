@@ -10,7 +10,6 @@ import struct
 import requests
 import urllib.parse
 import xml.etree.ElementTree
-import logging
 import requests
 from enum import Enum
 
@@ -377,7 +376,7 @@ class SonyDevice():
         return registration_result
 
     def send_authentication(self, pin):
-        
+
         registration_action = self.get_action("register")
 
         # they do not need a pin

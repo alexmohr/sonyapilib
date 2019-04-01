@@ -26,7 +26,8 @@ setup(name='sonyapilib',
   install_requires=[
       'jsonpickle',
       'setuptools',
-      'requests'
+      'requests', 
+      'wakeonlan'
   ],
 
 )

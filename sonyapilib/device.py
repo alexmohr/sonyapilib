@@ -129,6 +129,7 @@ class SonyDevice():
 
     def wakeonlan(self):
         if self.mac is not None:
+            _LOGGER.debug("Waking up %s at %s", self.mac, self.host)
             wakeonlan.send_magic_packet(self.mac.replace('-',':'), self.host)
 
     def update_service_urls(self):

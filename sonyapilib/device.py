@@ -13,7 +13,7 @@ import xml.etree.ElementTree
 import requests
 from enum import Enum
 
-
+import wakeonlan
 import jsonpickle
 
 from sonyapilib import ssdp
@@ -129,19 +129,7 @@ class SonyDevice():
 
     def wakeonlan(self):
         if self.mac is not None:
-            addr_byte = self.mac.split('-')
-            hw_addr = struct.pack('BBBBBB', int(addr_byte[0], 16),
-                                  int(addr_byte[1], 16),
-                                  int(addr_byte[2], 16),
-                                  int(addr_byte[3], 16),
-                                  int(addr_byte[4], 16),
-                                  int(addr_byte[5], 16))
-            msg = b'\xff' * 6 + hw_addr * 16
-            socket_instance = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            socket_instance.setsockopt(
-                socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            socket_instance.sendto(msg, ('<broadcast>', 9))
-            socket_instance.close()
+            wakeonlan.send_magic_packet(self.mac, self.host)
 
     def update_service_urls(self):
         """ Initalizes the device by reading the necessary resources from it """

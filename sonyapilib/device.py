@@ -537,7 +537,13 @@ class SonyDevice():
         if len(self.commands) == 0:
             self.update_commands()
 
-        self.send_req_ircc(self.commands[name].value)
+        if len(self.commands) > 0:
+            if name in self.commands:
+                self.send_req_ircc(self.commands[name].value)
+            else:
+                raise ValueError('Unknown command: %s', name)
+        else:
+            raise ValueError('Failed to read command list from device.')
 
     def get_action(self, name):
         if not name in self.actions and len(self.actions) == 0:

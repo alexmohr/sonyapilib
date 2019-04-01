@@ -49,13 +49,15 @@ if __name__ == "__main__":
     device.play()
 ```
 
+More examples can be found in the examples folder.
+
 # URL list
 
 https://github.com/chr15m/media-remote/blob/master/SNIFF.md
 
 https://gist.github.com/kalleth/e10e8f3b8b7cb1bac21463b0073a65fb
 
-# Compatability List
+# Compatibility List
 
 LCD TV BRAVIA
 2016 model or later:

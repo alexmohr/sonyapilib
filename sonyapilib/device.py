@@ -324,12 +324,9 @@ class SonyDevice():
 
         # protocoll version 1 and 2
         if registration_action.mode < 3:
-            registration_response = self.send_http(
+            self.send_http(
                 registration_action.url, method=HttpMethod.GET, raise_errors=True)
-            if registration_response.text == "":
-                registrataion_result = AuthenicationResult.SUCCESS
-            else:
-                registrataion_result = AuthenicationResult.ERROR
+            registrataion_result = AuthenicationResult.SUCCESS
 
         # protocoll version 3
         elif registration_action.mode == 3:
@@ -377,7 +374,12 @@ class SonyDevice():
         return registrataion_result
 
     def send_authentication(self, pin):
+        
         registration_action = self.get_action("register")
+
+        # they do not need a pin
+        if registration_action.mode < 3:
+            return True
 
         self.pin = pin
         self.recreate_authentication()
@@ -519,7 +521,7 @@ class SonyDevice():
     def get_power_status(self):
         url = self.actionlist_url
         try:
-            responst = self.send_http(url, HttpMethod.GET,
+            response = self.send_http(url, HttpMethod.GET,
                            log_errors=False, raise_errors=True)
         except Exception as ex:
             _LOGGER.debug(ex)

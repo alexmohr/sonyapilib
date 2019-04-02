@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = 5
 
 
-class AuthenicationResult(Enum):
+class AuthenticationResult(Enum):
     SUCCESS = 0
     ERROR = 1
     PIN_NEEDED = 2
@@ -306,7 +306,7 @@ class SonyDevice():
         For this the device must be put in registration mode.
         The tested sd5500 has no separte mode but allows registration in the overview "
         """
-        registration_result = AuthenicationResult.ERROR
+        registration_result = AuthenticationResult.ERROR
         registration_action = registration_action = self.get_action("register")
 
         # protocoll version 1 and 2
@@ -314,9 +314,9 @@ class SonyDevice():
             registration_response = self.send_http(
                 registration_action.url, method=HttpMethod.GET, raise_errors=True)
             if registration_response.text == "":
-                registration_result = AuthenicationResult.SUCCESS
+                registration_result = AuthenticationResult.SUCCESS
             else:
-                registration_result = AuthenicationResult.ERROR
+                registration_result = AuthenticationResult.ERROR
 
         # protocoll version 3
         elif registration_action.mode == 3:
@@ -325,7 +325,7 @@ class SonyDevice():
                                method=HttpMethod.GET, raise_errors=True)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("[W] HTTPError: " + str(ex))
-                registration_result = AuthenicationResult.PIN_NEEDED
+                registration_result = AuthenticationResult.PIN_NEEDED
 
         # newest protocoll version 4 this is the same method as braviarc uses
         elif registration_action.mode == 4:
@@ -346,7 +346,7 @@ class SonyDevice():
                                           data=authorization, raise_errors=True)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("[W] HTTPError: " + str(ex))
-                registration_result = AuthenicationResult.PIN_NEEDED
+                registration_result = AuthenticationResult.PIN_NEEDED
 
             except Exception as ex:  # pylint: disable=broad-except
                 _LOGGER.error("[W] Exception: " + str(ex))
@@ -355,7 +355,7 @@ class SonyDevice():
                 _LOGGER.debug(json.dumps(resp, indent=4))
                 if resp is None or not resp.get('error'):
                     self.cookies = response.cookies
-                    registration_result = AuthenicationResult.SUCCESS
+                    registration_result = AuthenticationResult.SUCCESS
 
         else:
             raise ValueError(
@@ -537,7 +537,13 @@ class SonyDevice():
         if len(self.commands) == 0:
             self.update_commands()
 
-        self.send_req_ircc(self.commands[name].value)
+        if len(self.commands) > 0:
+            if name in self.commands:
+                self.send_req_ircc(self.commands[name].value)
+            else:
+                raise ValueError('Unknown command: %s', name)
+        else:
+            raise ValueError('Failed to read command list from device.')
 
     def get_action(self, name):
         if not name in self.actions and len(self.actions) == 0:

@@ -1,7 +1,7 @@
 # Sonyapilib
 Sony API lib. This is a python3 conversion from this project https://github.com/KHerron/SonyAPILib and some things have been taken from here: https://github.com/aparraga/braviarc. 
 It may not contains all functionality which is implemented in the project from KHerron because it is used as base implementation for usage in home assistant wich you can find here: 
-https://github.com/dilruacs/home-assistant-custom-components/tree/master/custom_components/sony
+https://github.com/dilruacs/media_player.sony
 # Installation
 ```
 pip install sonyapilib

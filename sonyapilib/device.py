@@ -10,11 +10,10 @@ import struct
 import requests
 import urllib.parse
 import xml.etree.ElementTree
-import logging
 import requests
 from enum import Enum
 
-
+import wakeonlan
 import jsonpickle
 
 from sonyapilib import ssdp
@@ -23,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = 5
 
 
-class AuthenicationResult(Enum):
+class AuthenticationResult(Enum):
     SUCCESS = 0
     ERROR = 1
     PIN_NEEDED = 2
@@ -54,7 +53,7 @@ class XmlApiObject():
                     if (arg == "mode"):
                         setattr(self, arg, int(xml_data[arg]))
                     else:
-                        setattr(self, arg, xml_data[arg])  
+                        setattr(self, arg, xml_data[arg])
 
 class SonyDevice():
     """
@@ -95,7 +94,7 @@ class SonyDevice():
 
         if len(self.actions) == 0 and self.pin is not None:
             self.update_service_urls()
-            
+
     @staticmethod
     def discover():
         """
@@ -115,7 +114,7 @@ class SonyDevice():
         return jsonpickle.decode(data)
 
     def save_to_json(self):
-        
+
         return jsonpickle.dumps(self)
 
     def create_json_v4(self, method, params=None):
@@ -130,19 +129,7 @@ class SonyDevice():
 
     def wakeonlan(self):
         if self.mac is not None:
-            addr_byte = self.mac.split('-')
-            hw_addr = struct.pack('BBBBBB', int(addr_byte[0], 16),
-                                  int(addr_byte[1], 16),
-                                  int(addr_byte[2], 16),
-                                  int(addr_byte[3], 16),
-                                  int(addr_byte[4], 16),
-                                  int(addr_byte[5], 16))
-            msg = b'\xff' * 6 + hw_addr * 16
-            socket_instance = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            socket_instance.setsockopt(
-                socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            socket_instance.sendto(msg, ('<broadcast>', 9))
-            socket_instance.close()
+            wakeonlan.send_magic_packet(self.mac, ip_address=self.host)
 
     def update_service_urls(self):
         """ Initalizes the device by reading the necessary resources from it """
@@ -175,7 +162,7 @@ class SonyDevice():
             for element in xml_data.findall("action"):
                 action = XmlApiObject(element.attrib)
                 self.actions[action.name] = action
-                
+
                 # some data has to overwritten for the registration to work properly
                 if action.name == "register":
                     if action.mode < 4:
@@ -191,10 +178,10 @@ class SonyDevice():
                         # if self.actions["register"].mode == 4:
                         #    self.actions["getRemoteCommandList"].url = "http://{0}/sony/system".format(
                         #        lirc_url.netloc.split(":")[0])
-        
+
         # make sure we are authenticated before
         self.recreate_authentication()
-        
+
         if services is not None:
             # read service list
             for service in services:
@@ -243,8 +230,8 @@ class SonyDevice():
             self.update_applist()
 
     def update_commands(self):
-        
-        # needs to be registred to do that 
+
+        # needs to be registred to do that
         if self.pin is None:
             return
 
@@ -297,16 +284,16 @@ class SonyDevice():
         cookies = None
         #cookies = requests.cookies.RequestsCookieJar()
         #cookies.set("auth", self.cookies.get("auth"))
-        
+
         username = ''
         base64string = base64.encodebytes(('%s:%s' % (username, self.pin)).encode()) \
             .decode().replace('\n', '')
-        
+
         registration_action = self.get_action("register")
 
         self.headers['Authorization'] = "Basic %s" % base64string
         if registration_action.mode == 3:
-            self.headers['X-CERS-DEVICE-ID'] = self.nickname
+            self.headers['X-CERS-DEVICE-ID'] = self.get_device_id()
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 
@@ -315,18 +302,21 @@ class SonyDevice():
     def register(self):
         """
         Register at the api.50001
-        :param str name: The name which will be displayed in the UI of the device. Make sure this name does not exist yet
+        Register at the api. The name which will be displayed in the UI of the device. Make sure this name does not exist yet
         For this the device must be put in registration mode.
         The tested sd5500 has no separte mode but allows registration in the overview "
         """
-        registrataion_result = AuthenicationResult.ERROR
+        registration_result = AuthenticationResult.ERROR
         registration_action = registration_action = self.get_action("register")
 
         # protocoll version 1 and 2
         if registration_action.mode < 3:
-            self.send_http(
+            registration_response = self.send_http(
                 registration_action.url, method=HttpMethod.GET, raise_errors=True)
-            registrataion_result = AuthenicationResult.SUCCESS
+            if registration_response.text == "":
+                registration_result = AuthenticationResult.SUCCESS
+            else:
+                registration_result = AuthenticationResult.ERROR
 
         # protocoll version 3
         elif registration_action.mode == 3:
@@ -335,7 +325,7 @@ class SonyDevice():
                                method=HttpMethod.GET, raise_errors=True)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("[W] HTTPError: " + str(ex))
-                registrataion_result = AuthenicationResult.PIN_NEEDED
+                registration_result = AuthenticationResult.PIN_NEEDED
 
         # newest protocoll version 4 this is the same method as braviarc uses
         elif registration_action.mode == 4:
@@ -356,7 +346,7 @@ class SonyDevice():
                                           data=authorization, raise_errors=True)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("[W] HTTPError: " + str(ex))
-                registrataion_result = AuthenicationResult.PIN_NEEDED
+                registration_result = AuthenticationResult.PIN_NEEDED
 
             except Exception as ex:  # pylint: disable=broad-except
                 _LOGGER.error("[W] Exception: " + str(ex))
@@ -365,16 +355,16 @@ class SonyDevice():
                 _LOGGER.debug(json.dumps(resp, indent=4))
                 if resp is None or not resp.get('error'):
                     self.cookies = response.cookies
-                    registrataion_result = AuthenicationResult.SUCCESS
+                    registration_result = AuthenticationResult.SUCCESS
 
         else:
             raise ValueError(
                 "Regisration mode {0} is not supported".format(registration_action.mode))
 
-        return registrataion_result
+        return registration_result
 
     def send_authentication(self, pin):
-        
+
         registration_action = self.get_action("register")
 
         # they do not need a pin
@@ -503,6 +493,9 @@ class SonyDevice():
             url=self.control_url, params=data, action=action)
         return content
 
+    def get_device_id(self):
+        return "TVSideView:{0}".format(self.mac)
+
     def get_playing_status(self):
         data = '<m:GetTransportInfo xmlns:m="urn:schemas-upnp-org:service:AVTransport:1">' + \
                 '<InstanceID>0</InstanceID>' + \
@@ -544,10 +537,16 @@ class SonyDevice():
         if len(self.commands) == 0:
             self.update_commands()
 
-        self.send_req_ircc(self.commands[name].value)
+        if len(self.commands) > 0:
+            if name in self.commands:
+                self.send_req_ircc(self.commands[name].value)
+            else:
+                raise ValueError('Unknown command: %s', name)
+        else:
+            raise ValueError('Failed to read command list from device.')
 
     def get_action(self, name):
-        if not name in self.actions and len(self.actions) == 0: 
+        if not name in self.actions and len(self.actions) == 0:
             self.update_service_urls()
             if not name in self.actions and len(self.actions) == 0:
                 raise ValueError('Failed to read action list from device.')
@@ -563,7 +562,7 @@ class SonyDevice():
             self.send_command('Power')
 
         # Try using the power on command incase the WOL doesn't work
-        
+
 
     def get_apps(self):
         return list(self.apps.keys())

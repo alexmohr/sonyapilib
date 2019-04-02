@@ -97,7 +97,8 @@ class SonyDevice():
 
     def init_device(self):
         self.update_service_urls()
-        self.update_commands
+        self.update_commands()
+        self.update_applist()
 
 
     @staticmethod

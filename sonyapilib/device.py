@@ -231,8 +231,6 @@ class SonyDevice():
                     self.av_transport_url = "{0}://{1}:{2}{3}".format(
                         lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
 
-        self.init_device()
-
     def update_commands(self):
 
         # needs to be registred to do that

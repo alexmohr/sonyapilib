@@ -93,7 +93,12 @@ class SonyDevice():
         self.app_url = "http://{0}:{1}".format(self.host, self.app_port)
 
         if len(self.actions) == 0 and self.pin is not None:
-            self.update_service_urls()
+            self.init_device()
+
+    def init_device(self):
+        self.update_service_urls()
+        self.update_commands
+
 
     @staticmethod
     def discover():
@@ -369,6 +374,7 @@ class SonyDevice():
 
         # they do not need a pin
         if registration_action.mode < 3:
+            self.init_device()
             return True
 
         self.pin = pin
@@ -382,9 +388,6 @@ class SonyDevice():
                 return False
             else:
                 self.pin = pin
-                return True
-            return False
-
         elif registration_action.mode == 4:
             authorization = json.dumps(
                 {
@@ -419,8 +422,12 @@ class SonyDevice():
                 if resp is None or not resp.get('error'):
                     self.cookies = response.cookies
                     self.pin = pin
-                    return True
-            return False
+                else:
+                    return False
+            
+        self.init_device()
+        return True
+            
 
     def send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
         """ Send request command via HTTP json to Sony Bravia."""

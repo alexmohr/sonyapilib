@@ -231,9 +231,7 @@ class SonyDevice():
                     self.av_transport_url = "{0}://{1}:{2}{3}".format(
                         lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
 
-        if len(self.commands) > 0:
-            self.update_commands()
-            self.update_applist()
+        self.init_device()
 
     def update_commands(self):
 

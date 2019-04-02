@@ -3,6 +3,6 @@ python:
   - "3.6"
 cache: pip
 install:
-  - pip install . --user
+  - pip install . 
 script:
   - python tests/deviceTest.py

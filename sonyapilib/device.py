@@ -225,9 +225,8 @@ class SonyDevice():
                     self.av_transport_url = "{0}://{1}:{2}{3}".format(
                         lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
 
-        if len(self.commands) > 0:
-            self.update_commands()
-            self.update_applist()
+        self.update_commands()
+        self.update_applist()
 
     def update_commands(self):
 
@@ -301,10 +300,10 @@ class SonyDevice():
 
     def register(self):
         """
-        Register at the api.50001
-        Register at the api. The name which will be displayed in the UI of the device. Make sure this name does not exist yet
+        Register at the api.
+        The name which will be displayed in the UI of the device. Make sure this name does not exist yet.
         For this the device must be put in registration mode.
-        The tested sd5500 has no separte mode but allows registration in the overview "
+        The tested sd5500 has no separate mode but allows registration in the overview "
         """
         registration_result = AuthenicationResult.ERROR
         registration_action = registration_action = self.get_action("register")
@@ -359,7 +358,10 @@ class SonyDevice():
 
         else:
             raise ValueError(
-                "Regisration mode {0} is not supported".format(registration_action.mode))
+                "Registration mode {0} is not supported".format(registration_action.mode))
+
+        if registration_result == AuthenicationResult.SUCCESS:
+            self.update_service_urls()
 
         return registration_result
 

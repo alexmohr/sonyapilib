@@ -1,7 +1,7 @@
 # Sonyapilib
 Sony API lib. This is a python3 conversion from this project https://github.com/KHerron/SonyAPILib and some things have been taken from here: https://github.com/aparraga/braviarc. 
 It may not contains all functionality which is implemented in the project from KHerron because it is used as base implementation for usage in home assistant wich you can find here: 
-https://github.com/dilruacs/home-assistant-custom-components/tree/master/custom_components/sony
+https://github.com/dilruacs/media_player.sony
 # Installation
 ```
 pip install sonyapilib
@@ -49,13 +49,15 @@ if __name__ == "__main__":
     device.play()
 ```
 
+More examples can be found in the examples folder.
+
 # URL list
 
 https://github.com/chr15m/media-remote/blob/master/SNIFF.md
 
 https://gist.github.com/kalleth/e10e8f3b8b7cb1bac21463b0073a65fb
 
-# Compatability List
+# Compatibility List
 
 LCD TV BRAVIA
 2016 model or later:

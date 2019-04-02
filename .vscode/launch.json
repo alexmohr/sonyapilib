@@ -8,7 +8,7 @@
          "name": "Python: Current File",
          "type": "python",
          "request": "launch",
-         "stopOnEntry": true,
+         "stopOnEntry": false,
          "pythonPath": "${config:python.pythonPath}",
          "program": "${file}",
          "cwd": "${workspaceFolder}",

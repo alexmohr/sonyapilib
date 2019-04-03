@@ -303,10 +303,13 @@ class SonyDevice():
 
     def register(self):
         """
-        Register at the api.50001
-        Register at the api. The name which will be displayed in the UI of the device. Make sure this name does not exist yet
+        Register at the api.
+
+        The name which will be displayed in the UI of the device.
+        Make sure this name does not exist yet.
         For this the device must be put in registration mode.
-        The tested sd5500 has no separte mode but allows registration in the overview "
+        The tested sd5500 has no separte mode but allows registration in the
+        overview
         """
         registration_result = AuthenticationResult.ERROR
         registration_action = registration_action = self.get_action("register")
@@ -361,7 +364,7 @@ class SonyDevice():
 
         else:
             raise ValueError(
-                "Regisration mode {0} is not supported".format(registration_action.mode))
+                "Registration mode {0} is not supported".format(registration_action.mode))
 
         return registration_result
 
@@ -409,8 +412,10 @@ class SonyDevice():
             )
 
             try:
-                response = self.send_http(self.get_action("register").url, method=HttpMethod.post,
-                                          data=authorization, raise_errors=True)
+                response = self.send_http(self.get_action("register").url,
+                                          method=HttpMethod.post,
+                                          data=authorization,
+                                          raise_errors=True)
             except:
                 return False
             else:
@@ -421,10 +426,10 @@ class SonyDevice():
                     self.pin = pin
                 else:
                     return False
-            
+
         self.init_device()
         return True
-            
+
 
     def send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
         """ Send request command via HTTP json to Sony Bravia."""

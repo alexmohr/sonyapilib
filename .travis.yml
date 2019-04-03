@@ -3,6 +3,7 @@ python:
   - "3.6"
 cache: pip
 install:
+  - pip install pylint
   - pip install . 
 script:
   - python tests/deviceTest.py

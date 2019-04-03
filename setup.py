@@ -24,7 +24,7 @@ setup(
     author_email='sonyapilib@mohr.io',
     # use the URL to the github repo
     url='https://github.com/alexmohr/sonyapilib',
-    download_url='https://codeload.github.com/alexmohr/sonyapilib/tar.gz/0.3.11',
+    download_url='https://codeload.github.com/alexmohr/sonyapilib/tar.gz/0.4.0',
     keywords=['soap', 'sony', 'api'],  # arbitrary keywords
     classifiers=[],
     install_requires=[

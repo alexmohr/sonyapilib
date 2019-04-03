@@ -1,4 +1,4 @@
-pytest
+pytest>=3.6
 pytest-pep8
 pytest-cov
 git+https://github.com/melor/HTTPretty.git@py33

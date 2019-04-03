@@ -258,12 +258,12 @@ class SonyDevice():
             xml_data = xml.etree.ElementTree.fromstring(response.text)
             apps = xml_data.findall(".//app")
             for app in apps:
-                name = app.find("name").text
-                id = app.find("id").text
+                app_name = app.find("name").text
+                app_id = app.find("id").text
                 data = XmlApiObject(None)
-                data.name = name
-                data.id = id
-                self.apps[name] = data
+                data.name = app_name
+                data.id = app_id
+                self.apps[app_name] = data
 
     def recreate_authentication(self):
         """

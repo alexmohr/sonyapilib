@@ -1,6 +1,7 @@
 # Sonyapilib
-[![Build Status](https://travis-ci.org/alexmohr/sonyapilib.svg?branch=master)](https://travis-ci.org/alexmohr/sonyapilib)
-[![Coverage Status](https://coveralls.io/repos/github/alexmohr/sonyapilib/badge.svg?branch=master)](https://coveralls.io/github/alexmohr/sonyapilib?branch=master)
+[![Build Status](https://travis-ci.org/alexmohr/sonyapilib.svg?branch=v4)](https://travis-ci.org/alexmohr/sonyapilib)
+[![Coverage Status](https://coveralls.io/repos/github/alexmohr/sonyapilib/badge.svg?branch=v4)](https://coveralls.io/github/alexmohr/sonyapilib?branch=master)
+
 Sony API lib. This is a python3 conversion from this project https://github.com/KHerron/SonyAPILib and some things have been taken from here: https://github.com/aparraga/braviarc. 
 It may not contains all functionality which is implemented in the project from KHerron because it is used as base implementation for usage in home assistant wich you can find here: 
 https://github.com/dilruacs/media_player.sony

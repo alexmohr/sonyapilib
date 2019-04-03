@@ -37,7 +37,6 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
-    # todo check if commands, especially soap does work with v4.
 
     def __init__(self, xml_data):
         self.name = None
@@ -63,6 +62,9 @@ class XmlApiObject():
 class SonyDevice():
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
+    # pylint: disable=fixme
+    # todo remove this again.
+    # todo check if commands, especially soap does work with v4.
     """Contains all data for the device."""
 
     def __init__(self, host, nickname):
@@ -333,6 +335,7 @@ class SonyDevice():
         built_url = 'http://{}/{}'.format(self.host, url)
 
         try:
+            # todo refactor to use http send.
             response = requests.post(built_url,
                                      data=params.encode("UTF-8"),
                                      cookies=self.cookies,

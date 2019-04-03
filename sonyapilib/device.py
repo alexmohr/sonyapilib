@@ -1,22 +1,23 @@
 """
 Sony Mediaplayer lib
 """
-import logging
+from enum import Enum
 import base64
 import collections
 import json
+import logging
 import socket
 import struct
-import requests
 import urllib.parse
 import xml.etree.ElementTree
-import requests
-from enum import Enum
 
-import wakeonlan
 import jsonpickle
+import requests
+import wakeonlan
 
 from sonyapilib import ssdp
+
+
 _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = 5
@@ -238,7 +239,7 @@ class SonyDevice():
                 action = XmlApiObject(None)
                 action.url = base_url + "/system"
                 self.actions["getRemoteCommandList"] = action
-                   
+
 
     def _update_commands(self):
 

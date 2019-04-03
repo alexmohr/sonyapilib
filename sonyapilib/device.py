@@ -2,7 +2,7 @@
 Sony Mediaplayer lib
 """
 from enum import Enum
-from urllib.urlparse import urljoin
+from urllib.parse import urljoin
 import base64
 import collections
 import json
@@ -230,14 +230,16 @@ class SonyDevice():
                         URN_SCALAR_WEB_API_DEVICE_INFO
                     )
                 ).text
+                if not base_url.endswith("/"):
+                    base_url = "{}/".format(base_url)
 
                 action = XmlApiObject()
-                action.url = urljoin(base_url, "/accessControl")
+                action.url = urljoin(base_url, "accessControl")
                 action.mode = 4
                 self.actions["register"] = action
 
                 action = XmlApiObject()
-                action.url = urljoin(base_url, "/system")
+                action.url = urljoin(base_url, "system")
                 self.actions["getRemoteCommandList"] = action
 
     def _update_commands(self):

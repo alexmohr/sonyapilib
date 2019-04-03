@@ -341,8 +341,10 @@ class SonyDevice():
             ).encode('utf-8')
 
             try:
-                response = self.send_http(registration_action.url, method=HttpMethod.POST,
-                                          data=authorization, raise_errors=True)
+                response = self.send_http(registration_action.url,
+                                          method=HttpMethod.POST,
+                                          data=authorization,
+                                          raise_errors=True)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("[W] HTTPError: " + str(ex))
                 registration_result = AuthenticationResult.PIN_NEEDED
@@ -360,9 +362,6 @@ class SonyDevice():
             raise ValueError(
                 "Registration mode {0} is not supported".format(registration_action.mode))
 
-        if registration_result == AuthenicationResult.SUCCESS:
-            self.update_service_urls()
-
         return registration_result
 
     def send_authentication(self, pin):
@@ -379,14 +378,14 @@ class SonyDevice():
         if registration_action.mode == 3:
             try:
                 self.send_http(
-                    self.get_action("register").url, method=HttpMethod.GET, raise_errors=True)
-            except:
+                    self.get_action("register").url,
+                    method=HttpMethod.GET,
+                    raise_errors=True)
+            # What exception are we trying to catch here?
+            except Exception:
                 return False
             else:
                 self.pin = pin
-                return True
-            return False
-
         elif registration_action.mode == 4:
             authorization = json.dumps(
                 {
@@ -411,9 +410,11 @@ class SonyDevice():
             )
 
             try:
-                response = self.send_http(self.get_action("register").url, method=HttpMethod.post,
-                                          data=authorization, raise_errors=True)
-            except:
+                response = self.send_http(self.get_action("register").url,
+                                          method=HttpMethod.post,
+                                          data=authorization,
+                                          raise_errors=True)
+            except Exception:
                 return False
             else:
                 resp = response.json()
@@ -421,8 +422,13 @@ class SonyDevice():
                 if resp is None or not resp.get('error'):
                     self.cookies = response.cookies
                     self.pin = pin
-                    return True
+        # Authentication was sent and no error occurred
+        # update URL's and Command array
+        try:
+            self.update_service_urls()
+        except Exception:
             return False
+        return True
 
     def send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
         """ Send request command via HTTP json to Sony Bravia."""

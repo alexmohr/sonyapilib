@@ -45,10 +45,12 @@ class XmlApiObject():
     """Holds data for a device action or a command."""
 
     def __init__(self, xml_data={}):
-        arttributes = ["name", "mode", "url", "type", "value", "mac", "id"]
+        attributes = ["name", "mode", "url", "type", "value", "mac", "id"]
 
         if xml_data:
-            for attr in arttributes:
+            for attr in attributes:
+                if attr == "mode" and xml_data.get(attr):
+                    xml_data[attr] = int(xml_data[attr])
                 setattr(self, attr, xml_data.get(attr))
 
 
@@ -194,11 +196,11 @@ class SonyDevice():
                 service_id = service.find(
                     "{0}serviceId".format(URN_UPNP_DEVICE))
 
-                if any(
-                    not service_id,
+                if any([
+                    service_id is None,
                     "urn:schemas-sony-com:serviceId:IRCC"
                     not in service_id.text
-                ):
+                ]):
                     continue
 
                 service_location = service.find(

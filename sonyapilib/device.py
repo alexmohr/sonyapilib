@@ -1,4 +1,4 @@
-"""Sony Mediaplayer lib"""
+"""Sony Mediaplayer lib."""
 import logging
 import base64
 import json
@@ -28,7 +28,7 @@ class HttpMethod(Enum):
 
 
 class XmlApiObject():
-    """ Holds data for a device action or a command """
+    """Holds data for a device action or a command."""
 
     def __init__(self, xml_data):
         self.name = None
@@ -55,7 +55,7 @@ class SonyDevice():
 
     def __init__(self, host, nickname, port=50001, dmr_port=52323,
                  app_port=50202, ircc_location=None):
-        """ Init the device with the entry point"""
+        """Init the device with the entry point."""
         self.host = host
         self.nickname = nickname
         self.ircc_url = ircc_location
@@ -96,9 +96,7 @@ class SonyDevice():
 
     @staticmethod
     def discover():
-        """
-        Discover all available devices.
-        """
+        """Discover all available devices."""
         discovery = ssdp.SSDPDiscovery()
         devices = []
         for device in discovery.discover("urn:schemas-sony-com:service:headersIRCC:1"):
@@ -131,8 +129,7 @@ class SonyDevice():
             wakeonlan.send_magic_packet(self.mac, ip_address=self.host)
 
     def update_service_urls(self):
-        """Initalize the device by reading the necessary resources from it."""
-
+        """Init device by reading the necessary resources."""
         lirc_url = urllib.parse.urlparse(self.ircc_url)
         response = self.send_http(self.ircc_url, method=HttpMethod.GET)
         if response is None:
@@ -213,8 +210,8 @@ class SonyDevice():
             raw_data = response.text
             xml_data = xml.etree.ElementTree.fromstring(raw_data)
             for device in xml_data.findall("{0}device".format(urn_upnp_device)):
-                serviceList = device.find("{0}serviceList".format(urn_upnp_device))
-                for service in serviceList:
+                service_list = device.find("{0}serviceList".format(urn_upnp_device))
+                for service in service_list:
                     service_id = service.find(
                         "{0}serviceId".format(urn_upnp_device))
                     if "urn:upnp-org:serviceId:AVTransport" not in service_id.text:
@@ -270,13 +267,12 @@ class SonyDevice():
 
     def recreate_authentication(self):
         """
-        The default cookie is for URL/sony. For some commands we need it for
-        the root path.
+        Default cookie is for URL/sony.
+        For some commands we need it for the root path.
         Only for api v4
         """
-
         if self.pin is None:
-            return
+            return False
 
         # todo fix cookies
         cookies = None
@@ -433,16 +429,14 @@ class SonyDevice():
         self.init_device()
         return True
 
-
     def send_http(self, url, method, data=None, headers=None, log_errors=True,
                   raise_errors=False):
-        """ Send request command via HTTP json to Sony Bravia."""
-
+        """Send request command via HTTP json to Sony Bravia."""
         if headers is None:
             headers = self.headers
 
         if url is None:
-            return
+            return False
 
         _LOGGER.debug("Calling http url {0} method {1}".format(url, str(method)))
 
@@ -492,12 +486,12 @@ class SonyDevice():
             "</SOAP-ENV:Envelope>"
         response = self.send_http(url, method=HttpMethod.POST,
                                   headers=headers, data=data)
-        if response is not None:
+        if response:
             return response.content.decode("utf-8")
+        return False
 
     def send_req_ircc(self, params):
         """Send an IRCC command via HTTP to Sony Bravia."""
-
         data = "<u:X_SendIRCC xmlns:u=\"urn:schemas-sony-com:service:IRCC:1\">" +\
             "<IRCCCode>" + params + "</IRCCCode>" +\
             "</u:X_SendIRCC>"
@@ -539,7 +533,7 @@ class SonyDevice():
     #     pass
 
     def start_app(self, app_name):
-        """Start an app by name"""
+        """Start an app by name."""
         # sometimes device does not start app if already running one
         self.home()
         url = "{0}/apps/{1}".format(self.app_url, self.apps[app_name].id)
@@ -547,14 +541,14 @@ class SonyDevice():
         self.send_http(url, HttpMethod.POST, data=data)
 
     def send_command(self, name):
-        if len(self.commands) == 0:
+        if not self.commands:
             self.update_commands()
 
-        if len(self.commands) > 0:
+        if not self.commands:
             if name in self.commands:
                 self.send_req_ircc(self.commands[name].value)
             else:
-                raise ValueError('Unknown command: %s', name)
+                raise ValueError('Unknown command: %s' % name)
         else:
             raise ValueError('Failed to read command list from device.')
 

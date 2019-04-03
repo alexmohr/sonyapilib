@@ -25,7 +25,9 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = 5
 URN_UPNP_DEVICE = "{urn:schemas-upnp-org:device-1-0}"
 URN_SONY_AV = "{urn:schemas-sony-com:av}"
+URN_SONY_IRCC = "urn:schemas-sony-com:serviceId:IRCC"
 URN_SCALAR_WEB_API_DEVICE_INFO = "{urn:schemas-sony-com:av}"
+WEBAPI_SERVICETYPE = "av:X_ScalarWebAPI_ServiceType"
 
 
 class AuthenticationResult(Enum):
@@ -47,6 +49,7 @@ class XmlApiObject():
     name: str
     mode: int
     url: str
+    value: str
     id: str
 
     def __init__(self, xml_data):
@@ -131,11 +134,11 @@ class SonyDevice():
         return jsonpickle.dumps(self)
 
     def _update_service_urls(self):
-        """Initialize the device by reading the necessary resources from it """
+        """Initialize the device by reading the necessary resources from it."""
         response = self._send_http(self.dmr_url, method=HttpMethod.GET)
         if not response:
             _LOGGER.error("Failed to get DMR")
-            return None
+            return
 
         self._parse_dmr(response.text)
 
@@ -202,8 +205,7 @@ class SonyDevice():
 
                 if any([
                         service_id is None,
-                        "urn:schemas-sony-com:serviceId:IRCC"
-                        not in service_id.text
+                        URN_SONY_IRCC not in service_id.text,
                 ]):
                     continue
 
@@ -238,18 +240,18 @@ class SonyDevice():
                     self.dmr_port, transport_location
                 )
 
-        # this is only for v4 devices.
-        if "av:X_ScalarWebAPI_ServiceType" not in data:
-            return None
+        # this is only true for v4 devices.
+        if WEBAPI_SERVICETYPE not in data:
+            return
 
         self.is_v4 = True
-        deviceInfo = "{0}X_ScalarWebAPI_DeviceInfo".format(
+        device_info_name = "{0}X_ScalarWebAPI_DeviceInfo".format(
             URN_SCALAR_WEB_API_DEVICE_INFO
         )
 
         for device in xml_data.findall("{0}device".format(URN_UPNP_DEVICE)):
-            for deviceInfo in device.findall(deviceInfo):
-                base_url = deviceInfo.find(
+            for device_info in device.findall(device_info_name):
+                base_url = device_info.find(
                     "{0}X_ScalarWebAPI_BaseURL".format(
                         URN_SCALAR_WEB_API_DEVICE_INFO
                     )
@@ -264,6 +266,7 @@ class SonyDevice():
 
                 action = XmlApiObject({})
                 action.url = urljoin(base_url, "system")
+                action.value = "getRemoteControllerInfo"
                 self.actions["getRemoteCommandList"] = action
 
     def _update_commands(self):
@@ -309,12 +312,11 @@ class SonyDevice():
             xml_data = xml.etree.ElementTree.fromstring(response.text)
             apps = xml_data.findall(".//app")
             for app in apps:
-                name = app.find("name").text
-                app_id = app.find("id").text
-                data = XmlApiObject({})
-                data.name = name
-                data.id = app_id
-                self.apps[name] = data
+                data = XmlApiObject({
+                    "name": app.find("name").text,
+                    "id": app.find("id").text,
+                })
+                self.apps[data.name] = data
 
     def _recreate_authentication(self):
         """The default cookie is for URL/sony. For some commands we need it for the root path."""

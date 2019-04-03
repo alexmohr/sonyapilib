@@ -93,7 +93,13 @@ class SonyDevice():
         self.app_url = "http://{0}:{1}".format(self.host, self.app_port)
 
         if len(self.actions) == 0 and self.pin is not None:
-            self.update_service_urls()
+            self.init_device()
+
+    def init_device(self):
+        self.update_service_urls()
+        self.update_commands()
+        self.update_applist()
+
 
     @staticmethod
     def discover():
@@ -225,10 +231,6 @@ class SonyDevice():
                     self.av_transport_url = "{0}://{1}:{2}{3}".format(
                         lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
 
-        if len(self.commands) > 0:
-            self.update_commands()
-            self.update_applist()
-
     def update_commands(self):
 
         # needs to be registred to do that
@@ -301,10 +303,13 @@ class SonyDevice():
 
     def register(self):
         """
-        Register at the api.50001
-        Register at the api. The name which will be displayed in the UI of the device. Make sure this name does not exist yet
+        Register at the api.
+
+        The name which will be displayed in the UI of the device.
+        Make sure this name does not exist yet.
         For this the device must be put in registration mode.
-        The tested sd5500 has no separte mode but allows registration in the overview "
+        The tested sd5500 has no separte mode but allows registration in the
+        overview
         """
         registration_result = AuthenticationResult.ERROR
         registration_action = registration_action = self.get_action("register")
@@ -359,7 +364,7 @@ class SonyDevice():
 
         else:
             raise ValueError(
-                "Regisration mode {0} is not supported".format(registration_action.mode))
+                "Registration mode {0} is not supported".format(registration_action.mode))
 
         return registration_result
 
@@ -369,6 +374,7 @@ class SonyDevice():
 
         # they do not need a pin
         if registration_action.mode < 3:
+            self.init_device()
             return True
 
         self.pin = pin
@@ -382,9 +388,6 @@ class SonyDevice():
                 return False
             else:
                 self.pin = pin
-                return True
-            return False
-
         elif registration_action.mode == 4:
             authorization = json.dumps(
                 {
@@ -409,8 +412,10 @@ class SonyDevice():
             )
 
             try:
-                response = self.send_http(self.get_action("register").url, method=HttpMethod.post,
-                                          data=authorization, raise_errors=True)
+                response = self.send_http(self.get_action("register").url,
+                                          method=HttpMethod.post,
+                                          data=authorization,
+                                          raise_errors=True)
             except:
                 return False
             else:
@@ -419,8 +424,12 @@ class SonyDevice():
                 if resp is None or not resp.get('error'):
                     self.cookies = response.cookies
                     self.pin = pin
-                    return True
-            return False
+                else:
+                    return False
+
+        self.init_device()
+        return True
+
 
     def send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
         """ Send request command via HTTP json to Sony Bravia."""

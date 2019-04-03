@@ -2,13 +2,14 @@
 Sony Mediaplayer lib
 """
 from enum import Enum
-from urllib.parse import urljoin
+from urllib.parse import (
+    urljoin,
+    urlparse,
+    quote,
+)
 import base64
 import json
 import logging
-import socket
-import struct
-import urllib.parse
 import uuid
 import xml.etree.ElementTree
 
@@ -43,15 +44,18 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
+    name: str
+    mode: int
+    url: str
+    id: str
 
-    def __init__(self, xml_data={}):
+    def __init__(self, xml_data):
         attributes = ["name", "mode", "url", "type", "value", "mac", "id"]
 
-        if xml_data:
-            for attr in attributes:
-                if attr == "mode" and xml_data.get(attr):
-                    xml_data[attr] = int(xml_data[attr])
-                setattr(self, attr, xml_data.get(attr))
+        for attr in attributes:
+            if attr == "mode" and xml_data.get(attr):
+                xml_data[attr] = int(xml_data[attr])
+            setattr(self, attr, xml_data.get(attr))
 
 
 class SonyDevice():
@@ -110,7 +114,7 @@ class SonyDevice():
         discovery = ssdp.SSDPDiscovery()
         devices = []
         for device in discovery.discover(
-            "urn:schemas-sony-com:service:headersIRCC:1"
+                "urn:schemas-sony-com:service:headersIRCC:1"
         ):
             host = device.location.split(":")[1].split("//")[1]
             devices.append(SonyDevice(host, device.location))
@@ -169,8 +173,8 @@ class SonyDevice():
                 # http://docs.python-requests.org/en/master/_modules/requests/api/?highlight=param
                 action.url = "{0}?name={1}&registrationType=initial&deviceId={2}".format(
                     action.url,
-                    urllib.parse.quote(self.nickname),
-                    urllib.parse.quote(self.get_device_id()))
+                    quote(self.nickname),
+                    quote(self.get_device_id()))
 
                 if action.mode == 3:
                     action.url = action.url + "&wolSupport=true"
@@ -189,7 +193,7 @@ class SonyDevice():
             .find("{0}serviceList".format(URN_UPNP_DEVICE))\
             .findall("{0}service".format(URN_UPNP_DEVICE))
 
-        lirc_url = urllib.parse.urlparse(self.ircc_url)
+        lirc_url = urlparse(self.ircc_url)
         if services:
             # read service list
             for service in services:
@@ -197,9 +201,9 @@ class SonyDevice():
                     "{0}serviceId".format(URN_UPNP_DEVICE))
 
                 if any([
-                    service_id is None,
-                    "urn:schemas-sony-com:serviceId:IRCC"
-                    not in service_id.text
+                        service_id is None,
+                        "urn:schemas-sony-com:serviceId:IRCC"
+                        not in service_id.text
                 ]):
                     continue
 
@@ -217,7 +221,7 @@ class SonyDevice():
                         "functionItem").attrib["value"]
 
     def _parse_dmr(self, data):
-        lirc_url = urllib.parse.urlparse(self.ircc_url)
+        lirc_url = urlparse(self.ircc_url)
         xml_data = xml.etree.ElementTree.fromstring(data)
         for device in xml_data.findall("{0}device".format(URN_UPNP_DEVICE)):
             service_list = device.find(
@@ -253,12 +257,12 @@ class SonyDevice():
                 if not base_url.endswith("/"):
                     base_url = "{}/".format(base_url)
 
-                action = XmlApiObject()
+                action = XmlApiObject({})
                 action.url = urljoin(base_url, "accessControl")
                 action.mode = 4
                 self.actions["register"] = action
 
-                action = XmlApiObject()
+                action = XmlApiObject({})
                 action.url = urljoin(base_url, "system")
                 self.actions["getRemoteCommandList"] = action
 
@@ -307,7 +311,7 @@ class SonyDevice():
             for app in apps:
                 name = app.find("name").text
                 app_id = app.find("id").text
-                data = XmlApiObject(None)
+                data = XmlApiObject({})
                 data.name = name
                 data.id = app_id
                 self.apps[name] = data

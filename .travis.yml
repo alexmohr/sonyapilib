@@ -3,7 +3,6 @@ python:
   - "3.6"
 cache: pip
 install:
-  - pip install python-coveralls
   - pip install -r test_requirements.txt
   - pip install . 
 script:

@@ -49,6 +49,7 @@ class XmlApiObject():
                     else:
                         setattr(self, arg, xml_data[arg])
 
+
 class SonyDevice():
     """Contains all data for the device."""
 

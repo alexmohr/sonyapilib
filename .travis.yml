@@ -3,8 +3,11 @@ python:
   - "3.6"
 cache: pip
 install:
-  - pip install pylint
   - pip install . 
+before_script:
+  - pip install python-coveralls
+  - pip install -r test_requirements.txt --use-mirrors
 script:
-  - python tests/deviceTest.py
-  - pylint sonyapilib/*.
+  - py.test tests/deviceTest.py --cov=deviceTest
+after_success:
+  - coveralls

@@ -2,6 +2,7 @@
 Sony Mediaplayer lib
 """
 from enum import Enum
+from urllib.urlparse import urljoin
 import base64
 import collections
 import json
@@ -40,11 +41,12 @@ class HttpMethod(Enum):
 class XmlApiObject():
     """ Holds data for a device action or a command """
 
-    def __init__(self, xml_data):
+    def __init__(self, xml_data={}):
         arttributes = ["name", "mode", "url", "type", "value", "mac", "id"]
 
-        for attr in arttributes:
-            setattr(self, attr, xml_data.get(attr))
+        if xml_data:
+            for attr in arttributes:
+                setattr(self, attr, xml_data.get(attr))
 
 
 class SonyDevice():
@@ -76,12 +78,12 @@ class SonyDevice():
         self.mac = None
         self.is_v4 = False
 
-        self.ircc_url = "http://{0}:{1}/Ircc.xml".format(host, self.ircc_port)
-        self.irccscpd_url = "http://{0}:{1}/IRCCSCPD.xml".format(
-            host, self.ircc_port)
-        self.dmr_url = "http://{0}:{1}/dmr.xml".format(
-            self.host, self.dmr_port)
-        self.app_url = "http://{0}:{1}".format(self.host, self.app_port)
+        ircc_base = "http://{0.host}:{0.ircc_port}".format(self)
+        self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
+        self.irccscpd_url = urljoin(ircc_base, "/IRCCSCPD.xml")
+
+        self.dmr_url = "http://{0.host}:{0.dmr_port}/dmr.xml".format(self)
+        self.app_url = "http://{0.host}:{0.app_port}".format(self)
 
     @staticmethod
     def discover():
@@ -90,7 +92,9 @@ class SonyDevice():
         # Todo check if this works with v4
         discovery = ssdp.SSDPDiscovery()
         devices = []
-        for device in discovery.discover("urn:schemas-sony-com:service:headersIRCC:1"):
+        for device in discovery.discover(
+            "urn:schemas-sony-com:service:headersIRCC:1"
+        ):
             host = device.location.split(":")[1].split("//")[1]
             devices.append(SonyDevice(host, device.location))
 
@@ -106,11 +110,11 @@ class SonyDevice():
         return jsonpickle.dumps(self)
 
     def _update_service_urls(self):
-        """ Initialize the device by reading the necessary resources from it """
+        """Initialize the device by reading the necessary resources from it """
         response = self._send_http(self.dmr_url, method=HttpMethod.GET)
         if not response:
             _LOGGER.error("Failed to get DMR")
-            return
+            return None
 
         self._parse_dmr(response.text)
 
@@ -119,19 +123,20 @@ class SonyDevice():
             response = self._send_http(self.ircc_url, method=HttpMethod.GET)
             self._parse_ircc(response.text)
 
-        if len(self.commands) > 0:
+        if self.commands:
             self._update_commands()
             self._update_applist()
 
     def _parse_ircc(self, data):
         response = self._send_http(self.ircc_url, method=HttpMethod.GET)
         if not response:
-            return
+            return None
 
         xml_data = xml.etree.ElementTree.fromstring(data)
 
         # the action list contains everything the device supports
-        self.actionlist_url = xml_data.find("{0}device".format(URN_UPNP_DEVICE))\
+        self.actionlist_url = xml_data.find(
+            "{0}device".format(URN_UPNP_DEVICE))\
             .find("{0}X_UNR_DeviceInfo".format(URN_SONY_AV))\
             .find("{0}X_CERS_ActionList_URL".format(URN_SONY_AV))\
             .text
@@ -165,9 +170,12 @@ class SonyDevice():
             for service in services:
                 service_id = service.find(
                     "{0}serviceId".format(URN_UPNP_DEVICE))
-                if not service_id:
-                    continue
-                if "urn:schemas-sony-com:serviceId:IRCC" not in service_id.text:
+
+                if any(
+                    not service_id,
+                    "urn:schemas-sony-com:serviceId:IRCC"
+                    not in service_id.text
+                ):
                     continue
 
                 service_location = service.find(
@@ -202,31 +210,35 @@ class SonyDevice():
                 transport_location = service.find(
                     "{0}controlURL".format(URN_UPNP_DEVICE)).text
                 self.av_transport_url = "{0}://{1}:{2}{3}".format(
-                    lirc_url.scheme, lirc_url.netloc.split(":")[0], self.dmr_port, transport_location)
+                    lirc_url.scheme, lirc_url.netloc.split(":")[0],
+                    self.dmr_port, transport_location
+                )
 
         # this is only for v4 devices.
-        if not "av:X_ScalarWebAPI_ServiceType" in data:
-            return
+        if "av:X_ScalarWebAPI_ServiceType" not in data:
+            return None
 
         self.is_v4 = True
-        deviceInfo = "{0}X_ScalarWebAPI_DeviceInfo"\
-            .format(URN_SCALAR_WEB_API_DEVICE_INFO)
+        deviceInfo = "{0}X_ScalarWebAPI_DeviceInfo".format(
+            URN_SCALAR_WEB_API_DEVICE_INFO
+        )
 
         for device in xml_data.findall("{0}device".format(URN_UPNP_DEVICE)):
             for deviceInfo in device.findall(deviceInfo):
-                base_url = deviceInfo.find("{0}X_ScalarWebAPI_BaseURL"\
-                    .format(URN_SCALAR_WEB_API_DEVICE_INFO))\
-                    .text
+                base_url = deviceInfo.find(
+                    "{0}X_ScalarWebAPI_BaseURL".format(
+                        URN_SCALAR_WEB_API_DEVICE_INFO
+                    )
+                ).text
 
-                action = XmlApiObject(None)
-                action.url = base_url + "/accessControl"
+                action = XmlApiObject()
+                action.url = urljoin(base_url, "/accessControl")
                 action.mode = 4
                 self.actions["register"] = action
 
-                action = XmlApiObject(None)
-                action.url = base_url + "/system"
+                action = XmlApiObject()
+                action.url = urljoin(base_url, "/system")
                 self.actions["getRemoteCommandList"] = action
-
 
     def _update_commands(self):
 
@@ -266,7 +278,7 @@ class SonyDevice():
             for app in apps:
                 name = app.find("name").text
                 id = app.find("id").text
-                data = XmlApiObject(None)
+                data = XmlApiObject()
                 data.name = name
                 data.id = id
                 self.apps[name] = data

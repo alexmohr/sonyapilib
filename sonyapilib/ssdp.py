@@ -4,15 +4,12 @@ SSDP Implementation
 """
 
 import socket
-from http.client import HTTPResponse
-from http.server import BaseHTTPRequestHandler
 from io import StringIO
 import email
 
 class SSDPResponse():
-    """
-    Holds the response of a ssdp request
-    """
+    # pylint: disable=too-few-public-methods
+    """Holds the response of a ssdp request."""
 
     def __init__(self, response):
         # pop the first line so we only process headers
@@ -26,6 +23,7 @@ class SSDPResponse():
         headers = dict(message.items())
         self.location = headers["LOCATION"]
         self.usn = headers["USN"]
+        # pylint: disable=invalid-name
         self.st = headers["ST"]
         self.cache = headers["CACHE-CONTROL"].split("=")[1]
 
@@ -36,10 +34,12 @@ class SSDPResponse():
         return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
 
 class SSDPDiscovery():
-    def discover(self, service="ssdp:all", timeout=1, retries=5, mx=3):
-        """
-        Discovers the ssdp services.
-        """
+    # pylint: disable=too-few-public-methods
+    """Discover devices via the ssdp protocol."""
+    @staticmethod
+    def discover(service="ssdp:all", timeout=1, retries=5, mx=3):
+        # pylint: disable=invalid-name
+        """Discovers the ssdp services."""
         socket.setdefaulttimeout(timeout)
 
         # fppp
@@ -71,8 +71,3 @@ class SSDPDiscovery():
                 except socket.timeout:
                     break
             return list(responses.values())
-
-if __name__ == '__main__':
-    disco = SSDPDiscovery();
-    for service in disco.discover():
-        print(service)

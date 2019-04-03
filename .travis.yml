@@ -3,6 +3,9 @@ python:
   - "3.6"
 cache: pip
 install:
+  - pip install -r test_requirements.txt
   - pip install . 
 script:
-  - python tests/deviceTest.py
+  - py.test tests/*Test.py --cov=sonyapilib
+  - pylint sonyapilib/*.py
+  - coveralls

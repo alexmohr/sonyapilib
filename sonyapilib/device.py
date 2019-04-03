@@ -41,23 +41,10 @@ class XmlApiObject():
     """ Holds data for a device action or a command """
 
     def __init__(self, xml_data):
-        self.name = None
-        self.mode = None
-        self.url = None
-        self.type = None
-        self.value = None
-        self.mac = None
-        self.id = None
+        arttributes = ["name", "mode", "url", "type", "value", "mac", "id"]
 
-        if xml_data is not None:
-            for arg in self.__dict__:
-                if "_" in arg:
-                    continue
-                if arg in xml_data:
-                    if (arg == "mode"):
-                        setattr(self, arg, int(xml_data[arg]))
-                    else:
-                        setattr(self, arg, xml_data[arg])
+        for attr in arttributes:
+            setattr(self, attr, xml_data.get(attr))
 
 
 class SonyDevice():

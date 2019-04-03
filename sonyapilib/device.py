@@ -37,6 +37,7 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
+    # todo check if commands, especially soap does work with v4.
 
     def __init__(self, xml_data):
         self.name = None

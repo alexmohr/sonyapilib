@@ -156,7 +156,7 @@
       <av:X_RDIS_SESSION_CONTROL>false</av:X_RDIS_SESSION_CONTROL>
       <av:X_RDIS_ENTRY_PORT>20677</av:X_RDIS_ENTRY_PORT>
     </av:X_RDIS_DeviceInfo>
-    <av:X_DIALEX_DeviceInfo xmlns:av="urn:schemas-sony-com:av"> 
+    <av:X_DIALEX_DeviceInfo xmlns:av="urn:schemas-sony-com:av">
         <av:X_DIALEX_AppsListURL>http://192.168.178.23/DIAL/sony/applist</av:X_DIALEX_AppsListURL>
         <av:X_DIALEX_DeviceID>B0:00:03:3F:5A:DE</av:X_DIALEX_DeviceID>
         <av:X_DIALEX_DeviceType>CoreTV_DIAL</av:X_DIALEX_DeviceType>

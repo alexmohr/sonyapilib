@@ -1,17 +1,11 @@
-"""
-Sony Mediaplayer lib
-"""
+"""Sony Mediaplayer lib."""
 import logging
 import base64
-import collections
 import json
-import socket
-import struct
-import requests
 import urllib.parse
 import xml.etree.ElementTree
-import requests
 from enum import Enum
+import requests
 
 import wakeonlan
 import jsonpickle
@@ -32,12 +26,12 @@ class AuthenticationResult(Enum):
 
 
 class HttpMethod(Enum):
-    GET = 0,
+    GET = 0
     POST = 1
 
 
 class XmlApiObject():
-    """ Holds data for a device action or a command """
+    """Holds data for a device action or a command."""
 
     def __init__(self, xml_data):
         self.name = None
@@ -53,19 +47,17 @@ class XmlApiObject():
                 if "_" in arg:
                     continue
                 if arg in xml_data:
-                    if (arg == "mode"):
+                    if arg == "mode":
                         setattr(self, arg, int(xml_data[arg]))
                     else:
                         setattr(self, arg, xml_data[arg])
 
 
 class SonyDevice():
-    """
-    Contains all data for the device
-    """
+    """Contains all data for the device."""
 
     def __init__(self, host, nickname):
-        """ Init the device with the entry point"""
+        """Init the device with the entry point."""
         self.host = host
         self.nickname = nickname
         self.actionlist_url = None
@@ -89,15 +81,21 @@ class SonyDevice():
         self.is_v4 = False
 
         self.ircc_url = "http://{0}:{1}/Ircc.xml".format(host, self.ircc_port)
-        self.irccscpd_url = "http://{0}:{1}/IRCCSCPD.xml".format(
-            host, self.ircc_port)
-        self.dmr_url = "http://{0}:{1}/dmr.xml".format(
-            self.host, self.dmr_port)
+        self.irccscpd_url = "http://{0}:{1}/IRCCSCPD.xml".format(host, self.ircc_port)
+        self.dmr_url = "http://{0}:{1}/dmr.xml".format(self.host, self.dmr_port)
         self.app_url = "http://{0}:{1}".format(self.host, self.app_port)
+
+        if not self.actions and self.pin is not None:
+            self.init_device()
+
+    def init_device(self):
+        self._update_service_urls()
+        self._update_commands()
+        self._update_applist()
 
     @staticmethod
     def discover():
-        """ Discover all available devices. """
+        """Discover all available devices."""
 
         # Todo check if this works with v4
         discovery = ssdp.SSDPDiscovery()
@@ -110,7 +108,7 @@ class SonyDevice():
 
     @staticmethod
     def load_from_json(data):
-        """ Loads a device configuration from a stored json """
+        """Load a device configuration from a stored json."""
         return jsonpickle.decode(data)
 
     def save_to_json(self):
@@ -125,8 +123,8 @@ class SonyDevice():
             return
 
         self._parse_dmr(response.text)
-
         self._recreate_authentication()
+
         if not self.is_v4:
             response = self._send_http(self.ircc_url, method=HttpMethod.GET)
             self._parse_ircc(response.text)
@@ -269,7 +267,7 @@ class SonyDevice():
                     _LOGGER.error("JSON request error: " +
                                   json.dumps(json, indent=4))
 
-    def _update_applist(self, log_errors=True):
+    def _update_applist(self):
         url = self.app_url + "/appslist"
         response = self._send_http(url, method=HttpMethod.GET)
         if response:
@@ -297,8 +295,8 @@ class SonyDevice():
         # cookies.set("auth", self.cookies.get("auth"))
 
         username = ''
-        base64string = base64.encodebytes(('%s:%s' % (username, self.pin)).encode()) \
-            .decode().replace('\n', '')
+        base64string = base64.encodebytes(('%s:%s' % (username, self.pin))
+                                          .encode()).decode().replace('\n', '')
 
         registration_action = self.get_action("register")
 
@@ -311,7 +309,7 @@ class SonyDevice():
         return cookies
 
     def _request_json(self, url, params, log_errors=True):
-        """ Send request command via HTTP json to Sony Bravia."""
+        """Send request command via HTTP json to Sony Bravia."""
         built_url = 'http://{}/{}'.format(self.host, url)
 
         response = self._send_http(url, HttpMethod.POST, params)
@@ -319,7 +317,7 @@ class SonyDevice():
         return html
 
     def _create_api_json(self, method, id, params=None):
-        """ Create json data which will be send via post for the V4 api"""
+        """Create json data which will be send via post for the V4 api"""
         if not params:
             params = [{
                 "clientid": self.get_device_id(),
@@ -344,7 +342,7 @@ class SonyDevice():
         return ret
 
     def _send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
-        """ Send request command via HTTP json to Sony Bravia."""
+        """Send request command via HTTP json to Sony Bravia."""
 
         if not headers:
             headers = self.headers
@@ -403,10 +401,10 @@ class SonyDevice():
             url, method=HttpMethod.POST, headers=headers, data=data)
         if response:
             return response.content.decode("utf-8")
+        return False
 
-    def _send_req_ircc(self, params, log_errors=True):
+    def _send_req_ircc(self, params):
         """Send an IRCC command via HTTP to Sony Bravia."""
-
         data = "<u:X_SendIRCC xmlns:u=\"urn:schemas-sony-com:service:IRCC:1\">" +\
             "<IRCCCode>" + params + "</IRCCCode>" +\
             "</u:X_SendIRCC>"
@@ -472,6 +470,9 @@ class SonyDevice():
         else:
             raise ValueError(
                 "Regisration mode {0} is not supported".format(registration_action.mode))
+        
+        if AuthenticationResult.SUCCESS:
+            self.init_device()
 
         return registration_result
 
@@ -519,11 +520,11 @@ class SonyDevice():
         if len(self.commands) == 0:
             self._update_commands()
 
-        if len(self.commands) > 0:
+        if not self.commands:
             if name in self.commands:
                 self._send_req_ircc(self.commands[name].value)
             else:
-                raise ValueError('Unknown command: %s', name)
+                raise ValueError('Unknown command: %s' % name)
         else:
             raise ValueError('Failed to read command list from device.')
 
@@ -546,6 +547,7 @@ class SonyDevice():
     def power(self, on):
         if on:
             self.wakeonlan()
+            # Try using the power on command incase the WOL doesn't work
             if not self.get_power_status():
                 # Try using the power on command incase the WOL doesn't work
                 self.send_command('Power')

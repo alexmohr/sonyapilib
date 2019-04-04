@@ -13,8 +13,9 @@ sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 # cannot be imported at a different position because path modification
 # is necessary to load the local library.
 # otherwise it must be installed after every change
-from sonyapilib.device import SonyDevice, XmlApiObject, AuthenticationResult
+import sonyapilib.device  # import  to change timeout
 from sonyapilib.ssdp import SSDPResponse
+from sonyapilib.device import SonyDevice, XmlApiObject, AuthenticationResult
 sys.path.pop(0)
 
 
@@ -25,6 +26,8 @@ SYSTEM_INFORMATION_URL = 'http://192.168.240.4:50002/getSystemInformation'
 GET_REMOTE_COMMAND_LIST_URL = 'http://192.168.240.4:50002/getRemoteCommandList'
 REGISTRATION_URL_LEGACY = 'http://192.168.240.4:50002/register'
 REGISTRATION_URL_V4 = 'http://192.168.178.23/sony/accessControl'
+APP_LIST_URL = 'http://test:50202/appslist'
+
 
 def read_file(file_name):
     """ Reads a file from disk """
@@ -33,11 +36,14 @@ def read_file(file_name):
     with open(os.path.join(__location__, file_name)) as f:
         return f.read()
 
+
 def mock_error(*args, **kwargs):
     raise Exception()
 
+
 def mock_nothing(*args, **kwargs):
     pass
+
 
 def mock_discovery(*args, **kwargs):
     if args[0] == "urn:schemas-sony-com:service:IRCC:1":
@@ -45,6 +51,7 @@ def mock_discovery(*args, **kwargs):
         resp.location = IRCC_URL
         return [resp]
     return None
+
 
 def mocked_requests_get(*args, **kwargs):
     class MockResponse:
@@ -59,7 +66,7 @@ def mocked_requests_get(*args, **kwargs):
         def raise_for_status(self):
             pass
     url = args[0]
-    print(url)
+    print("Requesting URL: {}".format(url))
     if url == DMR_URL:
         return MockResponse(None, 200, read_file("xml/dmr_v3.xml"))
     elif url == IRCC_URL:
@@ -70,6 +77,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("xml/getSysteminformation.xml"))
     elif url == GET_REMOTE_COMMAND_LIST_URL:
         return MockResponse(None, 200, read_file("xml/getRemoteCommandList.xml"))
+    elif url == APP_LIST_URL:
+        return MockResponse(None, 200, read_file("xml/appsList.xml"))
     # elif url == 'http://someotherurl.com/anothertest.json':
     #    return MockResponse({"key2": "value2"}, 200)
 
@@ -145,7 +154,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(mock_ircc.call_count, 1)
         self.assertEqual(mock_action_list.call_count, 1)
         self.assertEqual(mock_system_information.call_count, 1)
-        
+
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_dmr_v3(self, mock_get):
         content = read_file("xml/dmr_v3.xml")
@@ -166,7 +175,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(device.actions["register"].mode, 4)
         self.assertEqual(
             device.actions["getRemoteCommandList"].url, 'http://192.168.178.23/sony/system')
-    
+
     def test_parse_ircc_error(self):
         device = self.create_device()
         device._parse_ircc()
@@ -244,30 +253,45 @@ class SonyDeviceTest(unittest.TestCase):
         pass
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
-    def test_update_app_list(self, mock_get):
-        pass
+    def test_update_applist(self, mock_get):
+        device = self.create_device()
+        app_list = [
+            "Video Explorer", "Music Explorer", "Video Player", "Music Player",
+            "PlayStation Video", "Amazon Prime Video", "Netflix", "Rakuten TV", 
+            "Tagesschau", "Functions with Gracenote ended", "watchmi Themenkanäle", 
+            "Netzkino", "MUBI", "WWE Network", "DW for Smart TV", "YouTube",
+             "uStudio", "Meteonews TV", "Digital Concert Hall", "Activate Enhanced Features"
+        ]
+
+        device._update_applist()
+        for app in device.apps:
+            self.assertTrue(app in app_list)
+        self.assertEqual(len(device.apps), len(app_list))
+
 
     def test_recreate_authentication_v3(self):
         device = self.create_device()
+        device.pin = 1234
         self.add_register_to_device(device, 3)
         device._recreate_authentication()
 
         self.assertEqual(device.headers["Authorization"], "Basic OjEyMzQ=")
-        self.assertEqual(device.headers["X-CERS-DEVICE-ID"], device.get_device_id())
+        self.assertEqual(
+            device.headers["X-CERS-DEVICE-ID"], device.get_device_id())
 
     def test_recreate_authentication_v4(self):
         device = self.create_device()
+        device.pin = 1234
         self.add_register_to_device(device, 4)
         device._recreate_authentication()
-        
+
         self.assertEqual(device.headers["Authorization"], "Basic OjEyMzQ=")
         self.assertEqual(device.headers["Connection"], "keep-alive")
 
     def test_recreate_authentication_v4_psk(self):
-        # todo implement psk 
+        # todo implement psk
         pass
 
-    @unittest.skip
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_register_v1(self, mocked_get):
         device = self.create_device()
@@ -280,13 +304,12 @@ class SonyDeviceTest(unittest.TestCase):
         register_action.mode = mode
         if mode < 4:
             register_action.url = REGISTRATION_URL_LEGACY
-        else: 
+        else:
             register_action.url = REGISTRATION_URL_V4
         device.actions["register"] = register_action
-        device.pin = 1234
-        
 
     def create_device(self):
+        sonyapilib.device.TIMEOUT = 1
         return SonyDevice("test", "test")
 
     def verify_device_dmr(self, device):

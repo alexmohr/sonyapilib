@@ -268,7 +268,6 @@ class SonyDeviceTest(unittest.TestCase):
             self.assertTrue(app in app_list)
         self.assertEqual(len(device.apps), len(app_list))
 
-
     def test_recreate_authentication_v3(self):
         device = self.create_device()
         device.pin = 1234
@@ -292,12 +291,24 @@ class SonyDeviceTest(unittest.TestCase):
         # todo implement psk
         pass
 
-    @mock.patch('requests.get', side_effect=mocked_requests_get)
-    def test_register_v1(self, mocked_get):
+    def register_with_version(self, version):
         device = self.create_device()
-        self.add_register_to_device(device, 1)
+        self.add_register_to_device(device, version)
         result = device.register()
-        self.assertEqual(result, AuthenticationResult.SUCCESS)
+        return result
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_register_no_auth(self, mocked_get):
+        versions = [1, 2]
+        for version in versions:
+            result = self.register_with_version(version)
+            self.assertEqual(result, AuthenticationResult.SUCCESS)
+
+    def test_register_fail_http_timeout(self):
+        versions = [1, 2, 3, 4]
+        for version in versions:
+            result = self.register_with_version(version)
+            self.assertEqual(result, AuthenticationResult.ERROR)
 
     def add_register_to_device(self, device, mode):
         register_action = XmlApiObject({})

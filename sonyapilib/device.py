@@ -493,12 +493,61 @@ class SonyDevice():
 
         return self.actions[name]
 
+    def _register_without_auth(self, registration_action):
+        try:
+            self._send_http(
+                registration_action.url,
+                method=HttpMethod.GET,
+                raise_errors=True)
+            # set the pin to something to make sure init_device is called
+            self.pin = 9999
+        except requests.exceptions.RequestException:
+            return AuthenticationResult.ERROR
+        else:
+            return AuthenticationResult.SUCCESS
+
+    def _handle_register_error(self, ex):
+        if isinstance(ex, requests.exceptions.HTTPError) \
+                and ex.response.status_code == 401:
+            return AuthenticationResult.PIN_NEEDED
+        else:
+            return AuthenticationResult.ERROR
+
+    def _register_v3(self, registration_action):
+        try:
+            self._send_http(registration_action.url,
+                            method=HttpMethod.GET, raise_errors=True)
+        except requests.exceptions.RequestException as ex:
+            return self._handle_register_error(ex)
+        else:
+            return AuthenticationResult.SUCCESS
+
+    def _register_v4(self, registration_action):
+        authorization = self._create_api_json("actRegister", 13)
+
+        try:
+            headers = {
+                "Content-Type": "application/json"
+            }
+            response = self._send_http(registration_action.url,
+                                       method=HttpMethod.POST, headers=headers,
+                                       data=authorization, raise_errors=True)
+
+        except requests.exceptions.RequestException as ex:
+            return self._handle_register_error(ex)
+        else:
+            resp = response.json()
+            if resp and not resp.get('error'):
+                self.cookies = response.cookies
+                return AuthenticationResult.SUCCESS
+            else:
+                return AuthenticationResult.ERROR
+
     def get_device_id(self):
         """Returns the id which is used for the registration."""
         return "TVSideView:{0}".format(self.uuid)
 
     def register(self):
-        # pylint: disable=too-many-branches
         """
         Register at the api. The name which will be displayed in the UI of the device.
         Make sure this name does not exist yet
@@ -510,60 +559,18 @@ class SonyDevice():
         registration_action = registration_action = self._get_action(
             "register")
 
-        # protocol version 1 and 2
         if registration_action.mode < 3:
-            try:
-                self._send_http(
-                    registration_action.url,
-                    method=HttpMethod.GET,
-                    raise_errors=True)
-                registration_result = AuthenticationResult.SUCCESS
-                # set the pin to something to make sure init_device is called
-                self.pin = 9999
-            except requests.exceptions.HTTPError:
-                registration_result = AuthenticationResult.ERROR
-
-        # protocol version 3
+            registration_result = self._register_without_auth(
+                registration_action)
         elif registration_action.mode == 3:
-            try:
-                self._send_http(registration_action.url,
-                                method=HttpMethod.GET, raise_errors=True)
-            except requests.exceptions.HTTPError as ex:
-                if ex.response.status_code == 401:
-                    registration_result = AuthenticationResult.PIN_NEEDED
-                else:
-                    registration_result = AuthenticationResult.ERROR
-
-        # newest protocol version 4 this is the same method as braviarc uses
+            registration_result = self._register_v3(registration_action)
         elif registration_action.mode == 4:
-            authorization = self._create_api_json("actRegister", 13)
-
-            try:
-                headers = {
-                    "Content-Type": "application/json"
-                }
-                response = self._send_http(registration_action.url,
-                                           method=HttpMethod.POST, headers=headers,
-                                           data=authorization, raise_errors=True)
-
-            except requests.exceptions.HTTPError as ex:
-                _LOGGER.error("[W] HTTPError: %s", str(ex))
-                # todo set the correct result.
-                registration_result = AuthenticationResult.PIN_NEEDED
-
-            except Exception as ex:  # pylint: disable=broad-except
-                _LOGGER.error("[W] Exception: %s", str(ex))
-            else:
-                resp = response.json()
-                if not resp or not resp.get('error'):
-                    self.cookies = response.cookies
-                    registration_result = AuthenticationResult.SUCCESS
-
+            registration_result = self._register_v4(registration_action)
         else:
             raise ValueError(
                 "Regisration mode {0} is not supported".format(registration_action.mode))
 
-        if AuthenticationResult.SUCCESS:
+        if registration_result is AuthenticationResult.SUCCESS:
             self._init_device()
 
         return registration_result

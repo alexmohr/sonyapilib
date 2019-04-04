@@ -620,10 +620,10 @@ class SonyDevice():
         data = "LOCATION: {0}/run".format(url)
         self._send_http(url, HttpMethod.POST, data=data)
 
-    def power(self, power_on):
+    def power(self, power_on, broadcast=None):
         """Powers the device on or shuts it off."""
         if power_on:
-            self.wakeonlan()
+            self.wakeonlan(broadcast)
             # Try using the power on command incase the WOL doesn't work
             if not self.get_power_status():
                 # Try using the power on command incase the WOL doesn't work

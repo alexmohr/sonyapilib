@@ -46,11 +46,11 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
-    name: str
-    mode: int
-    url: str
-    value: str
-    id: str
+    name: None
+    mode: None
+    url: None
+    value: None
+    id: None
 
     def __init__(self, xml_data):
         attributes = ["name", "mode", "url", "type", "value", "mac", "id"]
@@ -466,6 +466,27 @@ class SonyDevice():
             url=self.control_url, params=data, action=action)
         return content
 
+
+    def _send_command(self, name):
+        if not self.commands:
+            self._init_device()
+
+        if self.commands:
+            if name in self.commands:
+                self._send_req_ircc(self.commands[name].value)
+            else:
+                raise ValueError('Unknown command: %s' % name)
+        else:
+            raise ValueError('Failed to read command list from device.')
+
+    def _get_action(self, name):
+        """Get the action object for the action with the given name"""
+        if name not in self.actions and not self.actions:
+            if name not in self.actions and not self.actions:
+                raise ValueError('Failed to read action list from device.')
+
+        return self.actions[name]
+
     def get_device_id(self):
         """Returns the id which is used for the registration."""
         return "TVSideView:{0}".format(self.uuid)
@@ -589,26 +610,6 @@ class SonyDevice():
             _LOGGER.debug(ex)
             return False
         return True
-
-    def _send_command(self, name):
-        if not self.commands:
-            self._init_device()
-
-        if self.commands:
-            if name in self.commands:
-                self._send_req_ircc(self.commands[name].value)
-            else:
-                raise ValueError('Unknown command: %s' % name)
-        else:
-            raise ValueError('Failed to read command list from device.')
-
-    def _get_action(self, name):
-        """Get the action object for the action with the given name"""
-        if name not in self.actions and not self.actions:
-            if name not in self.actions and not self.actions:
-                raise ValueError('Failed to read action list from device.')
-
-        return self.actions[name]
 
     def start_app(self, app_name):
         """Start an app by name"""

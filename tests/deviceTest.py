@@ -13,7 +13,7 @@ sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 # cannot be imported at a different position because path modification
 # is necessary to load the local library.
 # otherwise it must be installed after every change
-from sonyapilib.device import SonyDevice, XmlApiObject
+from sonyapilib.device import SonyDevice, XmlApiObject, AuthenticationResult
 from sonyapilib.ssdp import SSDPResponse
 sys.path.pop(0)
 
@@ -23,6 +23,8 @@ DMR_URL = 'http://test:52323/dmr.xml'
 IRCC_URL = 'http://test:50001/Ircc.xml'
 SYSTEM_INFORMATION_URL = 'http://192.168.240.4:50002/getSystemInformation'
 GET_REMOTE_COMMAND_LIST_URL = 'http://192.168.240.4:50002/getRemoteCommandList'
+REGISTRATION_URL_LEGACY = 'http://192.168.240.4:50002/register'
+REGISTRATION_URL_V4 = 'http://192.168.178.23/sony/accessControl'
 
 def read_file(file_name):
     """ Reads a file from disk """
@@ -84,10 +86,10 @@ class SonyDeviceTest(unittest.TestCase):
                                 mock_recreate_auth, mock_update_service_url):
         device = self.create_device()
         device._init_device()
-        self.assertEquals(mock_update_service_url.call_count, 1)
-        self.assertEquals(mock_recreate_auth.call_count, 0)
-        self.assertEquals(mock_update_command.call_count, 0)
-        self.assertEquals(mock_update_applist.call_count, 0)
+        self.assertEqual(mock_update_service_url.call_count, 1)
+        self.assertEqual(mock_recreate_auth.call_count, 0)
+        self.assertEqual(mock_update_command.call_count, 0)
+        self.assertEqual(mock_update_applist.call_count, 0)
 
     @mock.patch('sonyapilib.device.SonyDevice._update_service_urls', side_effect=mock_nothing)
     @mock.patch('sonyapilib.device.SonyDevice._recreate_authentication', side_effect=mock_nothing)
@@ -98,23 +100,23 @@ class SonyDeviceTest(unittest.TestCase):
         device = self.create_device()
         device.pin = 1234
         device._init_device()
-        self.assertEquals(mock_update_service_url.call_count, 1)
-        self.assertEquals(mock_recreate_auth.call_count, 1)
-        self.assertEquals(mock_update_command.call_count, 1)
-        self.assertEquals(mock_update_applist.call_count, 1)
+        self.assertEqual(mock_update_service_url.call_count, 1)
+        self.assertEqual(mock_recreate_auth.call_count, 1)
+        self.assertEqual(mock_update_command.call_count, 1)
+        self.assertEqual(mock_update_applist.call_count, 1)
 
     @mock.patch('sonyapilib.ssdp.SSDPDiscovery.discover', side_effect=mock_discovery)
     def test_discovery(self, mock_discover):
         devices = SonyDevice.discover()
-        self.assertEquals(len(devices), 1)
-        self.assertEquals(devices[0].host, "test")
+        self.assertEqual(len(devices), 1)
+        self.assertEqual(devices[0].host, "test")
 
     def test_save_load_from_json(self):
         device = self.create_device()
         jdata = device.save_to_json()
         restored_device = SonyDevice.load_from_json(jdata)
         jdata_restored = restored_device.save_to_json()
-        self.assertEquals(jdata, jdata_restored)
+        self.assertEqual(jdata, jdata_restored)
 
     def test_update_service_urls_error_response(self):
         device = self.create_device()
@@ -125,7 +127,7 @@ class SonyDeviceTest(unittest.TestCase):
     def test_update_service_urls_error_processing(self, mock_error, mocked_requests_get):
         device = self.create_device()
         device._update_service_urls()
-        self.assertEquals(mock_error.call_count, 1)
+        self.assertEqual(mock_error.call_count, 1)
 
     def test_update_service_urls_v4(self):
         # todo
@@ -140,9 +142,9 @@ class SonyDeviceTest(unittest.TestCase):
         device = self.create_device()
         device.pin = 1234
         device._update_service_urls()
-        self.assertEquals(mock_ircc.call_count, 1)
-        self.assertEquals(mock_action_list.call_count, 1)
-        self.assertEquals(mock_system_information.call_count, 1)
+        self.assertEqual(mock_ircc.call_count, 1)
+        self.assertEqual(mock_action_list.call_count, 1)
+        self.assertEqual(mock_system_information.call_count, 1)
         
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_dmr_v3(self, mock_get):
@@ -164,6 +166,10 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(device.actions["register"].mode, 4)
         self.assertEqual(
             device.actions["getRemoteCommandList"].url, 'http://192.168.178.23/sony/system')
+    
+    def test_parse_ircc_error(self):
+        device = self.create_device()
+        device._parse_ircc()
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_ircc(self, mock_get):
@@ -203,12 +209,20 @@ class SonyDeviceTest(unittest.TestCase):
         device._parse_system_information()
         self.assertEqual(device.mac, "30-52-cb-cc-16-ee")
 
-    @mock.patch('requests.get', side_effect=mocked_requests_get)
-    def test_parse_command_list(self, mock_get):
+    def prepare_test_command_list(self):
         device = self.create_device()
         data = XmlApiObject({})
         data.url = GET_REMOTE_COMMAND_LIST_URL
         device.actions["getRemoteCommandList"] = data
+        return device
+
+    def test_parse_command_list_error(self):
+        device = self.prepare_test_command_list()
+        device._parse_command_list()
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_parse_command_list(self, mock_get):
+        device = self.prepare_test_command_list()
         device._parse_command_list()
         self.assertEqual(len(device.commands), 48)
 
@@ -216,14 +230,14 @@ class SonyDeviceTest(unittest.TestCase):
     def test_update_commands_no_pin(self, mock_parse_cmd_list):
         device = self.create_device()
         device._update_commands()
-        self.assertEquals(mock_parse_cmd_list.call_count, 0)
+        self.assertEqual(mock_parse_cmd_list.call_count, 0)
 
     @mock.patch('sonyapilib.device.SonyDevice._parse_command_list', side_effect=mock_nothing)
     def test_update_commands_v3(self, mock_parse_cmd_list):
         device = self.create_device()
         device.pin = 1234
         device._update_commands()
-        self.assertEquals(mock_parse_cmd_list.call_count, 1)
+        self.assertEqual(mock_parse_cmd_list.call_count, 1)
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_update_commands_v4(self, mock_get):
@@ -233,9 +247,44 @@ class SonyDeviceTest(unittest.TestCase):
     def test_update_app_list(self, mock_get):
         pass
 
-    @mock.patch('requests.get', side_effect=mocked_requests_get)
-    def test_recreate_authentication(self, mock_get):
+    def test_recreate_authentication_v3(self):
+        device = self.create_device()
+        self.add_register_to_device(device, 3)
+        device._recreate_authentication()
+
+        self.assertEqual(device.headers["Authorization"], "Basic OjEyMzQ=")
+        self.assertEqual(device.headers["X-CERS-DEVICE-ID"], device.get_device_id())
+
+    def test_recreate_authentication_v4(self):
+        device = self.create_device()
+        self.add_register_to_device(device, 4)
+        device._recreate_authentication()
+        
+        self.assertEqual(device.headers["Authorization"], "Basic OjEyMzQ=")
+        self.assertEqual(device.headers["Connection"], "keep-alive")
+
+    def test_recreate_authentication_v4_psk(self):
+        # todo implement psk 
         pass
+
+    @unittest.skip
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_register_v1(self, mocked_get):
+        device = self.create_device()
+        self.add_register_to_device(device, 1)
+        result = device.register()
+        self.assertEqual(result, AuthenticationResult.SUCCESS)
+
+    def add_register_to_device(self, device, mode):
+        register_action = XmlApiObject({})
+        register_action.mode = mode
+        if mode < 4:
+            register_action.url = REGISTRATION_URL_LEGACY
+        else: 
+            register_action.url = REGISTRATION_URL_V4
+        device.actions["register"] = register_action
+        device.pin = 1234
+        
 
     def create_device(self):
         return SonyDevice("test", "test")

@@ -193,6 +193,9 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_command_list(self, mock_get):
         device = self.create_device()
+        data = XmlApiObject({})
+        data.url = GET_REMOTE_COMMAND_LIST_URL
+        device.actions["getRemoteCommandList"] = data
         device._parse_command_list()
         self.assertEqual(len(device.commands), 48)
 

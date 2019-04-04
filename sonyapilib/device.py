@@ -46,6 +46,7 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
+
     def __init__(self, xml_data):
         self.name = None
         self.mode = None
@@ -63,6 +64,7 @@ class XmlApiObject():
             if attr == "mode" and xml_data.get(attr):
                 xml_data[attr] = int(xml_data[attr])
             setattr(self, attr, xml_data.get(attr))
+
 
 class SonyDevice():
     # pylint: disable=too-many-public-methods
@@ -301,6 +303,7 @@ class SonyDevice():
             self._parse_command_list()
 
     def _parse_command_list(self):
+        """Parse the list of available command in devices with the legacy api."""
         url = self._get_action("getRemoteCommandList").url
         response = self._send_http(url, method=HttpMethod.GET)
         if not response:
@@ -334,12 +337,13 @@ class SonyDevice():
         # cookies = None
         # cookies = requests.cookies.RequestsCookieJar()
         # cookies.set("auth", self.cookies.get("auth"))
+        registration_action = self._get_action("register")
+        if any([not registration_action, registration_action.mode < 3]):
+            return
 
         username = ''
-        base64string = base64.encodebytes(('%s:%s' % (username, self.pin))
-                                          .encode()).decode().replace('\n', '')
-
-        registration_action = self._get_action("register")
+        base64string = base64.encodebytes(
+            ('%s:%s' % (username, self.pin)).encode()).decode().replace('\n', '')
 
         self.headers['Authorization'] = "Basic %s" % base64string
         if registration_action.mode == 3:
@@ -469,7 +473,6 @@ class SonyDevice():
             url=self.control_url, params=data, action=action)
         return content
 
-
     def _send_command(self, name):
         if not self.commands:
             self._init_device()
@@ -515,6 +518,8 @@ class SonyDevice():
                     method=HttpMethod.GET,
                     raise_errors=True)
                 registration_result = AuthenticationResult.SUCCESS
+                # set the pin to something to make sure init_device is called
+                self.pin = 9999
             except requests.exceptions.HTTPError:
                 registration_result = AuthenticationResult.ERROR
 

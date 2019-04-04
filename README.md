@@ -2,13 +2,23 @@
 [![Build Status](https://travis-ci.org/alexmohr/sonyapilib.svg?branch=v4)](https://travis-ci.org/alexmohr/sonyapilib)
 [![Coverage Status](https://coveralls.io/repos/github/alexmohr/sonyapilib/badge.svg?branch=v4)](https://coveralls.io/github/alexmohr/sonyapilib?branch=v4)
 
-Sony API lib. This is a python3 conversion from this project https://github.com/KHerron/SonyAPILib and some things have been taken from here: https://github.com/aparraga/braviarc. 
-It may not contains all functionality which is implemented in the project from KHerron because it is used as base implementation for usage in home assistant wich you can find here: 
-https://github.com/dilruacs/media_player.sony
+This library controls sony devices of all generations which are supported by the TVSideView app. In contrast to other libraries like https://github.com/aparraga/braviarc this supports older generations aswell.
+
+Code has been taken from the following repositories.
+* https://github.com/KHerron/SonyAPILib
+* https://github.com/aparraga/braviarc
+
+This library is used as communication interface in a home assistant component to control media players, which can be found here: https://github.com/dilruacs/media_player.sony
+
+At the moment not all functions offered by the api are implemented. If you miss a function feel free to create a pull request or open a feature request.
+
 # Installation
+To install simply run
 ```
 pip install sonyapilib
 ```
+
+This library has been tested with python 3.5 and above, functionality for older python version cannot be guaranteed.
 
 # Example
 The example will load a json file with all data if it exists or connects to device and registers it, storing the json afterwards
@@ -38,14 +48,14 @@ if __name__ == "__main__":
         pin = input("Enter the PIN displayed at your device: ")
         device.send_authentication(pin)
         save_device()
-    
+
     # wake device
     is_on = device.get_power_status()
     if not is_on:
         device.power(True)
 
     apps = device.get_apps()
-    
+
     device.start_app(apps[0])
 
     # Play media

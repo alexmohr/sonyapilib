@@ -140,9 +140,8 @@ class SonyDevice():
             _LOGGER.error("Failed to get DMR")
             return
 
-        self._parse_dmr(response.text)
-
         try:
+            self._parse_dmr(response.text)
             if self.is_v4:
                 # todo implement this
                 pass
@@ -428,7 +427,7 @@ class SonyDevice():
                                         timeout=TIMEOUT)
 
             response.raise_for_status()
-        except requests.exceptions.HTTPError as ex:
+        except requests.exceptions.RequestException as ex:
             if log_errors:
                 _LOGGER.error("HTTPError: %s", str(ex))
             if raise_errors:
@@ -477,7 +476,7 @@ class SonyDevice():
         Register at the api. The name which will be displayed in the UI of the device.
         Make sure this name does not exist yet
         For this the device must be put in registration mode.
-        The tested sd5500 has no separate mode but allows registration in the overview "
+        The tested sd5500 has no separate mode but allows registration in the overview
         """
         registration_result = AuthenticationResult.ERROR
 

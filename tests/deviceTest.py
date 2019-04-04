@@ -31,6 +31,8 @@ def read_file(file_name):
     with open(os.path.join(__location__, file_name)) as f:
         return f.read()
 
+def mock_error(*args, **kwargs):
+    raise Exception()
 
 def mock_nothing(*args, **kwargs):
     pass
@@ -113,6 +115,17 @@ class SonyDeviceTest(unittest.TestCase):
         restored_device = SonyDevice.load_from_json(jdata)
         jdata_restored = restored_device.save_to_json()
         self.assertEquals(jdata, jdata_restored)
+
+    def test_update_service_urls_error_response(self):
+        device = self.create_device()
+        device._update_service_urls()
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    @mock.patch('sonyapilib.device.SonyDevice._parse_ircc', side_effect=mock_error)
+    def test_update_service_urls_error_processing(self, mock_error, mocked_requests_get):
+        device = self.create_device()
+        device._update_service_urls()
+        self.assertEquals(mock_error.call_count, 1)
 
     def test_update_service_urls_v4(self):
         # todo

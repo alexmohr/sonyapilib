@@ -53,13 +53,15 @@ class XmlApiObject():
         self.type = None
         self.value = None
         self.mac = None
+        # must be named that way to match xml
+        # pylint: disable=invalid-name
         self.id = None
         if not xml_data:
             return
 
         for attr in self.__dict__:
             if attr == "mode" and xml_data.get(attr):
-                    xml_data[attr] = int(xml_data[attr])
+                xml_data[attr] = int(xml_data[attr])
             setattr(self, attr, xml_data.get(attr))
 
 class SonyDevice():

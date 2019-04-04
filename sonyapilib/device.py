@@ -46,20 +46,21 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
-    name: None
-    mode: None
-    url: None
-    value: None
-    id: None
-
     def __init__(self, xml_data):
-        attributes = ["name", "mode", "url", "type", "value", "mac", "id"]
+        self.name = None
+        self.mode = None
+        self.url = None
+        self.type = None
+        self.value = None
+        self.mac = None
+        self.id = None
+        if not xml_data:
+            return
 
-        for attr in attributes:
+        for attr in self.__dict__:
             if attr == "mode" and xml_data.get(attr):
-                xml_data[attr] = int(xml_data[attr])
+                    xml_data[attr] = int(xml_data[attr])
             setattr(self, attr, xml_data.get(attr))
-
 
 class SonyDevice():
     # pylint: disable=too-many-public-methods

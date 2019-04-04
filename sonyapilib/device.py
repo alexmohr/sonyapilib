@@ -556,10 +556,10 @@ class SonyDevice():
 
         return False
 
-    def wakeonlan(self):
+    def wakeonlan(self, broadcast='255.255.255.255'):
         """Starts the device either via wakeonlan."""
         if self.mac:
-            wakeonlan.send_magic_packet(self.mac, ip_address=self.host)
+            wakeonlan.send_magic_packet(self.mac, ip_address=broadcast)
 
     def get_playing_status(self):
         """Get the status of playback from the device"""

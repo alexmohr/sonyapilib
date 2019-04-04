@@ -507,12 +507,12 @@ class SonyDevice():
         else:
             return AuthenticationResult.SUCCESS
 
-    def _handle_register_error(self, ex):
+    @staticmethod
+    def _handle_register_error(ex):
         if isinstance(ex, requests.exceptions.HTTPError) \
                 and ex.response.status_code == 401:
             return AuthenticationResult.PIN_NEEDED
-        else:
-            return AuthenticationResult.ERROR
+        return AuthenticationResult.ERROR
 
     def _register_v3(self, registration_action):
         try:
@@ -538,11 +538,11 @@ class SonyDevice():
             return self._handle_register_error(ex)
         else:
             resp = response.json()
-            if resp and not resp.get('error'):
-                self.cookies = response.cookies
-                return AuthenticationResult.SUCCESS
-            else:
+            if not resp or resp.get('error'):
                 return AuthenticationResult.ERROR
+
+            self.cookies = response.cookies
+            return AuthenticationResult.SUCCESS
 
     def get_device_id(self):
         """Returns the id which is used for the registration."""

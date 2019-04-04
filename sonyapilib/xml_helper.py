@@ -1,4 +1,4 @@
-"""Some helper functions for the library."""
+"""XML helper functions for the library."""
 import xml.etree.ElementTree
 
 
@@ -25,7 +25,7 @@ def iterate_search_data(data, param):
 def find_in_xml(data, search_params):
     """Takes an xml from string or as xml.etree.ElementTree and an iterable of
     strings (and/or tuples in case of findall) to search.
-    The tuple should contain the string to search for and a truthy value.
+    The tuple should contain the string to search for and a true value.
     """
     if isinstance(data, str):
         data = xml.etree.ElementTree.fromstring(data)

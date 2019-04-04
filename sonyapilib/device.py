@@ -30,6 +30,42 @@ URN_SCALAR_WEB_API_DEVICE_INFO = "{urn:schemas-sony-com:av}"
 WEBAPI_SERVICETYPE = "av:X_ScalarWebAPI_ServiceType"
 
 
+def xml_search_helper(data, param):
+    '''Performs find or findall on given xml with string from param.'''
+    if isinstance(param, (tuple, list)) and param[1] == "all":
+        result = data.findall(param[0])
+    else:
+        result = data.find(param)
+    return result
+
+
+def iterate_search_data(data, param):
+    '''Search in nested lists.'''
+    result = []
+    for element in data:
+        if isinstance(element, list):
+            result.append(iterate_search_data(element, param))
+        else:
+            result.append(xml_search_helper(element, param))
+    return result
+
+
+def find_in_xml(data, search_params):
+    '''Takes an xml from string or as xml.etree.ElementTree and an iterable of
+    strings (or tuple in case of findall) to search.'''
+    if isinstance(data, str):
+        data = xml.etree.ElementTree.fromstring(data)
+    param = search_params[0]
+    if isinstance(data, list):
+        result = iterate_search_data(data, param)
+    else:
+        result = xml_search_helper(data, param)
+
+    if len(search_params) == 1:
+        return result
+    return find_in_xml(result, search_params[1:])
+
+
 class AuthenticationResult(Enum):
     """Stores the result of the authentication process."""
     SUCCESS = 0
@@ -165,8 +201,7 @@ class SonyDevice():
             _LOGGER.error("failed to get device information: %s", str(ex))
 
     def _parse_action_list(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
-        for element in xml_data.findall("action"):
+        for element in find_in_xml(data, [("action", "all")]):
             action = XmlApiObject(element.attrib)
             self.actions[action.name] = action
 
@@ -183,41 +218,42 @@ class SonyDevice():
                     action.url = action.url + "&wolSupport=true"
 
     def _parse_ircc(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
-
+        upnp_device = "{}device".format(URN_UPNP_DEVICE)
         # the action list contains everything the device supports
-        self.actionlist_url = xml_data.find(
-            "{0}device".format(URN_UPNP_DEVICE))\
-            .find("{0}X_UNR_DeviceInfo".format(URN_SONY_AV))\
-            .find("{0}X_CERS_ActionList_URL".format(URN_SONY_AV))\
-            .text
-
-        services = xml_data.find("{0}device".format(URN_UPNP_DEVICE))\
-            .find("{0}serviceList".format(URN_UPNP_DEVICE))\
-            .findall("{0}service".format(URN_UPNP_DEVICE))
+        self.actionlist_url = find_in_xml(
+            data,
+            [upnp_device,
+             "{}X_UNR_DeviceInfo".format(URN_SONY_AV),
+             "{}X_CERS_ActionList_URL".format(URN_SONY_AV)]
+        ).text
+        services = find_in_xml(
+            data,
+            [upnp_device,
+             "{}serviceList".format(URN_UPNP_DEVICE),
+             ("{}service".format(URN_UPNP_DEVICE), "all")],
+        )
 
         lirc_url = urlparse(self.ircc_url)
-        if services:
-            # read service list
-            for service in services:
-                service_id = service.find(
-                    "{0}serviceId".format(URN_UPNP_DEVICE))
+        for service in services:
+            service_id = service.find(
+                "{0}serviceId".format(URN_UPNP_DEVICE))
 
-                if any([
-                        service_id is None,
-                        URN_SONY_IRCC not in service_id.text,
-                ]):
-                    continue
+            if any([
+                    service_id is None,
+                    URN_SONY_IRCC not in service_id.text,
+            ]):
+                continue
 
-                service_location = service.find(
-                    "{0}controlURL".format(URN_UPNP_DEVICE)).text
-                service_url = lirc_url.scheme + "://" + lirc_url.netloc
-                self.control_url = service_url + service_location
+            service_location = service.find(
+                "{0}controlURL".format(URN_UPNP_DEVICE)).text
+            service_url = lirc_url.scheme + "://" + lirc_url.netloc
+            self.control_url = service_url + service_location
 
     def _parse_system_information(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
-        for element in xml_data.findall("supportFunction"):
-            for function in element.findall("function"):
+        for element in find_in_xml(
+                data, [("supportFunction", "all"), ("function", "all")]
+        ):
+            for function in element:
                 if function.attrib["name"] == "WOL":
                     self.mac = function.find(
                         "functionItem").attrib["value"]
@@ -225,10 +261,12 @@ class SonyDevice():
     def _parse_dmr(self, data):
         lirc_url = urlparse(self.ircc_url)
         xml_data = xml.etree.ElementTree.fromstring(data)
-        for device in xml_data.findall("{0}device".format(URN_UPNP_DEVICE)):
-            service_list = device.find(
-                "{0}serviceList".format(URN_UPNP_DEVICE))
-            for service in service_list:
+
+        for device in find_in_xml(xml_data, [
+                ("{0}device".format(URN_UPNP_DEVICE), "all"),
+                "{0}serviceList".format(URN_UPNP_DEVICE)
+        ]):
+            for service in device:
                 service_id = service.find(
                     "{0}serviceId".format(URN_UPNP_DEVICE))
                 if "urn:upnp-org:serviceId:AVTransport" not in service_id.text:
@@ -256,6 +294,15 @@ class SonyDevice():
                         URN_SCALAR_WEB_API_DEVICE_INFO
                     )
                 ).text
+
+        search_params = [
+            ("{0}device".format(URN_UPNP_DEVICE), "all"),
+            (device_info_name, "all"),
+            "{0}X_ScalarWebAPI_BaseURL".format(URN_SCALAR_WEB_API_DEVICE_INFO),
+        ]
+        for device in find_in_xml(xml_data, search_params):
+            for xml_url in device:
+                base_url = xml_url.text
                 if not base_url.endswith("/"):
                     base_url = "{}/".format(base_url)
 
@@ -298,8 +345,7 @@ class SonyDevice():
                               json.dumps(resp, indent=4))
 
     def _parse_command_list(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
-        for command in xml_data.findall("command"):
+        for command in find_in_xml(data, [("command", "all")]):
             name = command.get("name")
             self.commands[name] = XmlApiObject(command.attrib)
 
@@ -309,9 +355,7 @@ class SonyDevice():
         response = self._send_http(url, method=HttpMethod.GET)
         # todo add support for v4
         if response:
-            xml_data = xml.etree.ElementTree.fromstring(response.text)
-            apps = xml_data.findall(".//app")
-            for app in apps:
+            for app in find_in_xml(response.text, [(".//app", "all")]):
                 data = XmlApiObject({
                     "name": app.find("name").text,
                     "id": app.find("id").text,
@@ -573,9 +617,7 @@ class SonyDevice():
             url=self.av_transport_url, params=data, action=action)
         if not content:
             return "OFF"
-        response = xml.etree.ElementTree.fromstring(content)
-        state = response.find(".//CurrentTransportState").text
-        return state
+        return find_in_xml(content, [".//CurrentTransportState"]).text
 
     def get_power_status(self):
         """Checks if the device is online."""

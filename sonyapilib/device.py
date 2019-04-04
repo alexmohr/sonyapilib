@@ -117,7 +117,7 @@ class SonyDevice():
         discovery = ssdp.SSDPDiscovery()
         devices = []
         for device in discovery.discover(
-                "urn:schemas-sony-com:service:headersIRCC:1"
+                "urn:schemas-sony-com:service:IRCC:1"
         ):
             host = device.location.split(":")[1].split("//")[1]
             devices.append(SonyDevice(host, device.location))
@@ -144,28 +144,24 @@ class SonyDevice():
 
         try:
             if self.is_v4:
+                # todo implement this
                 pass
             else:
-                response = self._send_http(
-                    self.ircc_url, method=HttpMethod.GET)
-                if response:
-                    self._parse_ircc(response.text)
-
-                response = self._send_http(
-                    self.actionlist_url, method=HttpMethod.GET)
-                if response:
-                    self._parse_action_list(response.text)
-
-                response = self._send_http(
-                    self._get_action("getSystemInformation").url, method=HttpMethod.GET)
-                if response:
-                    self._parse_system_information(response.text)
+                self._parse_ircc()
+                self._parse_action_list()
+                self._parse_system_information()
+                
 
         except Exception as ex:  # pylint: disable=broad-except
             _LOGGER.error("failed to get device information: %s", str(ex))
 
-    def _parse_action_list(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
+    def _parse_action_list(self):
+        response = self._send_http(
+            self.actionlist_url, method=HttpMethod.GET)
+        if not response:
+            return
+
+        xml_data = xml.etree.ElementTree.fromstring(response.text)
         for element in xml_data.findall("action"):
             action = XmlApiObject(element.attrib)
             self.actions[action.name] = action
@@ -182,8 +178,13 @@ class SonyDevice():
                 if action.mode == 3:
                     action.url = action.url + "&wolSupport=true"
 
-    def _parse_ircc(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
+    def _parse_ircc(self):
+        response = self._send_http(
+            self.ircc_url, method=HttpMethod.GET)
+        if not response:
+            return
+
+        xml_data = xml.etree.ElementTree.fromstring(response.text)
 
         # the action list contains everything the device supports
         self.actionlist_url = xml_data.find(
@@ -214,8 +215,13 @@ class SonyDevice():
                 service_url = lirc_url.scheme + "://" + lirc_url.netloc
                 self.control_url = service_url + service_location
 
-    def _parse_system_information(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
+    def _parse_system_information(self):
+        response = self._send_http(
+            self._get_action("getSystemInformation").url, method=HttpMethod.GET)
+        if not response:
+            return
+
+        xml_data = xml.etree.ElementTree.fromstring(response.text)
         for element in xml_data.findall("supportFunction"):
             for function in element.findall("function"):
                 if function.attrib["name"] == "WOL":
@@ -274,18 +280,12 @@ class SonyDevice():
 
         # need to be registered to do that
         if not self.pin:
-            _LOGGER.info("Registration necessary to read command list.")
+            _LOGGER.error("Registration necessary to read command list.")
             return
-
-        url = self._get_action("getRemoteCommandList").url
-        if self._get_action("register").mode < 4:
-            response = self._send_http(url, method=HttpMethod.GET)
-            if response:
-                self._parse_command_list(response.text)
-            else:
-                _LOGGER.error("Failed to get response")
-        else:
-            action_name = "getRemoteCommandList"
+        
+        if self.is_v4:
+            # todo refactor to method
+            action_name = "getRemoteControllerInfo"
             action = self.actions[action_name]
             json_data = self._create_api_json(action.value)
 
@@ -296,9 +296,17 @@ class SonyDevice():
             else:
                 _LOGGER.error("JSON request error: %s",
                               json.dumps(resp, indent=4))
+        else:
+            self._parse_command_list()
+            
+    def _parse_command_list(self):
+        url = self._get_action("getRemoteCommandList").url
+        response = self._send_http(url, method=HttpMethod.GET)
+        if not response:
+            _LOGGER.error("Failed to get response for command list")
+            return
 
-    def _parse_command_list(self, data):
-        xml_data = xml.etree.ElementTree.fromstring(data)
+        xml_data = xml.etree.ElementTree.fromstring(response.text)
         for command in xml_data.findall("command"):
             name = command.get("name")
             self.commands[name] = XmlApiObject(command.attrib)
@@ -424,11 +432,6 @@ class SonyDevice():
         except requests.exceptions.HTTPError as ex:
             if log_errors:
                 _LOGGER.error("HTTPError: %s", str(ex))
-            if raise_errors:
-                raise
-        except Exception as ex:  # pylint: disable=broad-except
-            if log_errors:
-                _LOGGER.error("Exception: %s", str(ex))
             if raise_errors:
                 raise
         else:

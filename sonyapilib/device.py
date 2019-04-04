@@ -18,6 +18,7 @@ import requests
 import wakeonlan
 
 from sonyapilib import ssdp
+from sonyapilib.xml_helper import find_in_xml
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
+
     def __init__(self, xml_data):
         self.name = None
         self.mode = None
@@ -63,6 +65,7 @@ class XmlApiObject():
             if attr == "mode" and xml_data.get(attr):
                 xml_data[attr] = int(xml_data[attr])
             setattr(self, attr, xml_data.get(attr))
+
 
 class SonyDevice():
     # pylint: disable=too-many-public-methods
@@ -162,8 +165,7 @@ class SonyDevice():
         if not response:
             return
 
-        xml_data = xml.etree.ElementTree.fromstring(response.text)
-        for element in xml_data.findall("action"):
+        for element in find_in_xml(response.text, [("action", True)]):
             action = XmlApiObject(element.attrib)
             self.actions[action.name] = action
 
@@ -185,36 +187,36 @@ class SonyDevice():
         if not response:
             return
 
-        xml_data = xml.etree.ElementTree.fromstring(response.text)
-
+        upnp_device = "{}device".format(URN_UPNP_DEVICE)
         # the action list contains everything the device supports
-        self.actionlist_url = xml_data.find(
-            "{0}device".format(URN_UPNP_DEVICE))\
-            .find("{0}X_UNR_DeviceInfo".format(URN_SONY_AV))\
-            .find("{0}X_CERS_ActionList_URL".format(URN_SONY_AV))\
-            .text
-
-        services = xml_data.find("{0}device".format(URN_UPNP_DEVICE))\
-            .find("{0}serviceList".format(URN_UPNP_DEVICE))\
-            .findall("{0}service".format(URN_UPNP_DEVICE))
+        self.actionlist_url = find_in_xml(
+            response.text,
+            [upnp_device,
+             "{}X_UNR_DeviceInfo".format(URN_SONY_AV),
+             "{}X_CERS_ActionList_URL".format(URN_SONY_AV)]
+        ).text
+        services = find_in_xml(
+            response.text,
+            [upnp_device,
+             "{}serviceList".format(URN_UPNP_DEVICE),
+             ("{}service".format(URN_UPNP_DEVICE), True)],
+        )
 
         lirc_url = urlparse(self.ircc_url)
-        if services:
-            # read service list
-            for service in services:
-                service_id = service.find(
-                    "{0}serviceId".format(URN_UPNP_DEVICE))
+        for service in services:
+            service_id = service.find(
+                "{0}serviceId".format(URN_UPNP_DEVICE))
 
-                if any([
-                        service_id is None,
-                        URN_SONY_IRCC not in service_id.text,
-                ]):
-                    continue
+            if any([
+                    service_id is None,
+                    URN_SONY_IRCC not in service_id.text,
+            ]):
+                continue
 
-                service_location = service.find(
-                    "{0}controlURL".format(URN_UPNP_DEVICE)).text
-                service_url = lirc_url.scheme + "://" + lirc_url.netloc
-                self.control_url = service_url + service_location
+            service_location = service.find(
+                "{0}controlURL".format(URN_UPNP_DEVICE)).text
+            service_url = lirc_url.scheme + "://" + lirc_url.netloc
+            self.control_url = service_url + service_location
 
     def _parse_system_information(self):
         response = self._send_http(
@@ -222,9 +224,10 @@ class SonyDevice():
         if not response:
             return
 
-        xml_data = xml.etree.ElementTree.fromstring(response.text)
-        for element in xml_data.findall("supportFunction"):
-            for function in element.findall("function"):
+        for element in find_in_xml(
+                response.text, [("supportFunction", "all"), ("function", True)]
+        ):
+            for function in element:
                 if function.attrib["name"] == "WOL":
                     self.mac = function.find(
                         "functionItem").attrib["value"]
@@ -232,10 +235,12 @@ class SonyDevice():
     def _parse_dmr(self, data):
         lirc_url = urlparse(self.ircc_url)
         xml_data = xml.etree.ElementTree.fromstring(data)
-        for device in xml_data.findall("{0}device".format(URN_UPNP_DEVICE)):
-            service_list = device.find(
-                "{0}serviceList".format(URN_UPNP_DEVICE))
-            for service in service_list:
+
+        for device in find_in_xml(xml_data, [
+                ("{0}device".format(URN_UPNP_DEVICE), True),
+                "{0}serviceList".format(URN_UPNP_DEVICE)
+        ]):
+            for service in device:
                 service_id = service.find(
                     "{0}serviceId".format(URN_UPNP_DEVICE))
                 if "urn:upnp-org:serviceId:AVTransport" not in service_id.text:
@@ -256,13 +261,14 @@ class SonyDevice():
             URN_SCALAR_WEB_API_DEVICE_INFO
         )
 
-        for device in xml_data.findall("{0}device".format(URN_UPNP_DEVICE)):
-            for device_info in device.findall(device_info_name):
-                base_url = device_info.find(
-                    "{0}X_ScalarWebAPI_BaseURL".format(
-                        URN_SCALAR_WEB_API_DEVICE_INFO
-                    )
-                ).text
+        search_params = [
+            ("{0}device".format(URN_UPNP_DEVICE), True),
+            (device_info_name, True),
+            "{0}X_ScalarWebAPI_BaseURL".format(URN_SCALAR_WEB_API_DEVICE_INFO),
+        ]
+        for device in find_in_xml(xml_data, search_params):
+            for xml_url in device:
+                base_url = xml_url.text
                 if not base_url.endswith("/"):
                     base_url = "{}/".format(base_url)
 
@@ -307,8 +313,7 @@ class SonyDevice():
             _LOGGER.error("Failed to get response for command list")
             return
 
-        xml_data = xml.etree.ElementTree.fromstring(response.text)
-        for command in xml_data.findall("command"):
+        for command in find_in_xml(response.text, [("command", True)]):
             name = command.get("name")
             self.commands[name] = XmlApiObject(command.attrib)
 
@@ -318,9 +323,7 @@ class SonyDevice():
         response = self._send_http(url, method=HttpMethod.GET)
         # todo add support for v4
         if response:
-            xml_data = xml.etree.ElementTree.fromstring(response.text)
-            apps = xml_data.findall(".//app")
-            for app in apps:
+            for app in find_in_xml(response.text, [(".//app", True)]):
                 data = XmlApiObject({
                     "name": app.find("name").text,
                     "id": app.find("id").text,
@@ -598,9 +601,7 @@ class SonyDevice():
             url=self.av_transport_url, params=data, action=action)
         if not content:
             return "OFF"
-        response = xml.etree.ElementTree.fromstring(content)
-        state = response.find(".//CurrentTransportState").text
-        return state
+        return find_in_xml(content, [".//CurrentTransportState"]).text
 
     def get_power_status(self):
         """Checks if the device is online."""

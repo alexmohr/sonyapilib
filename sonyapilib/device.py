@@ -150,7 +150,6 @@ class SonyDevice():
                 self._parse_ircc()
                 self._parse_action_list()
                 self._parse_system_information()
-                
 
         except Exception as ex:  # pylint: disable=broad-except
             _LOGGER.error("failed to get device information: %s", str(ex))
@@ -282,7 +281,7 @@ class SonyDevice():
         if not self.pin:
             _LOGGER.error("Registration necessary to read command list.")
             return
-        
+
         if self.is_v4:
             # todo refactor to method
             action_name = "getRemoteControllerInfo"
@@ -298,7 +297,7 @@ class SonyDevice():
                               json.dumps(resp, indent=4))
         else:
             self._parse_command_list()
-            
+
     def _parse_command_list(self):
         url = self._get_action("getRemoteCommandList").url
         response = self._send_http(url, method=HttpMethod.GET)

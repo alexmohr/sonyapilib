@@ -82,20 +82,23 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
-    name: str
-    mode: int
-    url: str
-    value: str
-    id: str
-
     def __init__(self, xml_data):
-        attributes = ["name", "mode", "url", "type", "value", "mac", "id"]
+        self.name = None
+        self.mode = None
+        self.url = None
+        self.type = None
+        self.value = None
+        self.mac = None
+        # must be named that way to match xml
+        # pylint: disable=invalid-name
+        self.id = None
+        if not xml_data:
+            return
 
-        for attr in attributes:
+        for attr in self.__dict__:
             if attr == "mode" and xml_data.get(attr):
                 xml_data[attr] = int(xml_data[attr])
             setattr(self, attr, xml_data.get(attr))
-
 
 class SonyDevice():
     # pylint: disable=too-many-public-methods
@@ -153,7 +156,7 @@ class SonyDevice():
         discovery = ssdp.SSDPDiscovery()
         devices = []
         for device in discovery.discover(
-                "urn:schemas-sony-com:service:headersIRCC:1"
+                "urn:schemas-sony-com:service:IRCC:1"
         ):
             host = device.location.split(":")[1].split("//")[1]
             devices.append(SonyDevice(host, device.location))
@@ -176,32 +179,26 @@ class SonyDevice():
             _LOGGER.error("Failed to get DMR")
             return
 
-        self._parse_dmr(response.text)
-
         try:
+            self._parse_dmr(response.text)
             if self.is_v4:
+                # todo implement this
                 pass
             else:
-                response = self._send_http(
-                    self.ircc_url, method=HttpMethod.GET)
-                if response:
-                    self._parse_ircc(response.text)
-
-                response = self._send_http(
-                    self.actionlist_url, method=HttpMethod.GET)
-                if response:
-                    self._parse_action_list(response.text)
-
-                response = self._send_http(
-                    self._get_action("getSystemInformation").url, method=HttpMethod.GET)
-                if response:
-                    self._parse_system_information(response.text)
+                self._parse_ircc()
+                self._parse_action_list()
+                self._parse_system_information()
 
         except Exception as ex:  # pylint: disable=broad-except
             _LOGGER.error("failed to get device information: %s", str(ex))
 
-    def _parse_action_list(self, data):
-        for element in find_in_xml(data, [("action", "all")]):
+    def _parse_action_list(self):
+        response = self._send_http(
+            self.actionlist_url, method=HttpMethod.GET)
+        if not response:
+            return
+
+        for element in find_in_xml(response.text, [("action", "all")]):
             action = XmlApiObject(element.attrib)
             self.actions[action.name] = action
 
@@ -217,17 +214,22 @@ class SonyDevice():
                 if action.mode == 3:
                     action.url = action.url + "&wolSupport=true"
 
-    def _parse_ircc(self, data):
+    def _parse_ircc(self):
+        response = self._send_http(
+            self.ircc_url, method=HttpMethod.GET)
+        if not response:
+            return
+
         upnp_device = "{}device".format(URN_UPNP_DEVICE)
         # the action list contains everything the device supports
         self.actionlist_url = find_in_xml(
-            data,
+            response.text,
             [upnp_device,
              "{}X_UNR_DeviceInfo".format(URN_SONY_AV),
              "{}X_CERS_ActionList_URL".format(URN_SONY_AV)]
         ).text
         services = find_in_xml(
-            data,
+            response.text,
             [upnp_device,
              "{}serviceList".format(URN_UPNP_DEVICE),
              ("{}service".format(URN_UPNP_DEVICE), "all")],
@@ -249,9 +251,14 @@ class SonyDevice():
             service_url = lirc_url.scheme + "://" + lirc_url.netloc
             self.control_url = service_url + service_location
 
-    def _parse_system_information(self, data):
+    def _parse_system_information(self):
+        response = self._send_http(
+            self._get_action("getSystemInformation").url, method=HttpMethod.GET)
+        if not response:
+            return
+
         for element in find_in_xml(
-                data, [("supportFunction", "all"), ("function", "all")]
+                response.text, [("supportFunction", "all"), ("function", "all")]
         ):
             for function in element:
                 if function.attrib["name"] == "WOL":
@@ -321,18 +328,12 @@ class SonyDevice():
 
         # need to be registered to do that
         if not self.pin:
-            _LOGGER.info("Registration necessary to read command list.")
+            _LOGGER.error("Registration necessary to read command list.")
             return
 
-        url = self._get_action("getRemoteCommandList").url
-        if self._get_action("register").mode < 4:
-            response = self._send_http(url, method=HttpMethod.GET)
-            if response:
-                self._parse_command_list(response.text)
-            else:
-                _LOGGER.error("Failed to get response")
-        else:
-            action_name = "getRemoteCommandList"
+        if self.is_v4:
+            # todo refactor to method
+            action_name = "getRemoteControllerInfo"
             action = self.actions[action_name]
             json_data = self._create_api_json(action.value)
 
@@ -343,9 +344,17 @@ class SonyDevice():
             else:
                 _LOGGER.error("JSON request error: %s",
                               json.dumps(resp, indent=4))
+        else:
+            self._parse_command_list()
 
-    def _parse_command_list(self, data):
-        for command in find_in_xml(data, [("command", "all")]):
+    def _parse_command_list(self):
+        url = self._get_action("getRemoteCommandList").url
+        response = self._send_http(url, method=HttpMethod.GET)
+        if not response:
+            _LOGGER.error("Failed to get response for command list")
+            return
+
+        for command in find_in_xml(response.text, [("command", "all")]):
             name = command.get("name")
             self.commands[name] = XmlApiObject(command.attrib)
 
@@ -465,14 +474,9 @@ class SonyDevice():
                                         timeout=TIMEOUT)
 
             response.raise_for_status()
-        except requests.exceptions.HTTPError as ex:
+        except requests.exceptions.RequestException as ex:
             if log_errors:
                 _LOGGER.error("HTTPError: %s", str(ex))
-            if raise_errors:
-                raise
-        except Exception as ex:  # pylint: disable=broad-except
-            if log_errors:
-                _LOGGER.error("Exception: %s", str(ex))
             if raise_errors:
                 raise
         else:
@@ -509,6 +513,27 @@ class SonyDevice():
             url=self.control_url, params=data, action=action)
         return content
 
+
+    def _send_command(self, name):
+        if not self.commands:
+            self._init_device()
+
+        if self.commands:
+            if name in self.commands:
+                self._send_req_ircc(self.commands[name].value)
+            else:
+                raise ValueError('Unknown command: %s' % name)
+        else:
+            raise ValueError('Failed to read command list from device.')
+
+    def _get_action(self, name):
+        """Get the action object for the action with the given name"""
+        if name not in self.actions and not self.actions:
+            if name not in self.actions and not self.actions:
+                raise ValueError('Failed to read action list from device.')
+
+        return self.actions[name]
+
     def get_device_id(self):
         """Returns the id which is used for the registration."""
         return "TVSideView:{0}".format(self.uuid)
@@ -519,7 +544,7 @@ class SonyDevice():
         Register at the api. The name which will be displayed in the UI of the device.
         Make sure this name does not exist yet
         For this the device must be put in registration mode.
-        The tested sd5500 has no separate mode but allows registration in the overview "
+        The tested sd5500 has no separate mode but allows registration in the overview
         """
         registration_result = AuthenticationResult.ERROR
 
@@ -600,10 +625,10 @@ class SonyDevice():
 
         return False
 
-    def wakeonlan(self):
+    def wakeonlan(self, broadcast='255.255.255.255'):
         """Starts the device either via wakeonlan."""
         if self.mac:
-            wakeonlan.send_magic_packet(self.mac, ip_address=self.host)
+            wakeonlan.send_magic_packet(self.mac, ip_address=broadcast)
 
     def get_playing_status(self):
         """Get the status of playback from the device"""
@@ -631,26 +656,6 @@ class SonyDevice():
             return False
         return True
 
-    def _send_command(self, name):
-        if not self.commands:
-            self._init_device()
-
-        if self.commands:
-            if name in self.commands:
-                self._send_req_ircc(self.commands[name].value)
-            else:
-                raise ValueError('Unknown command: %s' % name)
-        else:
-            raise ValueError('Failed to read command list from device.')
-
-    def _get_action(self, name):
-        """Get the action object for the action with the given name"""
-        if name not in self.actions and not self.actions:
-            if name not in self.actions and not self.actions:
-                raise ValueError('Failed to read action list from device.')
-
-        return self.actions[name]
-
     def start_app(self, app_name):
         """Start an app by name"""
         # sometimes device does not start app if already running one
@@ -660,10 +665,10 @@ class SonyDevice():
         data = "LOCATION: {0}/run".format(url)
         self._send_http(url, HttpMethod.POST, data=data)
 
-    def power(self, power_on):
+    def power(self, power_on, broadcast=None):
         """Powers the device on or shuts it off."""
         if power_on:
-            self.wakeonlan()
+            self.wakeonlan(broadcast)
             # Try using the power on command incase the WOL doesn't work
             if not self.get_power_status():
                 # Try using the power on command incase the WOL doesn't work

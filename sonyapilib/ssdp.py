@@ -12,6 +12,8 @@ class SSDPResponse():
     """Holds the response of a ssdp request."""
 
     def __init__(self, response):
+        if not response:
+            return
         # pop the first line so we only process headers
         # first line is http response
         _, headers = response.split('\r\n', 1)

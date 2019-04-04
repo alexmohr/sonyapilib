@@ -18,6 +18,7 @@ import requests
 import wakeonlan
 
 from sonyapilib import ssdp
+from sonyapilib.xml_helper import find_in_xml
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,42 +29,6 @@ URN_SONY_AV = "{urn:schemas-sony-com:av}"
 URN_SONY_IRCC = "urn:schemas-sony-com:serviceId:IRCC"
 URN_SCALAR_WEB_API_DEVICE_INFO = "{urn:schemas-sony-com:av}"
 WEBAPI_SERVICETYPE = "av:X_ScalarWebAPI_ServiceType"
-
-
-def xml_search_helper(data, param):
-    '''Performs find or findall on given xml with string from param.'''
-    if isinstance(param, (tuple, list)) and param[1] == "all":
-        result = data.findall(param[0])
-    else:
-        result = data.find(param)
-    return result
-
-
-def iterate_search_data(data, param):
-    '''Search in nested lists.'''
-    result = []
-    for element in data:
-        if isinstance(element, list):
-            result.append(iterate_search_data(element, param))
-        else:
-            result.append(xml_search_helper(element, param))
-    return result
-
-
-def find_in_xml(data, search_params):
-    '''Takes an xml from string or as xml.etree.ElementTree and an iterable of
-    strings (or tuple in case of findall) to search.'''
-    if isinstance(data, str):
-        data = xml.etree.ElementTree.fromstring(data)
-    param = search_params[0]
-    if isinstance(data, list):
-        result = iterate_search_data(data, param)
-    else:
-        result = xml_search_helper(data, param)
-
-    if len(search_params) == 1:
-        return result
-    return find_in_xml(result, search_params[1:])
 
 
 class AuthenticationResult(Enum):
@@ -82,6 +47,7 @@ class HttpMethod(Enum):
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
+
     def __init__(self, xml_data):
         self.name = None
         self.mode = None
@@ -99,6 +65,7 @@ class XmlApiObject():
             if attr == "mode" and xml_data.get(attr):
                 xml_data[attr] = int(xml_data[attr])
             setattr(self, attr, xml_data.get(attr))
+
 
 class SonyDevice():
     # pylint: disable=too-many-public-methods
@@ -198,7 +165,7 @@ class SonyDevice():
         if not response:
             return
 
-        for element in find_in_xml(response.text, [("action", "all")]):
+        for element in find_in_xml(response.text, [("action", True)]):
             action = XmlApiObject(element.attrib)
             self.actions[action.name] = action
 
@@ -232,7 +199,7 @@ class SonyDevice():
             response.text,
             [upnp_device,
              "{}serviceList".format(URN_UPNP_DEVICE),
-             ("{}service".format(URN_UPNP_DEVICE), "all")],
+             ("{}service".format(URN_UPNP_DEVICE), True)],
         )
 
         lirc_url = urlparse(self.ircc_url)
@@ -258,7 +225,7 @@ class SonyDevice():
             return
 
         for element in find_in_xml(
-                response.text, [("supportFunction", "all"), ("function", "all")]
+                response.text, [("supportFunction", "all"), ("function", True)]
         ):
             for function in element:
                 if function.attrib["name"] == "WOL":
@@ -270,7 +237,7 @@ class SonyDevice():
         xml_data = xml.etree.ElementTree.fromstring(data)
 
         for device in find_in_xml(xml_data, [
-                ("{0}device".format(URN_UPNP_DEVICE), "all"),
+                ("{0}device".format(URN_UPNP_DEVICE), True),
                 "{0}serviceList".format(URN_UPNP_DEVICE)
         ]):
             for service in device:
@@ -294,17 +261,9 @@ class SonyDevice():
             URN_SCALAR_WEB_API_DEVICE_INFO
         )
 
-        for device in xml_data.findall("{0}device".format(URN_UPNP_DEVICE)):
-            for device_info in device.findall(device_info_name):
-                base_url = device_info.find(
-                    "{0}X_ScalarWebAPI_BaseURL".format(
-                        URN_SCALAR_WEB_API_DEVICE_INFO
-                    )
-                ).text
-
         search_params = [
-            ("{0}device".format(URN_UPNP_DEVICE), "all"),
-            (device_info_name, "all"),
+            ("{0}device".format(URN_UPNP_DEVICE), True),
+            (device_info_name, True),
             "{0}X_ScalarWebAPI_BaseURL".format(URN_SCALAR_WEB_API_DEVICE_INFO),
         ]
         for device in find_in_xml(xml_data, search_params):
@@ -354,7 +313,7 @@ class SonyDevice():
             _LOGGER.error("Failed to get response for command list")
             return
 
-        for command in find_in_xml(response.text, [("command", "all")]):
+        for command in find_in_xml(response.text, [("command", True)]):
             name = command.get("name")
             self.commands[name] = XmlApiObject(command.attrib)
 
@@ -364,7 +323,7 @@ class SonyDevice():
         response = self._send_http(url, method=HttpMethod.GET)
         # todo add support for v4
         if response:
-            for app in find_in_xml(response.text, [(".//app", "all")]):
+            for app in find_in_xml(response.text, [(".//app", True)]):
                 data = XmlApiObject({
                     "name": app.find("name").text,
                     "id": app.find("id").text,

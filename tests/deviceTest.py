@@ -79,6 +79,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("xml/getRemoteCommandList.xml"))
     elif url == APP_LIST_URL:
         return MockResponse(None, 200, read_file("xml/appsList.xml"))
+    elif url == REGISTRATION_URL_LEGACY: 
+        return MockResponse({}, 200)
     # elif url == 'http://someotherurl.com/anothertest.json':
     #    return MockResponse({"key2": "value2"}, 200)
 
@@ -304,11 +306,27 @@ class SonyDeviceTest(unittest.TestCase):
             result = self.register_with_version(version)
             self.assertEqual(result, AuthenticationResult.SUCCESS)
 
-    def test_register_fail_http_timeout(self):
+    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_register_not_supported(self, mocked_get, mocked_init_device):
+        with self.assertRaises(ValueError):
+            self.register_with_version(5)
+        self.assertEqual(mocked_init_device.call_count, 0)
+
+    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    def test_register_fail_http_timeout(self, mocked_init_device):
         versions = [1, 2, 3, 4]
         for version in versions:
             result = self.register_with_version(version)
             self.assertEqual(result, AuthenticationResult.ERROR)
+            self.assertEqual(mocked_init_device.call_count, 0)
+
+    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_register_success_v3(self, mocked_requests_get, mocked_init_device):
+        result = self.register_with_version(3)
+        self.assertEqual(result, AuthenticationResult.SUCCESS)
+        self.assertEqual(mocked_init_device.call_count, 1)
 
     def add_register_to_device(self, device, mode):
         register_action = XmlApiObject({})

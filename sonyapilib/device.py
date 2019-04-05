@@ -588,11 +588,7 @@ class SonyDevice():
         self._recreate_authentication()
         result = self.register()
 
-        if AuthenticationResult.SUCCESS == result:
-            self._init_device()
-            return True
-
-        return False
+        return AuthenticationResult.SUCCESS == result
 
     def wakeonlan(self, broadcast='255.255.255.255'):
         """Starts the device either via wakeonlan."""

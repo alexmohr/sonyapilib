@@ -144,6 +144,7 @@ class SonyDeviceTest(unittest.TestCase):
         restored_device = SonyDevice.load_from_json(jdata)
         jdata_restored = restored_device.save_to_json()
         self.assertEqual(jdata, jdata_restored)
+        self.assertEqual(restored_device.uuid, device.uuid)
 
     def test_update_service_urls_error_response(self):
         device = self.create_device()

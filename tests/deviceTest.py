@@ -26,6 +26,7 @@ SYSTEM_INFORMATION_URL = 'http://192.168.240.4:50002/getSystemInformation'
 GET_REMOTE_COMMAND_LIST_URL = 'http://192.168.240.4:50002/getRemoteCommandList'
 REGISTRATION_URL_LEGACY = 'http://192.168.240.4:50002/register'
 REGISTRATION_URL_V4 = 'http://192.168.178.23/sony/accessControl'
+REGISTRATION_URL_V4_FAIL = 'http://192.168.178.22/sony/accessControl'
 APP_LIST_URL = 'http://test:50202/appslist'
 
 
@@ -36,14 +37,11 @@ def read_file(file_name):
     with open(os.path.join(__location__, file_name)) as f:
         return f.read()
 
-
 def mock_error(*args, **kwargs):
     raise Exception()
 
-
 def mock_nothing(*args, **kwargs):
     pass
-
 
 def mock_discovery(*args, **kwargs):
     if args[0] == "urn:schemas-sony-com:service:IRCC:1":
@@ -52,21 +50,42 @@ def mock_discovery(*args, **kwargs):
         return [resp]
     return None
 
+class MockResponse():
+    class MockResponseJson:
+        def __init__(self, data):
+            self.data = data
+        
+        def get(self, key):
+            if key in self.data:
+                return self.data[key]
+            return None
+
+    def __init__(self, json_data, status_code, text=None, cookies=None):
+        self.json_obj = self.MockResponseJson(json_data)
+        self.status_code = status_code
+        self.text = text
+        self.cookies = cookies
+
+    def json(self):
+        return self.json_obj
+
+    def get(self):
+        pass
+
+    def raise_for_status(self):
+        pass
+
+def mocked_requests_post(*args, **kwargs):
+    url = args[0]
+    print("POST for URL: {}".format(url))
+    if url == REGISTRATION_URL_V4:
+            return MockResponse({}, 200)
+    elif url == REGISTRATION_URL_V4_FAIL:
+        return MockResponse({"error": 402}, 200)
 
 def mocked_requests_get(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, json_data, status_code, text=None):
-            self.json_data = json_data
-            self.status_code = status_code
-            self.text = text
-
-        def json(self):
-            return self.json_data
-
-        def raise_for_status(self):
-            pass
     url = args[0]
-    print("Requesting URL: {}".format(url))
+    print("GET for URL: {}".format(url))
     if url == DMR_URL:
         return MockResponse(None, 200, read_file("xml/dmr_v3.xml"))
     elif url == IRCC_URL:
@@ -81,11 +100,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("xml/appsList.xml"))
     elif url == REGISTRATION_URL_LEGACY: 
         return MockResponse({}, 200)
-    # elif url == 'http://someotherurl.com/anothertest.json':
-    #    return MockResponse({"key2": "value2"}, 200)
 
     return MockResponse(None, 404)
-
 
 class SonyDeviceTest(unittest.TestCase):
 
@@ -173,7 +189,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.verify_device_dmr(device)
         self.assertTrue(device.is_v4)
         self.assertEqual(
-            device.actions["register"].url, 'http://192.168.178.23/sony/accessControl')
+            device.actions["register"].url, REGISTRATION_URL_V4)
         self.assertEqual(device.actions["register"].mode, 4)
         self.assertEqual(
             device.actions["getRemoteCommandList"].url, 'http://192.168.178.23/sony/system')
@@ -187,7 +203,7 @@ class SonyDeviceTest(unittest.TestCase):
         device = self.create_device()
         device._parse_ircc()
         self.assertEqual(
-            device.actionlist_url, 'http://192.168.240.4:50002/actionList')
+            device.actionlist_url, ACTION_LIST_URL)
         self.assertEqual(
             device.control_url, 'http://test:50001/upnp/control/IRCC')
 
@@ -252,6 +268,7 @@ class SonyDeviceTest(unittest.TestCase):
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_update_commands_v4(self, mock_get):
+        # todo implement parsing of command list
         pass
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
@@ -293,12 +310,6 @@ class SonyDeviceTest(unittest.TestCase):
         # todo implement psk
         pass
 
-    def register_with_version(self, version):
-        device = self.create_device()
-        self.add_register_to_device(device, version)
-        result = device.register()
-        return result
-
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_register_no_auth(self, mocked_get):
         versions = [1, 2]
@@ -328,6 +339,13 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(result, AuthenticationResult.SUCCESS)
         self.assertEqual(mocked_init_device.call_count, 1)
 
+    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_register_no_json_v4(self, mocked_requests_post, mocked_init_device):
+        result = self.register_with_version(4, REGISTRATION_URL_V4_FAIL)
+        self.assertEqual(result, AuthenticationResult.ERROR)
+        self.assertEqual(mocked_init_device.call_count, 0)
+
     def add_register_to_device(self, device, mode):
         register_action = XmlApiObject({})
         register_action.mode = mode
@@ -337,6 +355,15 @@ class SonyDeviceTest(unittest.TestCase):
             register_action.url = REGISTRATION_URL_V4
         device.actions["register"] = register_action
 
+    def register_with_version(self, version, reg_url=""):
+        device = self.create_device()
+        self.add_register_to_device(device, version)
+        if reg_url:
+            device.actions["register"].url = reg_url
+        
+        result = device.register()
+        return result
+
     def create_device(self):
         sonyapilib.device.TIMEOUT = 1
         return SonyDevice("test", "test")
@@ -344,7 +371,6 @@ class SonyDeviceTest(unittest.TestCase):
     def verify_device_dmr(self, device):
         self.assertEqual(device.av_transport_url,
                          'http://test:52323/upnp/control/AVTransport')
-
 
 if __name__ == '__main__':
     unittest.main()

@@ -37,12 +37,10 @@ class AuthenticationResult(Enum):
     ERROR = 1
     PIN_NEEDED = 2
 
-
 class HttpMethod(Enum):
     """Defines which http method is used."""
     GET = 0
     POST = 1
-
 
 class XmlApiObject():
     # pylint: disable=too-few-public-methods

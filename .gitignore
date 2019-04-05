@@ -13,6 +13,8 @@ __pycache__/
 *.so
 
 
+
+
 # Distribution / packaging
 .Python
 build/
@@ -109,3 +111,4 @@ venv.bak/
 .mypy_cache/
 
 .coveralls
+.idea/

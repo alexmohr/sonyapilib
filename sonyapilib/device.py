@@ -620,7 +620,7 @@ class SonyDevice():
             # todo parse response
             self._send_http(url, HttpMethod.GET,
                             log_errors=False, raise_errors=True)
-        except requests.exceptions.HTTPError as ex:
+        except requests.exceptions.RequestException as ex:
             _LOGGER.debug(ex)
             return False
         return True

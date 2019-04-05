@@ -154,8 +154,7 @@ class SonyDevice():
             _LOGGER.error("failed to get device information: %s", str(ex))
 
     def _parse_action_list(self):
-        response = self._send_http(
-            self.actionlist_url, method="get")
+        response = self._send_http(self.actionlist_url, method="get")
         if not response:
             return
 
@@ -176,8 +175,7 @@ class SonyDevice():
                     action.url = action.url + "&wolSupport=true"
 
     def _parse_ircc(self):
-        response = self._send_http(
-            self.ircc_url, method="get")
+        response = self._send_http(self.ircc_url, method="get")
         if not response:
             return
 
@@ -290,7 +288,9 @@ class SonyDevice():
             action = self.actions[action_name]
             json_data = self._create_api_json(action.value)
 
-            resp = self._request_json(action.url, json_data, None)
+            resp = self._send_http(
+                action.url, "post", json=json_data, headers={}
+            ).json()
             if resp and not resp.get('error'):
                 # todo parse this into the old structure.
                 self.commands = resp.get('result')[1]
@@ -346,33 +346,6 @@ class SonyDevice():
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 
-    def _request_json(self, url, params, log_errors=True):
-        """Send request command via HTTP json to Sony Bravia."""
-
-        headers = {}
-
-        built_url = 'http://{}/{}'.format(self.host, url)
-
-        try:
-            # todo refactor to use http send.
-            response = requests.post(built_url,
-                                     data=params.encode("UTF-8"),
-                                     cookies=self.cookies,
-                                     timeout=TIMEOUT,
-                                     headers=headers)
-
-        except requests.exceptions.HTTPError as exception_instance:
-            if log_errors:
-                _LOGGER.error("HTTPError: %s", str(exception_instance))
-
-        except Exception as exception_instance:  # pylint: disable=broad-except
-            if log_errors:
-                _LOGGER.error("Exception: %s", str(exception_instance))
-
-        else:
-            html = json.loads(response.content.decode('utf-8'))
-            return html
-
     def _create_api_json(self, method, params=None):
         # pylint: disable=invalid-name
         """Create json data which will be send via post for the V4 api"""
@@ -387,15 +360,12 @@ class SonyDevice():
                 "function": "WOL"
             }]]
 
-        ret = json.dumps(
-            {
-                "method": method,
-                "params": params,
-                "id": 1,
-                "version": "1.0"
-            })
-
-        return ret
+        return {
+            "method": method,
+            "params": params,
+            "id": 1,
+            "version": "1.0"
+        }
 
     def _send_http(self, url, method, **kwargs):
         # pylint: disable=too-many-arguments
@@ -416,7 +386,7 @@ class SonyDevice():
             "Calling http url %s method %s", url, method)
 
         try:
-            response = getattr(requests, method)(url, kwargs)
+            response = getattr(requests, method)(url, **kwargs)
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             if log_errors:
@@ -515,7 +485,7 @@ class SonyDevice():
             }
             response = self._send_http(registration_action.url,
                                        method="post", headers=headers,
-                                       data=authorization, raise_errors=True)
+                                       json=authorization, raise_errors=True)
 
         except requests.exceptions.RequestException as ex:
             return self._handle_register_error(ex)
@@ -597,8 +567,7 @@ class SonyDevice():
         url = self.actionlist_url
         try:
             # todo parse response
-            self._send_http(url, "get",
-                            log_errors=False, raise_errors=True)
+            self._send_http(url, "get", log_errors=False, raise_errors=True)
         except requests.exceptions.RequestException as ex:
             _LOGGER.debug(ex)
             return False

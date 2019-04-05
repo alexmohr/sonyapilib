@@ -39,8 +39,8 @@ class AuthenticationResult(Enum):
 
 class HttpMethod(Enum):
     """Defines which http method is used."""
-    GET = 0
-    POST = 1
+    GET = "get"
+    POST = "post"
 
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
@@ -158,8 +158,7 @@ class SonyDevice():
             _LOGGER.error("failed to get device information: %s", str(ex))
 
     def _parse_action_list(self):
-        response = self._send_http(
-            self.actionlist_url, method=HttpMethod.GET)
+        response = self._send_http(self.actionlist_url, method=HttpMethod.GET)
         if not response:
             return
 
@@ -180,8 +179,7 @@ class SonyDevice():
                     action.url = action.url + "&wolSupport=true"
 
     def _parse_ircc(self):
-        response = self._send_http(
-            self.ircc_url, method=HttpMethod.GET)
+        response = self._send_http(self.ircc_url, method=HttpMethod.GET)
         if not response:
             return
 
@@ -294,7 +292,9 @@ class SonyDevice():
             action = self.actions[action_name]
             json_data = self._create_api_json(action.value)
 
-            resp = self._request_json(action.url, json_data, None)
+            resp = self._send_http(
+                action.url, HttpMethod.POST, json=json_data, headers={}
+            ).json()
             if resp and not resp.get('error'):
                 # todo parse this into the old structure.
                 self.commands = resp.get('result')[1]
@@ -350,33 +350,6 @@ class SonyDevice():
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 
-    def _request_json(self, url, params, log_errors=True):
-        """Send request command via HTTP json to Sony Bravia."""
-
-        headers = {}
-
-        built_url = 'http://{}/{}'.format(self.host, url)
-
-        try:
-            # todo refactor to use http send.
-            response = requests.post(built_url,
-                                     data=params.encode("UTF-8"),
-                                     cookies=self.cookies,
-                                     timeout=TIMEOUT,
-                                     headers=headers)
-
-        except requests.exceptions.HTTPError as exception_instance:
-            if log_errors:
-                _LOGGER.error("HTTPError: %s", str(exception_instance))
-
-        except Exception as exception_instance:  # pylint: disable=broad-except
-            if log_errors:
-                _LOGGER.error("Exception: %s", str(exception_instance))
-
-        else:
-            html = json.loads(response.content.decode('utf-8'))
-            return html
-
     def _create_api_json(self, method, params=None):
         # pylint: disable=invalid-name
         """Create json data which will be send via post for the V4 api"""
@@ -391,47 +364,33 @@ class SonyDevice():
                 "function": "WOL"
             }]]
 
-        ret = json.dumps(
-            {
-                "method": method,
-                "params": params,
-                "id": 1,
-                "version": "1.0"
-            })
+        return {
+            "method": method,
+            "params": params,
+            "id": 1,
+            "version": "1.0"
+        }
 
-        return ret
-
-    def _send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
+    def _send_http(self, url, method, **kwargs):
         # pylint: disable=too-many-arguments
         """Send request command via HTTP json to Sony Bravia."""
 
-        if not headers:
-            headers = self.headers
+        log_errors = kwargs.pop("log_errors", True)
+        raise_errors = kwargs.pop("raise_errors", False)
+        method = kwargs.pop("method", method.value)
 
-        if not url:
-            return None
+        standard_params = {
+            "cookies": self.cookies,
+            "timeout": TIMEOUT,
+            "headers": self.headers,
+        }
+        kwargs.update(standard_params)
 
         _LOGGER.debug(
             "Calling http url %s method %s", url, method)
 
         try:
-            params = ""
-            if data:
-                params = data.encode("UTF-8")
-
-            if method == HttpMethod.POST:
-                response = requests.post(url,
-                                         data=params,
-                                         headers=headers,
-                                         cookies=self.cookies,
-                                         timeout=TIMEOUT)
-            elif method == HttpMethod.GET:
-                response = requests.get(url,
-                                        data=params,
-                                        headers=headers,
-                                        cookies=self.cookies,
-                                        timeout=TIMEOUT)
-
+            response = getattr(requests, method)(url, **kwargs)
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             if log_errors:
@@ -530,7 +489,7 @@ class SonyDevice():
             }
             response = self._send_http(registration_action.url,
                                        method=HttpMethod.POST, headers=headers,
-                                       data=authorization, raise_errors=True)
+                                       json=authorization, raise_errors=True)
 
         except requests.exceptions.RequestException as ex:
             return self._handle_register_error(ex)
@@ -612,8 +571,7 @@ class SonyDevice():
         url = self.actionlist_url
         try:
             # todo parse response
-            self._send_http(url, HttpMethod.GET,
-                            log_errors=False, raise_errors=True)
+            self._send_http(url, HttpMethod.GET, log_errors=False, raise_errors=True)
         except requests.exceptions.RequestException as ex:
             _LOGGER.debug(ex)
             return False

@@ -38,12 +38,6 @@ class AuthenticationResult(Enum):
     PIN_NEEDED = 2
 
 
-class HttpMethod(Enum):
-    """Defines which http method is used."""
-    GET = 0
-    POST = 1
-
-
 class XmlApiObject():
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
@@ -141,7 +135,7 @@ class SonyDevice():
 
     def _update_service_urls(self):
         """Initialize the device by reading the necessary resources from it."""
-        response = self._send_http(self.dmr_url, method=HttpMethod.GET)
+        response = self._send_http(self.dmr_url, method="get")
         if not response:
             _LOGGER.error("Failed to get DMR")
             return
@@ -161,7 +155,7 @@ class SonyDevice():
 
     def _parse_action_list(self):
         response = self._send_http(
-            self.actionlist_url, method=HttpMethod.GET)
+            self.actionlist_url, method="get")
         if not response:
             return
 
@@ -183,7 +177,7 @@ class SonyDevice():
 
     def _parse_ircc(self):
         response = self._send_http(
-            self.ircc_url, method=HttpMethod.GET)
+            self.ircc_url, method="get")
         if not response:
             return
 
@@ -220,7 +214,7 @@ class SonyDevice():
 
     def _parse_system_information(self):
         response = self._send_http(
-            self._get_action("getSystemInformation").url, method=HttpMethod.GET)
+            self._get_action("getSystemInformation").url, method="get")
         if not response:
             return
 
@@ -309,7 +303,7 @@ class SonyDevice():
     def _parse_command_list(self):
         """Parse the list of available command in devices with the legacy api."""
         url = self._get_action("getRemoteCommandList").url
-        response = self._send_http(url, method=HttpMethod.GET)
+        response = self._send_http(url, method="get")
         if not response:
             _LOGGER.error("Failed to get response for command list")
             return
@@ -321,7 +315,7 @@ class SonyDevice():
     def _update_applist(self):
         """Update the list of apps which are supported by the device."""
         url = self.app_url + "/appslist"
-        response = self._send_http(url, method=HttpMethod.GET)
+        response = self._send_http(url, method="get")
         # todo add support for v4
         if response:
             for app in find_in_xml(response.text, [(".//app", True)]):
@@ -403,37 +397,26 @@ class SonyDevice():
 
         return ret
 
-    def _send_http(self, url, method, data=None, headers=None, log_errors=True, raise_errors=False):
+    def _send_http(self, url, method, **kwargs):
         # pylint: disable=too-many-arguments
         """Send request command via HTTP json to Sony Bravia."""
 
-        if not headers:
-            headers = self.headers
+        log_errors = kwargs.pop("log_errors", True)
+        raise_errors = kwargs.pop("raise_errors", False)
+        method = kwargs.pop("method", method)
 
-        if not url:
-            return None
+        standard_params = {
+            "cookies": self.cookies,
+            "timeout": TIMEOUT,
+            "headers": self.headers,
+        }
+        kwargs.update(standard_params)
 
         _LOGGER.debug(
             "Calling http url %s method %s", url, method)
 
         try:
-            params = ""
-            if data:
-                params = data.encode("UTF-8")
-
-            if method == HttpMethod.POST:
-                response = requests.post(url,
-                                         data=params,
-                                         headers=headers,
-                                         cookies=self.cookies,
-                                         timeout=TIMEOUT)
-            elif method == HttpMethod.GET:
-                response = requests.get(url,
-                                        data=params,
-                                        headers=headers,
-                                        cookies=self.cookies,
-                                        timeout=TIMEOUT)
-
+            response = getattr(requests, method)(url, kwargs)
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             if log_errors:
@@ -457,7 +440,7 @@ class SonyDevice():
                         </SOAP-ENV:Body>
                     </SOAP-ENV:Envelope>""".format(params)
         response = self._send_http(
-            url, method=HttpMethod.POST, headers=headers, data=data)
+            url, method="post", headers=headers, data=data)
         if response:
             return response.content.decode("utf-8")
         return False
@@ -498,7 +481,7 @@ class SonyDevice():
         try:
             self._send_http(
                 registration_action.url,
-                method=HttpMethod.GET,
+                method="get",
                 raise_errors=True)
             # set the pin to something to make sure init_device is called
             self.pin = 9999
@@ -517,7 +500,7 @@ class SonyDevice():
     def _register_v3(self, registration_action):
         try:
             self._send_http(registration_action.url,
-                            method=HttpMethod.GET, raise_errors=True)
+                            method="get", raise_errors=True)
         except requests.exceptions.RequestException as ex:
             return self._handle_register_error(ex)
         else:
@@ -531,7 +514,7 @@ class SonyDevice():
                 "Content-Type": "application/json"
             }
             response = self._send_http(registration_action.url,
-                                       method=HttpMethod.POST, headers=headers,
+                                       method="post", headers=headers,
                                        data=authorization, raise_errors=True)
 
         except requests.exceptions.RequestException as ex:
@@ -614,7 +597,7 @@ class SonyDevice():
         url = self.actionlist_url
         try:
             # todo parse response
-            self._send_http(url, HttpMethod.GET,
+            self._send_http(url, "get",
                             log_errors=False, raise_errors=True)
         except requests.exceptions.RequestException as ex:
             _LOGGER.debug(ex)
@@ -628,7 +611,7 @@ class SonyDevice():
         self.home()
         url = "{0}/apps/{1}".format(self.app_url, self.apps[app_name].id)
         data = "LOCATION: {0}/run".format(url)
-        self._send_http(url, HttpMethod.POST, data=data)
+        self._send_http(url, "post", data=data)
 
     def power(self, power_on, broadcast=None):
         """Powers the device on or shuts it off."""

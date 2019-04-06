@@ -379,18 +379,18 @@ class SonyDevice():
         raise_errors = kwargs.pop("raise_errors", False)
         method = kwargs.pop("method", method.value)
 
-        standard_params = {
+        params = {
             "cookies": self.cookies,
             "timeout": TIMEOUT,
             "headers": self.headers,
         }
-        kwargs.update(standard_params)
+        params.update(kwargs)
 
         _LOGGER.debug(
             "Calling http url %s method %s", url, method)
 
         try:
-            response = getattr(requests, method)(url, **kwargs)
+            response = getattr(requests, method)(url, **params)
             response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             if log_errors:

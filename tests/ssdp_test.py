@@ -33,10 +33,9 @@ def mock_socket(*args, **kwargs):
             data = read_file_bin("data/ssdp.txt", size=size, offset=self.offset)
             if not data:
                 raise timeout()
-            data = data.replace('\n', '\r\n')
-            encoded = data.encode()
-            self.offset = self.offset + len(encoded)
-            return encoded
+
+            self.offset = self.offset + len(data)
+            return data
 
     return MockSocket()
 

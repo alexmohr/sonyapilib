@@ -16,7 +16,7 @@ class SSDPResponse:
     def __init__(self, response):
         if not response:
             return
-        
+
         # construct a message from the request string
         message = email.message_from_file(StringIO(response))
 
@@ -37,6 +37,23 @@ class SSDPResponse:
 class SSDPDiscovery():
     # pylint: disable=too-few-public-methods
     """Discover devices via the ssdp protocol."""
+
+    @staticmethod
+    def _parse_response(data):
+        responses = {}
+        lines = ""
+        http_ok = "HTTP/1.1 200 OK"
+        for line in data.split('\r\n'):
+            if http_ok in line and lines:
+                response = SSDPResponse(lines)
+                responses[response.location] = response
+                lines = ""
+            elif http_ok not in line:
+                line_content = line.split(":")
+                if len(line_content) >= 2 and line_content[1]:
+                    lines += line + '\r\n'
+        return list(responses.values())
+
     @staticmethod
     def discover(service="ssdp:all", timeout=1, retries=5, mx=3):
         # pylint: disable=invalid-name
@@ -51,7 +68,6 @@ class SSDPDiscovery():
             'MAN: "ssdp:discover"',
             'ST: {st}', 'MX: {mx}', '', ''])
         # using a dict to prevent duplicated entries.
-        responses = {}
         for _ in range(0, retries):
             sock = socket.socket(
                 socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -72,15 +88,4 @@ class SSDPDiscovery():
                 except socket.timeout:
                     break
 
-            lines = ""
-            http_ok = "HTTP/1.1 200 OK"
-            for line in data.split('\r\n'):
-                if http_ok in line and len(lines) > 0:
-                    response = SSDPResponse(lines)
-                    responses[response.location] = response
-                    lines = ""
-                elif http_ok not in line:
-                    line_content = line.split(":")
-                    if len(line_content) >= 2 and line_content[1]:
-                        lines += line + '\r\n'
-            return list(responses.values())
+            return SSDPDiscovery._parse_response(data)

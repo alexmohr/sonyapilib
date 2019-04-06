@@ -112,3 +112,4 @@ venv.bak/
 
 .coveralls
 .idea/
+.vscode/

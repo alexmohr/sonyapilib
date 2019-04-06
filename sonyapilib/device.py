@@ -1,5 +1,5 @@
 """
-Sony Mediaplayer lib
+Sony Media player lib
 """
 from enum import Enum
 from urllib.parse import (
@@ -37,12 +37,14 @@ class AuthenticationResult(Enum):
     ERROR = 1
     PIN_NEEDED = 2
 
+
 class HttpMethod(Enum):
     """Defines which http method is used."""
     GET = "get"
     POST = "post"
 
-class XmlApiObject():
+
+class XmlApiObject:
     # pylint: disable=too-few-public-methods
     """Holds data for a device action or a command."""
 
@@ -65,7 +67,7 @@ class XmlApiObject():
             setattr(self, attr, xml_data.get(attr))
 
 
-class SonyDevice():
+class SonyDevice:
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=fixme
@@ -508,12 +510,11 @@ class SonyDevice():
     def register(self):
         """
         Register at the api. The name which will be displayed in the UI of the device.
-        Make sure this name does not exist yet
+        Make sure this name does not exist yet.
         For this the device must be put in registration mode.
-        The tested sd5500 has no separate mode but allows registration in the overview
         """
-        registration_result = AuthenticationResult.ERROR
 
+        registration_result = AuthenticationResult.ERROR
         registration_action = registration_action = self._get_action(
             "register")
 
@@ -526,7 +527,7 @@ class SonyDevice():
             registration_result = self._register_v4(registration_action)
         else:
             raise ValueError(
-                "Regisration mode {0} is not supported".format(registration_action.mode))
+                "Registration mode {0} is not supported".format(registration_action.mode))
 
         if registration_result is AuthenticationResult.SUCCESS:
             self._init_device()

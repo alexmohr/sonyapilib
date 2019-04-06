@@ -1,9 +1,7 @@
-import unittest
-import os.path
-
-from inspect import getsourcefile
 import os.path as path
 import sys
+from inspect import getsourcefile
+
 current_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 from sonyapilib.device import SonyDevice, AuthenticationResult
@@ -20,10 +18,10 @@ def register_device(device):
     device.send_authentication(pin)
     return True
 
+
 if __name__ == "__main__":
     
     stored_config = "bluray.json"
-    device = None
 
     # device must be on for registration
     host = "10.0.0.102"

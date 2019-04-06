@@ -1,6 +1,0 @@
-pytest>=3.6
-pytest-pep8
-pytest-cov
-python-coveralls
-pylint
-git+https://github.com/melor/HTTPretty.git@py33

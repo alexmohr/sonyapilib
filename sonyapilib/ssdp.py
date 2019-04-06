@@ -1,25 +1,24 @@
 """
 SSDP Implementation
-
 """
-
+import email
+import logging
 import socket
 from io import StringIO
-import email
 
-class SSDPResponse():
+_LOGGER = logging.getLogger(__name__)
+
+
+class SSDPResponse:
     # pylint: disable=too-few-public-methods
     """Holds the response of a ssdp request."""
 
     def __init__(self, response):
         if not response:
             return
-        # pop the first line so we only process headers
-        # first line is http response
-        _, headers = response.split('\r\n', 1)
-
+        
         # construct a message from the request string
-        message = email.message_from_file(StringIO(headers))
+        message = email.message_from_file(StringIO(response))
 
         # construct a dictionary containing the headers
         headers = dict(message.items())
@@ -59,17 +58,29 @@ class SSDPDiscovery():
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
 
-            #msg = DISCOVERY_MSG % dict(service='id1', library=LIB_ID)
+            # msg = DISCOVERY_MSG % dict(service='id1', library=LIB_ID)
             for _ in range(0, retries):
                 # sending it more than once will
                 # decrease the probability of a timeout
                 sock.sendto(str.encode(message.format(
                     *host, st=service, mx=mx)), host)
 
+            data = ""
             while True:
                 try:
-                    response = SSDPResponse(bytes.decode(sock.recv(1024)))
-                    responses[response.location] = response
+                    data = data + bytes.decode(sock.recv(1024))
                 except socket.timeout:
                     break
+
+            lines = ""
+            http_ok = "HTTP/1.1 200 OK"
+            for line in data.split('\r\n'):
+                if http_ok in line and len(lines) > 0:
+                    response = SSDPResponse(lines)
+                    responses[response.location] = response
+                    lines = ""
+                elif http_ok not in line:
+                    line_content = line.split(":")
+                    if len(line_content) >= 2 and line_content[1]:
+                        lines += line + '\r\n'
             return list(responses.values())

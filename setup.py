@@ -1,10 +1,11 @@
 # pylint: disable=invalid-name, exec-used
 """Setup sonyapilib package."""
 from __future__ import absolute_import
-import sys
-import os
-from setuptools import setup
 
+import os
+import sys
+
+from setuptools import setup
 
 sys.path.insert(0, '.')
 
@@ -31,6 +32,13 @@ setup(
         'jsonpickle',
         'setuptools',
         'requests',
-        'wakeonlan',
+        'wakeonlan'
     ],
+    tests_require=['pytest>=3.6',
+                   'pytest-pep8',
+                   'pytest-cov',
+                   'python-coveralls',
+                   'pylint',
+                   'coverage>=4.4'
+                   ]
 )

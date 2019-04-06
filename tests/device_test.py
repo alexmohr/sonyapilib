@@ -1,15 +1,13 @@
-import unittest
-from unittest import mock
 import os.path
-
-from inspect import getsourcefile
-import os.path as path
 import sys
-import requests
+import unittest
+from inspect import getsourcefile
+from unittest import mock
 
+from tests.testutil import read_file
 
-current_dir = path.dirname(path.abspath(getsourcefile(lambda: 0)))
-sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
+current_dir = os.path.dirname(os.path.abspath(getsourcefile(lambda: 0)))
+sys.path.insert(0, current_dir[:current_dir.rfind(os.path.sep)])
 # cannot be imported at a different position because path modification
 # is necessary to load the local library.
 # otherwise it must be installed after every change
@@ -30,18 +28,13 @@ REGISTRATION_URL_V4_FAIL = 'http://192.168.178.22/sony/accessControl'
 APP_LIST_URL = 'http://test:50202/appslist'
 
 
-def read_file(file_name):
-    """ Reads a file from disk """
-    __location__ = os.path.realpath(os.path.join(
-        os.getcwd(), os.path.dirname(__file__)))
-    with open(os.path.join(__location__, file_name)) as f:
-        return f.read()
-
 def mock_error(*args, **kwargs):
     raise Exception()
 
+
 def mock_nothing(*args, **kwargs):
     pass
+
 
 def mock_discovery(*args, **kwargs):
     if args[0] == "urn:schemas-sony-com:service:IRCC:1":
@@ -50,7 +43,8 @@ def mock_discovery(*args, **kwargs):
         return [resp]
     return None
 
-class MockResponse():
+
+class MockResponse:
     class MockResponseJson:
         def __init__(self, data):
             self.data = data
@@ -87,17 +81,17 @@ def mocked_requests_get(*args, **kwargs):
     url = args[0]
     print("GET for URL: {}".format(url))
     if url == DMR_URL:
-        return MockResponse(None, 200, read_file("xml/dmr_v3.xml"))
+        return MockResponse(None, 200, read_file("data/dmr_v3.xml"))
     elif url == IRCC_URL:
-        return MockResponse(None, 200, read_file("xml/ircc.xml"))
+        return MockResponse(None, 200, read_file("data/ircc.xml"))
     elif url == ACTION_LIST_URL:
-        return MockResponse(None, 200, read_file("xml/actionlist.xml"))
+        return MockResponse(None, 200, read_file("data/actionlist.xml"))
     elif url == SYSTEM_INFORMATION_URL:
-        return MockResponse(None, 200, read_file("xml/getSysteminformation.xml"))
+        return MockResponse(None, 200, read_file("data/getSysteminformation.xml"))
     elif url == GET_REMOTE_COMMAND_LIST_URL:
-        return MockResponse(None, 200, read_file("xml/getRemoteCommandList.xml"))
+        return MockResponse(None, 200, read_file("data/getRemoteCommandList.xml"))
     elif url == APP_LIST_URL:
-        return MockResponse(None, 200, read_file("xml/appsList.xml"))
+        return MockResponse(None, 200, read_file("data/appsList.xml"))
     elif url == REGISTRATION_URL_LEGACY: 
         return MockResponse({}, 200)
 
@@ -176,7 +170,7 @@ class SonyDeviceTest(unittest.TestCase):
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_dmr_v3(self, mock_get):
-        content = read_file("xml/dmr_v3.xml")
+        content = read_file("data/dmr_v3.xml")
         device = self.create_device()
         device._parse_dmr(content)
         self.verify_device_dmr(device)
@@ -184,7 +178,7 @@ class SonyDeviceTest(unittest.TestCase):
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_dmr_v4(self, mock_get):
-        content = read_file("xml/dmr_v4.xml")
+        content = read_file("data/dmr_v4.xml")
         device = self.create_device()
         device._parse_dmr(content)
         self.verify_device_dmr(device)

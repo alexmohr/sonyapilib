@@ -1,17 +1,17 @@
 """
 Sony Media player lib
 """
+import base64
+import json
+import logging
+import uuid
+import xml.etree.ElementTree
 from enum import Enum
 from urllib.parse import (
     urljoin,
     urlparse,
     quote,
 )
-import base64
-import json
-import logging
-import uuid
-import xml.etree.ElementTree
 
 import jsonpickle
 import requests
@@ -19,7 +19,6 @@ import wakeonlan
 
 from sonyapilib import ssdp
 from sonyapilib.xml_helper import find_in_xml
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -97,7 +96,7 @@ class SonyDevice:
         self.name = None
         self.cookies = None
         self.mac = None
-        self.is_v4 = False
+        self.api_version = 0
         self.uuid = uuid.uuid4()
 
         ircc_base = "http://{0.host}:{0.ircc_port}".format(self)
@@ -148,7 +147,7 @@ class SonyDevice:
 
         try:
             self._parse_dmr(response.text)
-            if self.is_v4:
+            if self.api_version > 3:
                 # todo implement this
                 pass
             else:
@@ -254,7 +253,7 @@ class SonyDevice:
         if WEBAPI_SERVICETYPE not in data:
             return
 
-        self.is_v4 = True
+        self.api_version = 4
         device_info_name = "{0}X_ScalarWebAPI_DeviceInfo".format(
             URN_SCALAR_WEB_API_DEVICE_INFO
         )
@@ -288,23 +287,31 @@ class SonyDevice:
             _LOGGER.error("Registration necessary to read command list.")
             return
 
-        if self.is_v4:
-            # todo refactor to method
-            action_name = "getRemoteControllerInfo"
-            action = self.actions[action_name]
-            json_data = self._create_api_json(action.value)
-
-            resp = self._send_http(
-                action.url, HttpMethod.POST, json=json_data, headers={}
-            ).json()
-            if resp and not resp.get('error'):
-                # todo parse this into the old structure.
-                self.commands = resp.get('result')[1]
-            else:
-                _LOGGER.error("JSON request error: %s",
-                              json.dumps(resp, indent=4))
+        if self.api_version > 3:
+            self._parse_command_list_v4()
         else:
             self._parse_command_list()
+
+    def _parse_command_list_v4(self):
+        action_name = "getRemoteControllerInfo"
+        action = self.actions[action_name]
+        json_data = self._create_api_json(action.value)
+
+        response = self._send_http(
+            action.url, HttpMethod.POST, json=json_data, headers={}
+        )
+
+        if not response:
+            _LOGGER.error("no response received")
+            return
+
+        json_resp = response.json()
+        if json_resp and not json_resp.get('error'):
+            # todo parse this into the old structure.
+            self.commands = json_resp.get('result')[1]
+        else:
+            _LOGGER.error("JSON request error: %s",
+                          json.dumps(json_resp, indent=4))
 
     def _parse_command_list(self):
         """Parse the list of available command in devices with the legacy api."""
@@ -448,6 +455,7 @@ class SonyDevice:
     def _get_action(self, name):
         """Get the action object for the action with the given name"""
         if name not in self.actions and not self.actions:
+            self._init_device()
             if name not in self.actions and not self.actions:
                 raise ValueError('Failed to read action list from device.')
 
@@ -483,7 +491,7 @@ class SonyDevice:
             return AuthenticationResult.SUCCESS
 
     def _register_v4(self, registration_action):
-        authorization = self._create_api_json("actRegister", 13)
+        authorization = self._create_api_json("actRegister")
 
         try:
             headers = {
@@ -541,6 +549,9 @@ class SonyDevice:
         # they do not need a pin
         if registration_action.mode < 3:
             return True
+
+        if not pin:
+            return False
 
         self.pin = pin
         self._recreate_authentication()

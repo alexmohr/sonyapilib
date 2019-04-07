@@ -87,8 +87,10 @@ class SonyDevice:
         self.dmr_port = 52323
         self.ircc_port = 50001
 
+        # actions are thing like getting status
         self.actions = {}
         self.headers = {}
+        # commands are alike to buttons on the remote
         self.commands = {}
         self.apps = {}
 
@@ -105,6 +107,7 @@ class SonyDevice:
 
         self.dmr_url = "http://{0.host}:{0.dmr_port}/dmr.xml".format(self)
         self.app_url = "http://{0.host}:{0.app_port}".format(self)
+        self.base_url = "http://{0.host}/sony/".format(self)
 
     def _init_device(self):
         self._update_service_urls()
@@ -265,19 +268,20 @@ class SonyDevice:
         ]
         for device in find_in_xml(xml_data, search_params):
             for xml_url in device:
-                base_url = xml_url.text
-                if not base_url.endswith("/"):
-                    base_url = "{}/".format(base_url)
+                self.base_url = xml_url.text
+                if not self.base_url.endswith("/"):
+                    self.base_url = "{}/".format(self.base_url)
 
                 action = XmlApiObject({})
-                action.url = urljoin(base_url, "accessControl")
+                action.url = urljoin(self.base_url, "accessControl")
                 action.mode = 4
                 self.actions["register"] = action
 
                 action = XmlApiObject({})
-                action.url = urljoin(base_url, "system")
+                action.url = urljoin(self.base_url, "system")
                 action.value = "getRemoteControllerInfo"
                 self.actions["getRemoteCommandList"] = action
+                self.control_url = urljoin(self.base_url, "IRCC")
 
     def _update_commands(self):
         """Update the list of commands."""
@@ -566,37 +570,59 @@ class SonyDevice:
 
     def get_playing_status(self):
         """Get the status of playback from the device"""
-        data = """<m:GetTransportInfo xmlns:m="urn:schemas-upnp-org:service:AVTransport:1">
-            <InstanceID>0</InstanceID>
-            </m:GetTransportInfo>"""
+        if self.api_version < 4:
+            data = """<m:GetTransportInfo xmlns:m="urn:schemas-upnp-org:service:AVTransport:1">
+                <InstanceID>0</InstanceID>
+                </m:GetTransportInfo>"""
 
-        action = "urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo"
+            action = "urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo"
 
-        content = self._post_soap_request(
-            url=self.av_transport_url, params=data, action=action)
-        if not content:
-            return "OFF"
-        return find_in_xml(content, [".//CurrentTransportState"]).text
+            content = self._post_soap_request(
+                url=self.av_transport_url, params=data, action=action)
+            if not content:
+                return "OFF"
+            return find_in_xml(content, [".//CurrentTransportState"]).text
+        return_value = {}
+        resp = self._send_http(urljoin(self.base_url, "avContent"),
+                               self._create_api_json("getPlayingContentInfo"))
+        if resp is not None and not resp.get('error'):
+            playing = resp.get('result')[0]
+            # todo get the playing status and return it.
+            return_value['programTitle'] = playing.get('programTitle')
+        return return_value
 
     def get_power_status(self):
         """Checks if the device is online."""
-        url = self.actionlist_url
+        if self.api_version < 4:
+            url = self.actionlist_url
+            try:
+                self._send_http(url, HttpMethod.GET, log_errors=False, raise_errors=True)
+            except requests.exceptions.RequestException as ex:
+                _LOGGER.debug(ex)
+                return False
+            return True
         try:
-            # todo parse response
-            self._send_http(url, HttpMethod.GET, log_errors=False, raise_errors=True)
-        except requests.exceptions.RequestException as ex:
-            _LOGGER.debug(ex)
-            return False
-        return True
+            resp = self._send_http(urljoin(self.base_url, "system"),
+                                   self._create_api_json("getPowerStatus"))
+            if resp is not None and not resp.get('error'):
+                power_data = resp.get('result')[0]
+                return power_data.get('status') != "off"
+        except requests.RequestException:
+            pass
+        return False
 
     def start_app(self, app_name):
         """Start an app by name"""
         # sometimes device does not start app if already running one
-        # todo add support for v4
         self.home()
-        url = "{0}/apps/{1}".format(self.app_url, self.apps[app_name].id)
-        data = "LOCATION: {0}/run".format(url)
-        self._send_http(url, HttpMethod.POST, data=data)
+
+        if self.api_version < 4:
+            url = "{0}/apps/{1}".format(self.app_url, self.apps[app_name].id)
+            data = "LOCATION: {0}/run".format(url)
+            self._send_http(url, HttpMethod.POST, data=data)
+        else:
+            # todo add support for v4
+            pass
 
     def power(self, power_on, broadcast=None):
         """Powers the device on or shuts it off."""

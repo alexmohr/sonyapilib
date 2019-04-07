@@ -584,8 +584,8 @@ class SonyDevice:
                 return "OFF"
             return find_in_xml(content, [".//CurrentTransportState"]).text
         return_value = {}
-        resp = self._send_http(urljoin(self.base_url, "avContent"),
-                               self._create_api_json("getPlayingContentInfo"))
+        resp = self._send_http(urljoin(self.base_url, "avContent"), HttpMethod.POST,
+                               json=self._create_api_json("getPlayingContentInfo"))
         if resp is not None and not resp.get('error'):
             playing = resp.get('result')[0]
             # todo get the playing status and return it.
@@ -603,10 +603,13 @@ class SonyDevice:
                 return False
             return True
         try:
-            resp = self._send_http(urljoin(self.base_url, "system"),
-                                   self._create_api_json("getPowerStatus"))
-            if resp is not None and not resp.get('error'):
-                power_data = resp.get('result')[0]
+            resp = self._send_http(urljoin(self.base_url, "system"), HttpMethod.POST,
+                                   json=self._create_api_json("getPowerStatus"))
+            if not resp:
+                return False
+            json_data = resp.json()
+            if not json_data.get('error'):
+                power_data = json_data.get('result')[0]
                 return power_data.get('status') != "off"
         except requests.RequestException:
             pass

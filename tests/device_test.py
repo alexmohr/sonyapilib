@@ -3,6 +3,9 @@ import sys
 import unittest
 from inspect import getsourcefile
 from unittest import mock
+from urllib.parse import (
+    urljoin
+)
 
 from requests import HTTPError
 
@@ -33,6 +36,7 @@ APP_LIST_URL = 'http://test:50202/appslist'
 APP_START_URL_LEGACY = 'http://test:50202/apps/'
 SOAP_URL = 'http://test/soap'
 GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
+BASE_URL = 'http://test/sony'
 
 
 def mock_error(*args, **kwargs):
@@ -55,18 +59,18 @@ def mock_discovery(*args, **kwargs):
     return None
 
 
-class MockResponse:
-    class MockResponseJson:
-        def __init__(self, data):
-            self.data = data
-        
-        def get(self, key):
-            if key in self.data:
-                return self.data[key]
-            return None
+class MockResponseJson:
+    def __init__(self, data):
+        self.data = data
 
+    def get(self, key):
+        if key in self.data:
+            return self.data[key]
+        return None
+
+class MockResponse:
     def __init__(self, json_data, status_code, text=None, cookies=None):
-        self.json_obj = self.MockResponseJson(json_data)
+        self.json_obj = MockResponseJson(json_data)
         self.status_code = status_code
         self.text = text
         self.cookies = cookies
@@ -75,9 +79,6 @@ class MockResponse:
 
     def json(self):
         return self.json_obj
-
-    def get(self):
-        pass
 
     def raise_for_status(self):
         if self.status_code == 200:
@@ -98,10 +99,14 @@ def mocked_requests_post(*args, **kwargs):
         MockResponse(None, 401).raise_for_status()
     elif url == SOAP_URL:
         return MockResponse({}, 200, "data")
+    elif url == urljoin(BASE_URL, 'system'):
+        result = MockResponseJson({"status": "on"})
+        return MockResponse({"result": [result]}, 200)
     elif APP_START_URL_LEGACY in url:
         return MockResponse(None, 200)
     else:
         raise ValueError("Unknown url requested: {}".format(url))
+
 
 def mocked_requests_get(*args, **kwargs):
     url = args[0]
@@ -583,6 +588,24 @@ class SonyDeviceTest(unittest.TestCase):
         device._send_req_ircc(params)
         self.assertEqual(mock_post_soap_request.call_count, 1)
         self.assertEqual(mock_post_soap_request.call_args_list[0][1]['params'], data)
+
+    def test_get_power_status_false(self):
+        versions = [1, 2, 3, 4]
+        device = self.create_device()
+        for version in versions:
+            device.api_version = version
+            self.assertFalse(device.get_power_status())
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_get_power_status_true(self, mocked_post, mocked_get):
+        versions = [1, 2, 3, 4]
+        device = self.create_device()
+        device.actionlist_url = ACTION_LIST_URL
+        device.base_url = BASE_URL
+        for version in versions:
+            device.api_version = version
+            self.assertTrue(device.get_power_status())
 
     @staticmethod
     def create_command_list(device):

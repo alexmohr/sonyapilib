@@ -30,8 +30,10 @@ REGISTRATION_URL_V4_FAIL = 'http://192.168.178.22/sony/accessControl'
 REGISTRATION_URL_V4_FAIL_401 = 'http://192.168.178.25/sony/accessControl'
 REGISTRATION_URL_V3_FAIL_401 = 'http://192.168.240.7:50002/register'
 APP_LIST_URL = 'http://test:50202/appslist'
+APP_START_URL_LEGACY = 'http://test:50202/apps/'
 SOAP_URL = 'http://test/soap'
 GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
+
 
 def mock_error(*args, **kwargs):
     raise Exception()
@@ -96,7 +98,10 @@ def mocked_requests_post(*args, **kwargs):
         MockResponse(None, 401).raise_for_status()
     elif url == SOAP_URL:
         return MockResponse({}, 200, "data")
-
+    elif APP_START_URL_LEGACY in url:
+        return MockResponse(None, 200)
+    else:
+        raise ValueError("Unknown url requested: {}".format(url))
 
 def mocked_requests_get(*args, **kwargs):
     url = args[0]
@@ -265,7 +270,7 @@ class SonyDeviceTest(unittest.TestCase):
         device._parse_system_information()
         self.assertEqual(device.mac, "30-52-cb-cc-16-ee")
 
-    def prepare_test_command_list(self):
+    def prepare_test_action_list(self):
         device = self.create_device()
         data = XmlApiObject({})
         data.url = GET_REMOTE_COMMAND_LIST_URL
@@ -273,12 +278,12 @@ class SonyDeviceTest(unittest.TestCase):
         return device
 
     def test_parse_command_list_error(self):
-        device = self.prepare_test_command_list()
+        device = self.prepare_test_action_list()
         device._parse_command_list()
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_command_list(self, mock_get):
-        device = self.prepare_test_command_list()
+        device = self.prepare_test_action_list()
         device._parse_command_list()
         self.assertEqual(len(device.commands), 48)
 
@@ -305,20 +310,66 @@ class SonyDeviceTest(unittest.TestCase):
         device.actions["getRemoteControllerInfo"] = action
         device._update_commands()
 
+    def start_app_legacy(self, device, app_name, mock_post, mock_send_command):
+        versions = [1, 2, 3]
+        apps = {
+            "Video Explorer": "com.sony.videoexplorer",
+            "Music Explorer": "com.sony.musicexplorer",
+            "Video Player": "com.sony.videoplayer",
+            "Music Player": "com.sony.musicplayer",
+            "PlayStation Video": "com.sony.videounlimited",
+            "Amazon Prime Video": "com.sony.iptv.4976",
+            "Netflix": "com.sony.iptv.type.NRDP",
+            "Rakuten TV": "com.sony.iptv.3479",
+            "Tagesschau": "com.sony.iptv.type.EU-TAGESSCHAU_6x3",
+            "Functions with Gracenote ended": "com.sony.iptv.6317",
+            "watchmi Themenkanäle": "com.sony.iptv.4766",
+            "Netzkino": "com.sony.iptv.4742",
+            "MUBI": "com.sony.iptv.5498",
+            "WWE Network": "com.sony.iptv.4340",
+            "DW for Smart TV": "com.sony.iptv.4968",
+            "YouTube": "com.sony.iptv.type.ytleanback",
+            "uStudio": "com.sony.iptv.4386",
+            "Meteonews TV": "com.sony.iptv.3487",
+            "Digital Concert Hall": "com.sony.iptv.type.WW-BERLINPHIL_NBIV",
+            "Activate Enhanced Features": "com.sony.iptv.4834"
+        }
+
+        for version in versions:
+            device.api_version = version
+            device.start_app(app_name)
+
+            self.assertEqual(mock_post.call_count, 1)
+            self.assertEqual(mock_send_command.call_count, 1)
+
+            url = APP_START_URL_LEGACY + apps[app_name]
+            self.assertEqual(url, mock_post.call_args[0][0])
+            mock_send_command.call_count = 0
+            mock_post.call_count = 0
+            mock_post.mock_calls.clear()
+
+    def start_app_v4(self, device, app_name):
+        device.api_version = 4
+        # todo
+
+    @mock.patch('sonyapilib.device.SonyDevice._send_command', side_effect=mock_nothing)
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
     @mock.patch('requests.get', side_effect=mocked_requests_get)
-    def test_update_applist(self, mock_get):
+    def test_update_applist(self, mock_get, mock_post, mock_send_command):
         device = self.create_device()
         app_list = [
             "Video Explorer", "Music Explorer", "Video Player", "Music Player",
-            "PlayStation Video", "Amazon Prime Video", "Netflix", "Rakuten TV", 
-            "Tagesschau", "Functions with Gracenote ended", "watchmi Themenkanäle", 
+            "PlayStation Video", "Amazon Prime Video", "Netflix", "Rakuten TV",
+            "Tagesschau", "Functions with Gracenote ended", "watchmi Themenkanäle",
             "Netzkino", "MUBI", "WWE Network", "DW for Smart TV", "YouTube",
              "uStudio", "Meteonews TV", "Digital Concert Hall", "Activate Enhanced Features"
         ]
 
         device._update_applist()
-        for app in device.apps:
+        for app in device.get_apps():
             self.assertTrue(app in app_list)
+            self.start_app_legacy(device, app, mock_post, mock_send_command)
+            self.start_app_v4(device, app)
         self.assertEqual(len(device.apps), len(app_list))
 
     def test_recreate_authentication_no_auth(self):
@@ -509,6 +560,35 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(mock_init_device.call_count, 1)
         device.actions[action.name] = action
         self.assertEqual(device._get_action(action.name), action)
+
+    @mock.patch('sonyapilib.device.SonyDevice._send_req_ircc', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    def test_send_command_error(self, mock_init_device, mock_send_req_ircc):
+        device = self.create_device()
+        with self.assertRaises(ValueError):
+            device._send_command("test")
+        self.create_command_list(device)
+        with self.assertRaises(ValueError):
+            device._send_command("foo")
+        device._send_command("test")
+        self.assertEqual(mock_send_req_ircc.call_count, 1)
+
+    @mock.patch('sonyapilib.device.SonyDevice._post_soap_request', side_effect=mock_nothing)
+    def test_send_req_ircc(self, mock_post_soap_request):
+        device = self.create_device()
+        params = "foobar"
+        data = """<u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1">
+                    <IRCCCode>{0}</IRCCCode>
+                  </u:X_SendIRCC>""".format(params)
+        device._send_req_ircc(params)
+        self.assertEqual(mock_post_soap_request.call_count, 1)
+        self.assertEqual(mock_post_soap_request.call_args_list[0][1]['params'], data)
+
+    @staticmethod
+    def create_command_list(device):
+        command = XmlApiObject({})
+        command.name = "test"
+        device.commands[command.name] = command
 
     @staticmethod
     def create_device():

@@ -33,5 +33,13 @@ setup(
         'setuptools',
         'requests',
         'wakeonlan'
+    ],
+    tests_require=[
+        'pytest>=3.6',
+        'pytest-pep8',
+        'pytest-cov',
+        'python-coveralls',
+        'pylint',
+        'coverage>=4.4'
     ]
 )

@@ -172,8 +172,6 @@ class SonyDevice:
 
             if action.name == "register":
                 # the authentication later on is based on the device id and the mac
-                # todo maybe refactor this to requests
-                # http://docs.python-requests.org/en/master/_modules/requests/api/?highlight=param
                 action.url = "{0}?name={1}&registrationType=initial&deviceId={2}".format(
                     action.url,
                     quote(self.nickname),
@@ -331,9 +329,12 @@ class SonyDevice:
 
     def _update_applist(self):
         """Update the list of apps which are supported by the device."""
-        url = self.app_url + "/appslist"
+        if self.api_version < 4:
+            url = self.app_url + "/appslist"
+        else:
+            url = 'http://{}/DIAL/sony/applist'.format(self.host)
+
         response = self._send_http(url, method=HttpMethod.GET)
-        # todo add support for v4
         if response:
             for app in find_in_xml(response.text, [(".//app", True)]):
                 data = XmlApiObject({
@@ -621,8 +622,8 @@ class SonyDevice:
             data = "LOCATION: {0}/run".format(url)
             self._send_http(url, HttpMethod.POST, data=data)
         else:
-            # todo add support for v4
-            pass
+            url = 'http://{}/DIAL/apps/{}'.format(self.host, self.apps[app_name].id)
+            self._send_http(url, HttpMethod.POST)
 
     def power(self, power_on, broadcast=None):
         """Powers the device on or shuts it off."""

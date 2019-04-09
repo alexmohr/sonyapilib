@@ -583,6 +583,7 @@ class SonyDevice:
             if not content:
                 return "OFF"
             return find_in_xml(content, [".//CurrentTransportState"]).text
+
         return_value = {}
         resp = self._send_http(urljoin(self.base_url, "avContent"), HttpMethod.POST,
                                json=self._create_api_json("getPlayingContentInfo"))
@@ -628,7 +629,7 @@ class SonyDevice:
             url = 'http://{}/DIAL/apps/{}'.format(self.host, self.apps[app_name].id)
             self._send_http(url, HttpMethod.POST)
 
-    def power(self, power_on, broadcast=None):
+    def power(self, power_on, broadcast='255.255.255.255'):
         """Powers the device on or shuts it off."""
         if power_on:
             self.wakeonlan(broadcast)

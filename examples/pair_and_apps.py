@@ -2,6 +2,7 @@ from sonyapilib.device import SonyDevice
 
 CONFIG_FILE = "bluray.json"
 
+
 def save_device():
     data = device.save_to_json()
     text_file = open(CONFIG_FILE, "w")
@@ -11,12 +12,12 @@ def save_device():
 
 def load_device():
     import os
-    device = None
+    sony_device = None
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, 'r') as content_file:
             json_data = content_file.read()
-            device = SonyDevice.load_from_json(json_data)
-    return device
+            sony_device = SonyDevice.load_from_json(json_data)
+    return sony_device
 
 
 if __name__ == "__main__":

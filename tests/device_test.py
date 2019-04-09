@@ -33,6 +33,7 @@ REGISTRATION_URL_V4_FAIL = 'http://192.168.178.22/sony/accessControl'
 REGISTRATION_URL_V4_FAIL_401 = 'http://192.168.178.25/sony/accessControl'
 REGISTRATION_URL_V3_FAIL_401 = 'http://192.168.240.7:50002/register'
 APP_LIST_URL = 'http://test:50202/appslist'
+APP_LIST_URL_V4 = 'http://test/DIAL/sony/applist'
 APP_START_URL_LEGACY = 'http://test:50202/apps/'
 SOAP_URL = 'http://test/soap'
 GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
@@ -121,7 +122,7 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("data/getSysteminformation.xml"))
     elif url == GET_REMOTE_COMMAND_LIST_URL:
         return MockResponse(None, 200, read_file("data/getRemoteCommandList.xml"))
-    elif url == APP_LIST_URL:
+    elif url == APP_LIST_URL or url == APP_LIST_URL_V4:  # todo make sure lists are equal
         return MockResponse(None, 200, read_file("data/appsList.xml"))
     elif url == REGISTRATION_URL_LEGACY: 
         return MockResponse({}, 200)
@@ -370,12 +371,17 @@ class SonyDeviceTest(unittest.TestCase):
              "uStudio", "Meteonews TV", "Digital Concert Hall", "Activate Enhanced Features"
         ]
 
-        device._update_applist()
-        for app in device.get_apps():
-            self.assertTrue(app in app_list)
-            self.start_app_legacy(device, app, mock_post, mock_send_command)
-            self.start_app_v4(device, app)
-        self.assertEqual(len(device.apps), len(app_list))
+        versions = [1, 2, 3, 4]
+        for version in versions:
+            device.api_version = version
+            device._update_applist()
+            for app in device.get_apps():
+                self.assertTrue(app in app_list)
+                if device.api_version < 4:
+                    self.start_app_legacy(device, app, mock_post, mock_send_command)
+                else:
+                    self.start_app_v4(device, app)
+            self.assertEqual(len(device.apps), len(app_list))
 
     def test_recreate_authentication_no_auth(self):
         versions = [1, 2]
@@ -606,6 +612,24 @@ class SonyDeviceTest(unittest.TestCase):
         for version in versions:
             device.api_version = version
             self.assertTrue(device.get_power_status())
+
+    @mock.patch('sonyapilib.device.SonyDevice._send_command', side_effect=mock_nothing)
+    def test_power_off(self, mock_send_command):
+        device = self.create_device()
+        device.power(False)
+        self.assertEqual(mock_send_command.call_count, 1)
+        self.assertEqual(mock_send_command.mock_calls[0][1][0], "Power")
+
+    @mock.patch('sonyapilib.device.SonyDevice.get_power_status', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice._send_command', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.wakeonlan', side_effect=mock_nothing)
+    def test_power_off(self, mock_wake_on_lan, mock_send_command, mock_get_power_status):
+        device = self.create_device()
+        device.power(True)
+        self.assertEqual(mock_send_command.call_count, 1)
+        self.assertEqual(mock_wake_on_lan.call_count, 1)
+        self.assertEqual(mock_send_command.mock_calls[0][1][0], "Power")
+        pass
 
     @staticmethod
     def create_command_list(device):

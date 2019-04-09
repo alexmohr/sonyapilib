@@ -7,7 +7,7 @@ from urllib.parse import (
     urljoin
 )
 
-from requests import HTTPError
+from requests import HTTPError, URLRequired
 
 from tests.testutil import read_file
 
@@ -35,10 +35,12 @@ REGISTRATION_URL_V3_FAIL_401 = 'http://192.168.240.7:50002/register'
 APP_LIST_URL = 'http://test:50202/appslist'
 APP_LIST_URL_V4 = 'http://test/DIAL/sony/applist'
 APP_START_URL_LEGACY = 'http://test:50202/apps/'
+APP_START_URL = 'http://test/DIAL/apps/'
 SOAP_URL = 'http://test/soap'
 GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
 BASE_URL = 'http://test/sony'
-
+AV_TRANSPORT_URL = 'http://test:52323/upnp/control/AVTransport'
+AV_TRANSPORT_URL_NO_MEDIA = 'http://test2:52323/upnp/control/AVTransport'
 
 def mock_error(*args, **kwargs):
     raise Exception()
@@ -92,7 +94,9 @@ class MockResponse:
 def mocked_requests_post(*args, **kwargs):
     url = args[0]
     print("POST for URL: {}".format(url))
-    if url == REGISTRATION_URL_V4:
+    if not url:
+        raise URLRequired()
+    elif url == REGISTRATION_URL_V4:
             return MockResponse({}, 200)
     elif url == REGISTRATION_URL_V4_FAIL:
         return MockResponse({"error": 402}, 200)
@@ -105,6 +109,12 @@ def mocked_requests_post(*args, **kwargs):
         return MockResponse({"result": [result]}, 200)
     elif APP_START_URL_LEGACY in url:
         return MockResponse(None, 200)
+    elif APP_START_URL in url:
+        return MockResponse(None, 200)
+    elif url == AV_TRANSPORT_URL:
+        return MockResponse(None, 200, read_file('data/playing_status_legacy_playing.xml'))
+    elif url == AV_TRANSPORT_URL_NO_MEDIA:
+        return MockResponse(None, 200, read_file('data/playing_status_legacy_no_media.xml'))
     else:
         raise ValueError("Unknown url requested: {}".format(url))
 
@@ -316,8 +326,8 @@ class SonyDeviceTest(unittest.TestCase):
         device.actions["getRemoteControllerInfo"] = action
         device._update_commands()
 
-    def start_app_legacy(self, device, app_name, mock_post, mock_send_command):
-        versions = [1, 2, 3]
+    def start_app(self, device, app_name, mock_post, mock_send_command):
+        versions = [1, 2, 3, 4]
         apps = {
             "Video Explorer": "com.sony.videoexplorer",
             "Music Explorer": "com.sony.musicexplorer",
@@ -348,15 +358,14 @@ class SonyDeviceTest(unittest.TestCase):
             self.assertEqual(mock_post.call_count, 1)
             self.assertEqual(mock_send_command.call_count, 1)
 
-            url = APP_START_URL_LEGACY + apps[app_name]
+            if version < 4:
+                url = APP_START_URL_LEGACY + apps[app_name]
+            else:
+                url = APP_START_URL + apps[app_name]
             self.assertEqual(url, mock_post.call_args[0][0])
             mock_send_command.call_count = 0
             mock_post.call_count = 0
             mock_post.mock_calls.clear()
-
-    def start_app_v4(self, device, app_name):
-        device.api_version = 4
-        # todo
 
     @mock.patch('sonyapilib.device.SonyDevice._send_command', side_effect=mock_nothing)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
@@ -377,10 +386,7 @@ class SonyDeviceTest(unittest.TestCase):
             device._update_applist()
             for app in device.get_apps():
                 self.assertTrue(app in app_list)
-                if device.api_version < 4:
-                    self.start_app_legacy(device, app, mock_post, mock_send_command)
-                else:
-                    self.start_app_v4(device, app)
+                self.start_app(device, app, mock_post, mock_send_command)
             self.assertEqual(len(device.apps), len(app_list))
 
     def test_recreate_authentication_no_auth(self):
@@ -623,14 +629,24 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('sonyapilib.device.SonyDevice.get_power_status', side_effect=mock_nothing)
     @mock.patch('sonyapilib.device.SonyDevice._send_command', side_effect=mock_nothing)
     @mock.patch('sonyapilib.device.SonyDevice.wakeonlan', side_effect=mock_nothing)
-    def test_power_off(self, mock_wake_on_lan, mock_send_command, mock_get_power_status):
+    def test_power_on(self, mock_wake_on_lan, mock_send_command, mock_get_power_status):
         device = self.create_device()
         device.power(True)
         self.assertEqual(mock_send_command.call_count, 1)
         self.assertEqual(mock_wake_on_lan.call_count, 1)
         self.assertEqual(mock_send_command.mock_calls[0][1][0], "Power")
-        pass
 
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_playing_status_no_media_legacy(self, mocked_requests_post):
+        device = self.create_device()
+        self.assertEqual("OFF", device.get_playing_status())
+
+        device.av_transport_url = AV_TRANSPORT_URL_NO_MEDIA
+        device.get_playing_status()
+
+        device.av_transport_url = AV_TRANSPORT_URL
+        self.assertEqual("PLAYING", device.get_playing_status())
+        
     @staticmethod
     def create_command_list(device):
         command = XmlApiObject({})
@@ -643,8 +659,7 @@ class SonyDeviceTest(unittest.TestCase):
         return SonyDevice("test", "test")
 
     def verify_device_dmr(self, device):
-        self.assertEqual(device.av_transport_url,
-                         'http://test:52323/upnp/control/AVTransport')
+        self.assertEqual(device.av_transport_url, AV_TRANSPORT_URL)
 
     @staticmethod
     def verify_cookies(device):

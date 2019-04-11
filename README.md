@@ -21,7 +21,7 @@ pip install sonyapilib
 This library has been tested with python 3.5 and above, functionality for older python version cannot be guaranteed.
 
 # Example
-The example will load a json file with all data if it exists or connects to device and registers it, storing the json afterwards
+This example connections with device (of which the ip address is hard coded) start the registration process and starts the first available. More detailed examples can be found in the examples folder.
 ```
 from sonyapilib.device import SonyDevice
 
@@ -40,8 +40,6 @@ if __name__ == "__main__":
     device.play()
 
 ```
-
-More examples can be found in the examples folder.
 
 # URL list
 

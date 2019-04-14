@@ -153,6 +153,8 @@ class SonyDevice:
                 self._parse_ircc()
                 self._parse_action_list()
                 self._parse_system_information()
+            else:
+                self._parse_system_information_v4()
 
         except Exception as ex:  # pylint: disable=broad-except
             _LOGGER.error("failed to get device information: %s", str(ex))
@@ -211,6 +213,20 @@ class SonyDevice:
                 "{0}controlURL".format(URN_UPNP_DEVICE)).text
             service_url = lirc_url.scheme + "://" + lirc_url.netloc
             self.control_url = service_url + service_location
+
+    def _parse_system_information_v4(self):
+        url = urljoin(self.base_url, "system")
+        json_data = self._create_api_json("getSystemSupportedFunction")
+        response = self._send_http(url, HttpMethod.POST, json=json_data)
+        if not response:
+            _LOGGER.debug("no response received, device might be off")
+            return
+
+        json_resp = response.json()
+        if json_resp and not json_resp.get('error'):
+            for option in json_resp.get('result')[0]:
+                if option['option'] == 'WOL':
+                    self.mac = option['value']
 
     def _parse_system_information(self):
         response = self._send_http(
@@ -518,7 +534,7 @@ class SonyDevice:
         The default cookie is for URL/sony.
         For some commands we need it for the root path
         """
-        # pylint: abstract-class-instantiated
+        # pylint: disable=abstract-class-instantiated
         cookies = requests.cookies.RequestsCookieJar()
         cookies.set("auth", self.cookies.get("auth"))
         return cookies

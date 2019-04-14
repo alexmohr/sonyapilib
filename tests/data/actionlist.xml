@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actionList>
+  <action name="register" mode="3" url="http://192.168.240.4:50002/register"/>
+  <action name="getText" url="http://192.168.240.4:50002/getText"/>
+  <action name="sendText" url="http://192.168.240.4:50002/sendText"/>
+  <action name="getContentInformation" url="http://192.168.240.4:50002/getContentInformation"/>
+  <action name="getSystemInformation" url="http://192.168.240.4:50002/getSystemInformation"/>
+  <action name="getRemoteCommandList" url="http://192.168.240.4:50002/getRemoteCommandList"/>
+  <action name="getStatus" url="http://192.168.240.4:50002/getStatus"/>
+  <action name="getHistoryList" url="http://192.168.240.4:50002/getHistoryList"/>
+  <action name="getContentUrl" url="http://192.168.240.4:50002/getContentUrl"/>
+  <action name="sendContentUrl" url="http://192.168.240.4:50002/sendContentUrl"/>
+</actionList>

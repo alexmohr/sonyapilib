@@ -1,0 +1,39 @@
+<systemInformation>
+    <name>BDPlayer</name>
+    <generation>2015</generation>
+    <remoteType>RMT-B119A</remoteType>
+    <remoteType>RMT-B120A</remoteType>
+    <remoteType>RMT-B122A</remoteType>
+    <remoteType>RMT-B123A</remoteType>
+    <remoteType>RMT-B126A</remoteType>
+    <remoteType>RMT-B119J</remoteType>
+    <remoteType>RMT-B127J</remoteType>
+    <remoteType>RMT-B119P</remoteType>
+    <remoteType>RMT-B120P</remoteType>
+    <remoteType>RMT-B121P</remoteType>
+    <remoteType>RMT-B122P</remoteType>
+    <remoteType bundled="true">RMT-B127P</remoteType>
+    <remoteType>RMT-B119C</remoteType>
+    <remoteType>RMT-B120C</remoteType>
+    <remoteType>RMT-B122C</remoteType>
+    <remoteType>RMT-B127C</remoteType>
+    <remoteType>RMT-B127T</remoteType>
+    <remoteType>RMT-B115A</remoteType>
+    <actionHeader name="CERS-DEVICE-ID"/>
+    <supportContentsClass>
+        <class>video</class>
+        <class>music</class>
+    </supportContentsClass>
+    <supportSource>
+        <source>BD</source>
+        <source>DVD</source>
+        <source>CD</source>
+        <source>Net</source>
+    </supportSource>
+    <supportFunction>
+        <function name="Notification"/>
+        <function name="WOL">
+            <functionItem field="MAC" value="30-52-cb-cc-16-ee"/>
+        </function>
+    </supportFunction>
+</systemInformation>

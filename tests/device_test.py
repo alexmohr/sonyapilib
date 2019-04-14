@@ -7,6 +7,7 @@ from urllib.parse import (
     urljoin
 )
 
+import jsonpickle
 from requests import HTTPError, URLRequired
 
 from tests.testutil import read_file
@@ -28,10 +29,11 @@ IRCC_URL = 'http://test:50001/Ircc.xml'
 SYSTEM_INFORMATION_URL = 'http://192.168.240.4:50002/getSystemInformation'
 GET_REMOTE_COMMAND_LIST_URL = 'http://192.168.240.4:50002/getRemoteCommandList'
 REGISTRATION_URL_LEGACY = 'http://192.168.240.4:50002/register'
-REGISTRATION_URL_V4 = 'http://192.168.178.23/sony/accessControl'
-REGISTRATION_URL_V4_FAIL = 'http://192.168.178.22/sony/accessControl'
-REGISTRATION_URL_V4_FAIL_401 = 'http://192.168.178.25/sony/accessControl'
+REGISTRATION_URL_V4 = 'http://192.168.170.23/sony/accessControl'
+REGISTRATION_URL_V4_FAIL = 'http://192.168.170.22/sony/accessControl'
+REGISTRATION_URL_V4_FAIL_401 = 'http://192.168.170.25/sony/accessControl'
 REGISTRATION_URL_V3_FAIL_401 = 'http://192.168.240.7:50002/register'
+COMMAND_LIST_V4 = 'http://192.168.240.4:50002/getRemoteCommandList'
 APP_LIST_URL = 'http://test:50202/appslist'
 APP_LIST_URL_V4 = 'http://test/DIAL/sony/applist'
 APP_START_URL_LEGACY = 'http://test:50202/apps/'
@@ -70,6 +72,7 @@ class MockResponseJson:
         if key in self.data:
             return self.data[key]
         return None
+
 
 class MockResponse:
     def __init__(self, json_data, status_code, text=None, cookies=None):
@@ -115,6 +118,9 @@ def mocked_requests_post(*args, **kwargs):
         return MockResponse(None, 200, read_file('data/playing_status_legacy_playing.xml'))
     elif url == AV_TRANSPORT_URL_NO_MEDIA:
         return MockResponse(None, 200, read_file('data/playing_status_legacy_no_media.xml'))
+    elif url == COMMAND_LIST_V4:
+        json_data = jsonpickle.decode(read_file('data/commandList.json'))
+        return MockResponse(json_data, 200, "")
     else:
         raise ValueError("Unknown url requested: {}".format(url))
 
@@ -132,7 +138,7 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("data/getSysteminformation.xml"))
     elif url == GET_REMOTE_COMMAND_LIST_URL:
         return MockResponse(None, 200, read_file("data/getRemoteCommandList.xml"))
-    elif url == APP_LIST_URL or url == APP_LIST_URL_V4:  # todo make sure lists are equal
+    elif url == APP_LIST_URL or url == APP_LIST_URL_V4:
         return MockResponse(None, 200, read_file("data/appsList.xml"))
     elif url == REGISTRATION_URL_LEGACY: 
         return MockResponse({}, 200)
@@ -155,7 +161,7 @@ class SonyDeviceTest(unittest.TestCase):
     def test_init_device_no_pin(self, mock_update_applist, mock_update_command,
                                 mock_recreate_auth, mock_update_service_url):
         device = self.create_device()
-        device._init_device()
+        device.init_device()
         self.assertEqual(mock_update_service_url.call_count, 1)
         self.assertEqual(mock_recreate_auth.call_count, 0)
         self.assertEqual(mock_update_command.call_count, 0)
@@ -169,7 +175,7 @@ class SonyDeviceTest(unittest.TestCase):
                                   mock_recreate_auth, mock_update_service_url):
         device = self.create_device()
         device.pin = 1234
-        device._init_device()
+        device.init_device()
         self.assertEqual(mock_update_service_url.call_count, 1)
         self.assertEqual(mock_recreate_auth.call_count, 1)
         self.assertEqual(mock_update_command.call_count, 1)
@@ -199,10 +205,6 @@ class SonyDeviceTest(unittest.TestCase):
         device = self.create_device()
         device._update_service_urls()
         self.assertEqual(mock_error.call_count, 1)
-
-    def test_update_service_urls_v4(self):
-        # todo
-        pass
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('sonyapilib.device.SonyDevice._parse_ircc', side_effect=mock_nothing)
@@ -236,7 +238,7 @@ class SonyDeviceTest(unittest.TestCase):
             device.actions["register"].url, REGISTRATION_URL_V4)
         self.assertEqual(device.actions["register"].mode, 4)
         self.assertEqual(
-            device.actions["getRemoteCommandList"].url, 'http://192.168.178.23/sony/system')
+            device.actions["getRemoteCommandList"].url, 'http://192.168.170.23/sony/system')
 
     def test_parse_ircc_error(self):
         device = self.create_device()
@@ -294,14 +296,30 @@ class SonyDeviceTest(unittest.TestCase):
         return device
 
     def test_parse_command_list_error(self):
-        device = self.prepare_test_action_list()
-        device._parse_command_list()
+        versions = [1, 2, 3, 4]
+        for version in versions:
+            device = self.prepare_test_action_list()
+            device.api_version = version
+            device._parse_command_list()
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
-    def test_parse_command_list(self, mock_get):
-        device = self.prepare_test_action_list()
-        device._parse_command_list()
-        self.assertEqual(len(device.commands), 48)
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_parse_command_list(self, mock_get, mock_post):
+        versions = [1, 2, 3, 4]
+        for version in versions:
+            device = self.prepare_test_action_list()
+            device.version = version
+            if version < 4:
+                cmd_length = 48
+                device._parse_command_list()
+            else:
+                cmd_length = 98
+                device._parse_command_list_v4()
+            self.assertTrue("Power" in device.commands)
+            self.assertTrue("Left" in device.commands)
+            self.assertTrue("Pause" in device.commands)
+            self.assertTrue("Num3" in device.commands)
+            self.assertEqual(len(device.commands), cmd_length)
 
     @mock.patch('sonyapilib.device.SonyDevice._parse_command_list', side_effect=mock_nothing)
     def test_update_commands_no_pin(self, mock_parse_cmd_list):
@@ -323,7 +341,7 @@ class SonyDeviceTest(unittest.TestCase):
         device.api_version = 4
         action = XmlApiObject({})
         action.url = GET_REMOTE_CONTROLLER_INFO_URL
-        device.actions["getRemoteControllerInfo"] = action
+        device.actions["getRemoteCommandList"] = action
         device._update_commands()
 
     def start_app(self, device, app_name, mock_post, mock_send_command):
@@ -414,7 +432,7 @@ class SonyDeviceTest(unittest.TestCase):
 
         self.assertEqual(device.headers["Authorization"], "Basic OjEyMzQ=")
         self.assertEqual(device.headers["Connection"], "keep-alive")
-        self.verify_cookies(device.cookies)
+        self.verify_cookies(device)
 
     def test_recreate_authentication_v4_psk(self):
         # todo implement psk
@@ -427,7 +445,7 @@ class SonyDeviceTest(unittest.TestCase):
             result = self.register_with_version(version)
             self.assertEqual(result[0], AuthenticationResult.SUCCESS)
 
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_register_not_supported(self, mocked_get, mocked_init_device):
         with self.assertRaises(ValueError):
@@ -439,7 +457,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(result[0], auth_result)
         self.assertEqual(mocked_init_device.call_count, 0)
 
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     def test_register_fail_http_timeout(self, mocked_init_device):
         versions = [1, 2, 3, 4]
         for version in versions:
@@ -447,32 +465,31 @@ class SonyDeviceTest(unittest.TestCase):
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     def test_register_fail_pin_needed(self, mocked_init_device, mock_request_get_401, mock_request_post_401):
         self.verify_register_fail(3, AuthenticationResult.PIN_NEEDED, mocked_init_device, REGISTRATION_URL_V3_FAIL_401)
         self.verify_register_fail(4, AuthenticationResult.PIN_NEEDED, mocked_init_device, REGISTRATION_URL_V4_FAIL_401)
 
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_register_success_v3(self, mocked_requests_get, mocked_init_device):
         result = self.register_with_version(3)
         self.assertEqual(result[0], AuthenticationResult.SUCCESS)
         self.assertEqual(mocked_init_device.call_count, 1)
 
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
     def test_register_no_json_v4(self, mocked_requests_post, mocked_init_device):
         result = self.register_with_version(4, REGISTRATION_URL_V4_FAIL)
         self.assertEqual(result[0], AuthenticationResult.ERROR)
         self.assertEqual(mocked_init_device.call_count, 0)
 
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
     def test_register_success_v4(self, mocked_requests_post, mocked_init_device):
         result = self.register_with_version(4, REGISTRATION_URL_V4)
         self.assertEqual(result[0], AuthenticationResult.SUCCESS)
         self.assertEqual(mocked_init_device.call_count, 1)
-        self.verify_cookies(result[1].cookies)
 
     @mock.patch('sonyapilib.device.SonyDevice.register', side_effect=mock_nothing)
     @mock.patch('sonyapilib.device.SonyDevice._recreate_authentication', side_effect=mock_nothing)
@@ -567,7 +584,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(mock_call["data"], data)
         self.assertEqual(mocked_requests_post.call_count, 1)
 
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     def test_get_action(self, mock_init_device):
         device = self.create_device()
         action = XmlApiObject({})
@@ -579,7 +596,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(device._get_action(action.name), action)
 
     @mock.patch('sonyapilib.device.SonyDevice._send_req_ircc', side_effect=mock_nothing)
-    @mock.patch('sonyapilib.device.SonyDevice._init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     def test_send_command_error(self, mock_init_device, mock_send_req_ircc):
         device = self.create_device()
         with self.assertRaises(ValueError):
@@ -656,14 +673,15 @@ class SonyDeviceTest(unittest.TestCase):
     @staticmethod
     def create_device():
         sonyapilib.device.TIMEOUT = 0.1
-        return SonyDevice("test", "test")
+        device = SonyDevice("test", "test")
+        device.cookies = jsonpickle.decode(read_file("data/cookies.json"))
+        return device
 
     def verify_device_dmr(self, device):
         self.assertEqual(device.av_transport_url, AV_TRANSPORT_URL)
 
-    @staticmethod
-    def verify_cookies(device):
-        pass  # todo implement cookie verification
+    def verify_cookies(self, device):
+        self.assertTrue(device.cookies is not None)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,403 @@
+{
+  "id": 1,
+  "result": [
+    {
+      "bundled": true,
+      "type": "RM-J1100"
+    },
+    [
+      {
+        "name": "PowerOff",
+        "value": "AAAAAQAAAAEAAAAvAw=="
+      },
+      {
+        "name": "Input",
+        "value": "AAAAAQAAAAEAAAAlAw=="
+      },
+      {
+        "name": "GGuide",
+        "value": "AAAAAQAAAAEAAAAOAw=="
+      },
+      {
+        "name": "EPG",
+        "value": "AAAAAgAAAKQAAABbAw=="
+      },
+      {
+        "name": "Favorites",
+        "value": "AAAAAgAAAHcAAAB2Aw=="
+      },
+      {
+        "name": "Display",
+        "value": "AAAAAQAAAAEAAAA6Aw=="
+      },
+      {
+        "name": "Home",
+        "value": "AAAAAQAAAAEAAABgAw=="
+      },
+      {
+        "name": "Options",
+        "value": "AAAAAgAAAJcAAAA2Aw=="
+      },
+      {
+        "name": "Return",
+        "value": "AAAAAgAAAJcAAAAjAw=="
+      },
+      {
+        "name": "Up",
+        "value": "AAAAAQAAAAEAAAB0Aw=="
+      },
+      {
+        "name": "Down",
+        "value": "AAAAAQAAAAEAAAB1Aw=="
+      },
+      {
+        "name": "Right",
+        "value": "AAAAAQAAAAEAAAAzAw=="
+      },
+      {
+        "name": "Left",
+        "value": "AAAAAQAAAAEAAAA0Aw=="
+      },
+      {
+        "name": "Confirm",
+        "value": "AAAAAQAAAAEAAABlAw=="
+      },
+      {
+        "name": "Red",
+        "value": "AAAAAgAAAJcAAAAlAw=="
+      },
+      {
+        "name": "Green",
+        "value": "AAAAAgAAAJcAAAAmAw=="
+      },
+      {
+        "name": "Yellow",
+        "value": "AAAAAgAAAJcAAAAnAw=="
+      },
+      {
+        "name": "Blue",
+        "value": "AAAAAgAAAJcAAAAkAw=="
+      },
+      {
+        "name": "Num1",
+        "value": "AAAAAQAAAAEAAAAAAw=="
+      },
+      {
+        "name": "Num2",
+        "value": "AAAAAQAAAAEAAAABAw=="
+      },
+      {
+        "name": "Num3",
+        "value": "AAAAAQAAAAEAAAACAw=="
+      },
+      {
+        "name": "Num4",
+        "value": "AAAAAQAAAAEAAAADAw=="
+      },
+      {
+        "name": "Num5",
+        "value": "AAAAAQAAAAEAAAAEAw=="
+      },
+      {
+        "name": "Num6",
+        "value": "AAAAAQAAAAEAAAAFAw=="
+      },
+      {
+        "name": "Num7",
+        "value": "AAAAAQAAAAEAAAAGAw=="
+      },
+      {
+        "name": "Num8",
+        "value": "AAAAAQAAAAEAAAAHAw=="
+      },
+      {
+        "name": "Num9",
+        "value": "AAAAAQAAAAEAAAAIAw=="
+      },
+      {
+        "name": "Num0",
+        "value": "AAAAAQAAAAEAAAAJAw=="
+      },
+      {
+        "name": "Num11",
+        "value": "AAAAAQAAAAEAAAAKAw=="
+      },
+      {
+        "name": "Num12",
+        "value": "AAAAAQAAAAEAAAALAw=="
+      },
+      {
+        "name": "VolumeUp",
+        "value": "AAAAAQAAAAEAAAASAw=="
+      },
+      {
+        "name": "VolumeDown",
+        "value": "AAAAAQAAAAEAAAATAw=="
+      },
+      {
+        "name": "Mute",
+        "value": "AAAAAQAAAAEAAAAUAw=="
+      },
+      {
+        "name": "ChannelUp",
+        "value": "AAAAAQAAAAEAAAAQAw=="
+      },
+      {
+        "name": "ChannelDown",
+        "value": "AAAAAQAAAAEAAAARAw=="
+      },
+      {
+        "name": "SubTitle",
+        "value": "AAAAAgAAAJcAAAAoAw=="
+      },
+      {
+        "name": "ClosedCaption",
+        "value": "AAAAAgAAAKQAAAAQAw=="
+      },
+      {
+        "name": "Enter",
+        "value": "AAAAAQAAAAEAAAALAw=="
+      },
+      {
+        "name": "DOT",
+        "value": "AAAAAgAAAJcAAAAdAw=="
+      },
+      {
+        "name": "Analog",
+        "value": "AAAAAgAAAHcAAAANAw=="
+      },
+      {
+        "name": "Teletext",
+        "value": "AAAAAQAAAAEAAAA/Aw=="
+      },
+      {
+        "name": "Exit",
+        "value": "AAAAAQAAAAEAAABjAw=="
+      },
+      {
+        "name": "Analog2",
+        "value": "AAAAAQAAAAEAAAA4Aw=="
+      },
+      {
+        "name": "*AD",
+        "value": "AAAAAgAAABoAAAA7Aw=="
+      },
+      {
+        "name": "Digital",
+        "value": "AAAAAgAAAJcAAAAyAw=="
+      },
+      {
+        "name": "Analog?",
+        "value": "AAAAAgAAAJcAAAAuAw=="
+      },
+      {
+        "name": "BS",
+        "value": "AAAAAgAAAJcAAAAsAw=="
+      },
+      {
+        "name": "CS",
+        "value": "AAAAAgAAAJcAAAArAw=="
+      },
+      {
+        "name": "BSCS",
+        "value": "AAAAAgAAAJcAAAAQAw=="
+      },
+      {
+        "name": "Ddata",
+        "value": "AAAAAgAAAJcAAAAVAw=="
+      },
+      {
+        "name": "PicOff",
+        "value": "AAAAAQAAAAEAAAA+Aw=="
+      },
+      {
+        "name": "Tv_Radio",
+        "value": "AAAAAgAAABoAAABXAw=="
+      },
+      {
+        "name": "Theater",
+        "value": "AAAAAgAAAHcAAABgAw=="
+      },
+      {
+        "name": "SEN",
+        "value": "AAAAAgAAABoAAAB9Aw=="
+      },
+      {
+        "name": "InternetWidgets",
+        "value": "AAAAAgAAABoAAAB6Aw=="
+      },
+      {
+        "name": "InternetVideo",
+        "value": "AAAAAgAAABoAAAB5Aw=="
+      },
+      {
+        "name": "Netflix",
+        "value": "AAAAAgAAABoAAAB8Aw=="
+      },
+      {
+        "name": "SceneSelect",
+        "value": "AAAAAgAAABoAAAB4Aw=="
+      },
+      {
+        "name": "Mode3D",
+        "value": "AAAAAgAAAHcAAABNAw=="
+      },
+      {
+        "name": "iManual",
+        "value": "AAAAAgAAABoAAAB7Aw=="
+      },
+      {
+        "name": "Audio",
+        "value": "AAAAAQAAAAEAAAAXAw=="
+      },
+      {
+        "name": "Wide",
+        "value": "AAAAAgAAAKQAAAA9Aw=="
+      },
+      {
+        "name": "Jump",
+        "value": "AAAAAQAAAAEAAAA7Aw=="
+      },
+      {
+        "name": "PAP",
+        "value": "AAAAAgAAAKQAAAB3Aw=="
+      },
+      {
+        "name": "MyEPG",
+        "value": "AAAAAgAAAHcAAABrAw=="
+      },
+      {
+        "name": "ProgramDescription",
+        "value": "AAAAAgAAAJcAAAAWAw=="
+      },
+      {
+        "name": "WriteChapter",
+        "value": "AAAAAgAAAHcAAABsAw=="
+      },
+      {
+        "name": "TrackID",
+        "value": "AAAAAgAAABoAAAB+Aw=="
+      },
+      {
+        "name": "TenKey",
+        "value": "AAAAAgAAAJcAAAAMAw=="
+      },
+      {
+        "name": "AppliCast",
+        "value": "AAAAAgAAABoAAABvAw=="
+      },
+      {
+        "name": "acTVila",
+        "value": "AAAAAgAAABoAAAByAw=="
+      },
+      {
+        "name": "DeleteVideo",
+        "value": "AAAAAgAAAHcAAAAfAw=="
+      },
+      {
+        "name": "PhotoFrame",
+        "value": "AAAAAgAAABoAAABVAw=="
+      },
+      {
+        "name": "TvPause",
+        "value": "AAAAAgAAABoAAABnAw=="
+      },
+      {
+        "name": "KeyPad",
+        "value": "AAAAAgAAABoAAAB1Aw=="
+      },
+      {
+        "name": "Media",
+        "value": "AAAAAgAAAJcAAAA4Aw=="
+      },
+      {
+        "name": "SyncMenu",
+        "value": "AAAAAgAAABoAAABYAw=="
+      },
+      {
+        "name": "Forward",
+        "value": "AAAAAgAAAJcAAAAcAw=="
+      },
+      {
+        "name": "Play",
+        "value": "AAAAAgAAAJcAAAAaAw=="
+      },
+      {
+        "name": "Rewind",
+        "value": "AAAAAgAAAJcAAAAbAw=="
+      },
+      {
+        "name": "Prev",
+        "value": "AAAAAgAAAJcAAAA8Aw=="
+      },
+      {
+        "name": "Stop",
+        "value": "AAAAAgAAAJcAAAAYAw=="
+      },
+      {
+        "name": "Next",
+        "value": "AAAAAgAAAJcAAAA9Aw=="
+      },
+      {
+        "name": "Rec",
+        "value": "AAAAAgAAAJcAAAAgAw=="
+      },
+      {
+        "name": "Pause",
+        "value": "AAAAAgAAAJcAAAAZAw=="
+      },
+      {
+        "name": "Eject",
+        "value": "AAAAAgAAAJcAAABIAw=="
+      },
+      {
+        "name": "FlashPlus",
+        "value": "AAAAAgAAAJcAAAB4Aw=="
+      },
+      {
+        "name": "FlashMinus",
+        "value": "AAAAAgAAAJcAAAB5Aw=="
+      },
+      {
+        "name": "TopMenu",
+        "value": "AAAAAgAAABoAAABgAw=="
+      },
+      {
+        "name": "PopUpMenu",
+        "value": "AAAAAgAAABoAAABhAw=="
+      },
+      {
+        "name": "RakurakuStart",
+        "value": "AAAAAgAAAHcAAABqAw=="
+      },
+      {
+        "name": "OneTouchTimeRec",
+        "value": "AAAAAgAAABoAAABkAw=="
+      },
+      {
+        "name": "OneTouchView",
+        "value": "AAAAAgAAABoAAABlAw=="
+      },
+      {
+        "name": "OneTouchRec",
+        "value": "AAAAAgAAABoAAABiAw=="
+      },
+      {
+        "name": "OneTouchStop",
+        "value": "AAAAAgAAABoAAABjAw=="
+      },
+      {
+        "name": "DUX",
+        "value": "AAAAAgAAABoAAABzAw=="
+      },
+      {
+        "name": "FootballMode",
+        "value": "AAAAAgAAABoAAAB2Aw=="
+      },
+      {
+        "name": "Social",
+        "value": "AAAAAgAAABoAAAB0Aw=="
+      }
+    ]
+  ]
+}

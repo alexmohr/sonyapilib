@@ -27,6 +27,7 @@ ACTION_LIST_URL = 'http://192.168.240.4:50002/actionList'
 DMR_URL = 'http://test:52323/dmr.xml'
 IRCC_URL = 'http://test:50001/Ircc.xml'
 SYSTEM_INFORMATION_URL = 'http://192.168.240.4:50002/getSystemInformation'
+SYSTEM_INFORMATION_URL_V4 = 'http://test/sony/system'
 GET_REMOTE_COMMAND_LIST_URL = 'http://192.168.240.4:50002/getRemoteCommandList'
 REGISTRATION_URL_LEGACY = 'http://192.168.240.4:50002/register'
 REGISTRATION_URL_V4 = 'http://192.168.170.23/sony/accessControl'
@@ -43,6 +44,11 @@ GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
 BASE_URL = 'http://test/sony'
 AV_TRANSPORT_URL = 'http://test:52323/upnp/control/AVTransport'
 AV_TRANSPORT_URL_NO_MEDIA = 'http://test2:52323/upnp/control/AVTransport'
+
+
+def mock_request_error(*args, **kwargs):
+    raise HTTPError()
+
 
 def mock_error(*args, **kwargs):
     raise Exception()
@@ -120,6 +126,9 @@ def mocked_requests_post(*args, **kwargs):
         return MockResponse(None, 200, read_file('data/playing_status_legacy_no_media.xml'))
     elif url == COMMAND_LIST_V4:
         json_data = jsonpickle.decode(read_file('data/commandList.json'))
+        return MockResponse(json_data, 200, "")
+    elif url == SYSTEM_INFORMATION_URL_V4:
+        json_data = jsonpickle.decode(read_file('data/systemInformation.json'))
         return MockResponse(json_data, 200, "")
     else:
         raise ValueError("Unknown url requested: {}".format(url))
@@ -220,6 +229,15 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(mock_system_information.call_count, 1)
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_update_service_urls_v4(self, mocked_requests_post, mocked_requests_get):
+        device = self.create_device()
+        device.pin = 1234
+        device.api_version = 4
+        device._update_service_urls()
+        self.assertEqual(device.mac, "10:08:B1:31:81:B5")
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_dmr_v3(self, mock_get):
         content = read_file("data/dmr_v3.xml")
         device = self.create_device()
@@ -300,7 +318,10 @@ class SonyDeviceTest(unittest.TestCase):
         for version in versions:
             device = self.prepare_test_action_list()
             device.api_version = version
-            device._parse_command_list()
+            if version < 4:
+                device._parse_command_list()
+            else:
+                device._parse_command_list_v4()
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
@@ -625,6 +646,12 @@ class SonyDeviceTest(unittest.TestCase):
             device.api_version = version
             self.assertFalse(device.get_power_status())
 
+    @mock.patch('requests.post', side_effect=mock_request_error)
+    def test_get_power_status_error(self, mocked_request_error):
+        device = self.create_device()
+        device.api_version = 4
+        self.assertFalse(device.get_power_status())
+
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
     def test_get_power_status_true(self, mocked_post, mocked_get):
@@ -652,6 +679,15 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(mock_send_command.call_count, 1)
         self.assertEqual(mock_wake_on_lan.call_count, 1)
         self.assertEqual(mock_send_command.mock_calls[0][1][0], "Power")
+
+    @mock.patch('wakeonlan.send_magic_packet', side_effect=mock_nothing())
+    def test_wake_on_lan(self, mocked_wol):
+        device = self.create_device()
+        device.wakeonlan()
+        self.assertEqual(mocked_wol.call_count, 0)
+        device.mac = "foobar"
+        device.wakeonlan()
+        self.assertEqual(mocked_wol.call_count, 1)
 
     @mock.patch('requests.post', side_effect=mocked_requests_post)
     def test_playing_status_no_media_legacy(self, mocked_requests_post):

@@ -21,7 +21,7 @@ pip install sonyapilib
 This library has been tested with python 3.5 and above, functionality for older python version cannot be guaranteed.
 
 # Example
-The example will load a json file with all data if it exists or connects to device and registers it, storing the json afterwards
+This example connections with device (of which the ip address is hard coded) start the registration process and starts the first available. More detailed examples can be found in the examples folder.
 ```
 from sonyapilib.device import SonyDevice
 
@@ -41,8 +41,6 @@ if __name__ == "__main__":
 
 ```
 
-More examples can be found in the examples folder.
-
 # URL list
 
 https://github.com/chr15m/media-remote/blob/master/SNIFF.md
@@ -51,8 +49,7 @@ https://gist.github.com/kalleth/e10e8f3b8b7cb1bac21463b0073a65fb
 
 # Compatibility List
 
-## LCD TV BRAVIA
-### 2016 model or later<br/>
+### 2016 model or later
 KDL-W/WD, KLV-W Series (2016 model) are not compatible with Video & TV SideView. (Except for KDL-W800D/W950D)
  
 You can not install Video & TV SideView app into your Sony's Android TV™.
@@ -60,7 +57,7 @@ You can not install Video & TV SideView app into your Sony's Android TV™.
 ### 2015 model
 XBR-X94xC series, XBR-X93xC series, XBR-X91xC series, XBR-X90xC series, XBR-X85xC series, XBR-X83xC series, XBR-X80xC series, KD-X94xxC series, KD-X93xxC series, KD-X91xxC series, KD-X90xxC series, KD-X85xxC series, KD-X83xxC series, KD-X80xxC series, KDL-W95xC series, KDL-W85xC series, KDL-W80xC series, KDL-W75xC series, KDL-W70xC series, KDL-W600A series
 
-Please update your TV software to the latest version. For how to update the software.
+Please update your TV software to the latest version.
 
 ### 2014 model
 XBR-X95xB series, XBR-X90xB series, XBR-X85xB series, KD-X95xxB series, KD-X90xxB series, KD-X85xxB series, KD-X83xxC series, KD-X80xxB series, KDL-W95xB series, KDL-W92xA series, KDL-W90xB series, KDL-W85xB series, KDL-W83xB series, KDL-W8xxB series, KDL-W7xxB series, KDL-W6xxB series, KDL-W5xxA series

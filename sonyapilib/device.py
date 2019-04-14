@@ -72,7 +72,7 @@ class SonyDevice:
     # pylint: disable=fixme
     """Contains all data for the device."""
 
-    def __init__(self, host, nickname):
+    def __init__(self, host, nickname, psk=None):
         """Init the device with the entry point."""
         self.host = host
         self.nickname = nickname
@@ -80,6 +80,7 @@ class SonyDevice:
         self.control_url = None
         self.av_transport_url = None
         self.app_url = None
+        self.psk = psk
 
         self.app_port = 50202
         self.dmr_port = 52323
@@ -375,6 +376,9 @@ class SonyDevice:
             self.headers['X-CERS-DEVICE-ID'] = self.get_device_id()
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
+
+        if self.psk:
+            self.headers['X-Auth-PSK'] = self.psk
 
     def _create_api_json(self, method, params=None):
         # pylint: disable=invalid-name

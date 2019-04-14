@@ -456,8 +456,12 @@ class SonyDeviceTest(unittest.TestCase):
         self.verify_cookies(device)
 
     def test_recreate_authentication_v4_psk(self):
-        # todo implement psk
-        pass
+        device = SonyDevice("test", "test", "foobarPSK")
+        device.pin = 1234
+        self.add_register_to_device(device, 4)
+        device._recreate_authentication()
+        self.assertTrue(device.psk)
+        self.assertEqual(device.headers["X-Auth-PSK"], device.psk)
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_register_no_auth(self, mocked_get):

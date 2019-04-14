@@ -518,6 +518,7 @@ class SonyDevice:
         The default cookie is for URL/sony.
         For some commands we need it for the root path
         """
+        # pylint: abstract-class-instantiated
         cookies = requests.cookies.RequestsCookieJar()
         cookies.set("auth", self.cookies.get("auth"))
         return cookies

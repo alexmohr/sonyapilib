@@ -1,0 +1,50 @@
+{
+  "py/object": "requests.cookies.RequestsCookieJar",
+  "py/state": {
+    "_cookies": {
+      "192.168.170.23": {
+        "/sony/": {
+          "auth": {
+            "py/object": "http.cookiejar.Cookie",
+            "_rest": {},
+            "comment": null,
+            "comment_url": null,
+            "discard": false,
+            "domain": "192.168.170.23",
+            "domain_initial_dot": false,
+            "domain_specified": false,
+            "expires": 1556462645,
+            "name": "auth",
+            "path": "/sony/",
+            "path_specified": true,
+            "port": null,
+            "port_specified": false,
+            "rfc2109": false,
+            "secure": false,
+            "value": "b2d0ff57a51b475cb3d1a9b7516f366ed2b4ffe0164cd0fd560ff6ceb28b101a",
+            "version": 0
+          }
+        }
+      }
+    },
+    "_now": 1555253045,
+    "_policy": {
+      "py/object": "http.cookiejar.DefaultCookiePolicy",
+      "_allowed_domains": null,
+      "_blocked_domains": {
+        "py/tuple": []
+      },
+      "_now": 1555253045,
+      "hide_cookie2": false,
+      "netscape": true,
+      "rfc2109_as_netscape": null,
+      "rfc2965": false,
+      "strict_domain": false,
+      "strict_ns_domain": 0,
+      "strict_ns_set_initial_dollar": false,
+      "strict_ns_set_path": false,
+      "strict_ns_unverifiable": false,
+      "strict_rfc2965_unverifiable": true
+    }
+  }
+}

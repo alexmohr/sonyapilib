@@ -70,8 +70,6 @@ class SonyDevice:
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=fixme
-    # todo remove this again.
-    # todo check if commands, especially soap does work with v4.
     """Contains all data for the device."""
 
     def __init__(self, host, nickname):
@@ -109,7 +107,8 @@ class SonyDevice:
         self.app_url = "http://{0.host}:{0.app_port}".format(self)
         self.base_url = "http://{0.host}/sony/".format(self)
 
-    def _init_device(self):
+    def init_device(self):
+        """Update this object with data from the device"""
         self._update_service_urls()
 
         if self.pin:
@@ -120,8 +119,6 @@ class SonyDevice:
     @staticmethod
     def discover():
         """Discover all available devices."""
-
-        # Todo check if this works with v4
         discovery = ssdp.SSDPDiscovery()
         devices = []
         for device in discovery.discover(
@@ -135,7 +132,9 @@ class SonyDevice:
     @staticmethod
     def load_from_json(data):
         """Load a device configuration from a stored json."""
-        return jsonpickle.decode(data)
+        device = jsonpickle.decode(data)
+        device.init_device()
+        return device
 
     def save_to_json(self):
         """Save this device configuration into a json."""
@@ -150,10 +149,7 @@ class SonyDevice:
 
         try:
             self._parse_dmr(response.text)
-            if self.api_version > 3:
-                # todo implement this
-                pass
-            else:
+            if self.api_version < 3:
                 self._parse_ircc()
                 self._parse_action_list()
                 self._parse_system_information()
@@ -289,13 +285,13 @@ class SonyDevice:
             _LOGGER.error("Registration necessary to read command list.")
             return
 
-        if self.api_version > 3:
-            self._parse_command_list_v4()
-        else:
+        if self.api_version < 3:
             self._parse_command_list()
+        else:
+            self._parse_command_list_v4()
 
     def _parse_command_list_v4(self):
-        action_name = "getRemoteControllerInfo"
+        action_name = "getRemoteCommandList"
         action = self.actions[action_name]
         json_data = self._create_api_json(action.value)
 
@@ -304,13 +300,16 @@ class SonyDevice:
         )
 
         if not response:
-            _LOGGER.error("no response received")
+            _LOGGER.debug("no response received, device might be off")
             return
 
         json_resp = response.json()
         if json_resp and not json_resp.get('error'):
-            # todo parse this into the old structure.
-            self.commands = json_resp.get('result')[1]
+            for command in json_resp.get('result')[1]:
+                api_object = XmlApiObject(command)
+                if api_object.name == "PowerOff":
+                    api_object.name = "Power"
+                self.commands[api_object.name] = api_object
         else:
             _LOGGER.error("JSON request error: %s",
                           json.dumps(json_resp, indent=4))
@@ -320,7 +319,7 @@ class SonyDevice:
         url = self._get_action("getRemoteCommandList").url
         response = self._send_http(url, method=HttpMethod.GET)
         if not response:
-            _LOGGER.error("Failed to get response for command list")
+            _LOGGER.debug("Failed to get response for command list, device might be off")
             return
 
         for command in find_in_xml(response.text, [("command", True)]):
@@ -331,10 +330,12 @@ class SonyDevice:
         """Update the list of apps which are supported by the device."""
         if self.api_version < 4:
             url = self.app_url + "/appslist"
+            response = self._send_http(url, method=HttpMethod.GET)
         else:
             url = 'http://{}/DIAL/sony/applist'.format(self.host)
+            response = self._send_http(
+                url, method=HttpMethod.GET, cookies=self._recreate_auth_cookie())
 
-        response = self._send_http(url, method=HttpMethod.GET)
         if response:
             for app in find_in_xml(response.text, [(".//app", True)]):
                 data = XmlApiObject({
@@ -345,11 +346,6 @@ class SonyDevice:
 
     def _recreate_authentication(self):
         """The default cookie is for URL/sony. For some commands we need it for the root path."""
-
-        # todo fix cookies
-        # cookies = None
-        # cookies = requests.cookies.RequestsCookieJar()
-        # cookies.set("auth", self.cookies.get("auth"))
         registration_action = self._get_action("register")
         if any([not registration_action, registration_action.mode < 3]):
             return
@@ -447,7 +443,7 @@ class SonyDevice:
 
     def _send_command(self, name):
         if not self.commands:
-            self._init_device()
+            self.init_device()
 
         if self.commands:
             if name in self.commands:
@@ -460,7 +456,7 @@ class SonyDevice:
     def _get_action(self, name):
         """Get the action object for the action with the given name"""
         if name not in self.actions and not self.actions:
-            self._init_device()
+            self.init_device()
             if name not in self.actions and not self.actions:
                 raise ValueError('Failed to read action list from device.')
 
@@ -504,7 +500,8 @@ class SonyDevice:
             }
             response = self._send_http(registration_action.url,
                                        method=HttpMethod.POST, headers=headers,
-                                       json=authorization, raise_errors=True)
+                                       auth=('', self.pin),
+                                       data=json.dumps(authorization), raise_errors=True)
 
         except requests.exceptions.RequestException as ex:
             return self._handle_register_error(ex)
@@ -515,6 +512,15 @@ class SonyDevice:
 
             self.cookies = response.cookies
             return AuthenticationResult.SUCCESS
+
+    def _recreate_auth_cookie(self):
+        """
+        The default cookie is for URL/sony.
+        For some commands we need it for the root path
+        """
+        cookies = requests.cookies.RequestsCookieJar()
+        cookies.set("auth", self.cookies.get("auth"))
+        return cookies
 
     def get_device_id(self):
         """Returns the id which is used for the registration."""
@@ -543,7 +549,7 @@ class SonyDevice:
                 "Registration mode {0} is not supported".format(registration_action.mode))
 
         if registration_result is AuthenticationResult.SUCCESS:
-            self._init_device()
+            self.init_device()
 
         return registration_result
 
@@ -571,27 +577,17 @@ class SonyDevice:
 
     def get_playing_status(self):
         """Get the status of playback from the device"""
-        if self.api_version < 4:
-            data = """<m:GetTransportInfo xmlns:m="urn:schemas-upnp-org:service:AVTransport:1">
-                <InstanceID>0</InstanceID>
-                </m:GetTransportInfo>"""
+        data = """<m:GetTransportInfo xmlns:m="urn:schemas-upnp-org:service:AVTransport:1">
+            <InstanceID>0</InstanceID>
+            </m:GetTransportInfo>"""
 
-            action = "urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo"
+        action = "urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo"
 
-            content = self._post_soap_request(
-                url=self.av_transport_url, params=data, action=action)
-            if not content:
-                return "OFF"
-            return find_in_xml(content, [".//CurrentTransportState"]).text
-
-        return_value = {}
-        resp = self._send_http(urljoin(self.base_url, "avContent"), HttpMethod.POST,
-                               json=self._create_api_json("getPlayingContentInfo"))
-        if resp is not None and not resp.get('error'):
-            playing = resp.get('result')[0]
-            # todo get the playing status and return it.
-            return_value['programTitle'] = playing.get('programTitle')
-        return return_value
+        content = self._post_soap_request(
+            url=self.av_transport_url, params=data, action=action)
+        if not content:
+            return "OFF"
+        return find_in_xml(content, [".//CurrentTransportState"]).text
 
     def get_power_status(self):
         """Checks if the device is online."""
@@ -627,7 +623,7 @@ class SonyDevice:
             self._send_http(url, HttpMethod.POST, data=data)
         else:
             url = 'http://{}/DIAL/apps/{}'.format(self.host, self.apps[app_name].id)
-            self._send_http(url, HttpMethod.POST)
+            self._send_http(url, HttpMethod.POST, cookies=self._recreate_auth_cookie())
 
     def power(self, power_on, broadcast='255.255.255.255'):
         """Powers the device on or shuts it off."""

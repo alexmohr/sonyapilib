@@ -4,7 +4,6 @@ Sony Media player lib
 import base64
 import json
 import logging
-import uuid
 import xml.etree.ElementTree
 from enum import Enum
 from urllib.parse import (
@@ -76,6 +75,7 @@ class SonyDevice:
         """Init the device with the entry point."""
         self.host = host
         self.nickname = nickname
+        self.client_id = nickname
         self.actionlist_url = None
         self.control_url = None
         self.av_transport_url = None
@@ -97,7 +97,6 @@ class SonyDevice:
         self.cookies = None
         self.mac = None
         self.api_version = 0
-        self.client_id = uuid.uuid4()
 
         ircc_base = "http://{0.host}:{0.ircc_port}".format(self)
         self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
@@ -175,7 +174,7 @@ class SonyDevice:
                 action.url = "{0}?name={1}&registrationType=initial&deviceId={2}".format(
                     action.url,
                     quote(self.nickname),
-                    quote(self.get_device_id()))
+                    quote(self.client_id))
                 self.api_version = action.mode
                 if action.mode == 3:
                     action.url = action.url + "&wolSupport=true"
@@ -376,7 +375,7 @@ class SonyDevice:
 
         self.headers['Authorization'] = "Basic %s" % base64string
         if registration_action.mode == 3:
-            self.headers['X-CERS-DEVICE-ID'] = self.get_device_id()
+            self.headers['X-CERS-DEVICE-ID'] = self.client_id
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 
@@ -388,10 +387,10 @@ class SonyDevice:
         """Create json data which will be send via post for the V4 api"""
         if not params:
             params = [{
-                "clientid": self.get_device_id(),
+                "clientid": self.client_id,
                 "nickname": self.nickname
             }, [{
-                "clientid": self.get_device_id(),
+                "clientid": self.client_id,
                 "nickname": self.nickname,
                 "value": "yes",
                 "function": "WOL"
@@ -545,10 +544,6 @@ class SonyDevice:
         cookies = requests.cookies.RequestsCookieJar()
         cookies.set("auth", self.cookies.get("auth"))
         return cookies
-
-    def get_device_id(self):
-        """Returns the id which is used for the registration."""
-        return "TVSideView:{0}".format(self.client_id)
 
     def register(self):
         """

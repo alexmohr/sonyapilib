@@ -1,37 +1,51 @@
 from sonyapilib.device import SonyDevice
 
+CONFIG_FILE = "bluray.json"
+
+
 def save_device():
     data = device.save_to_json()
-    text_file = open("bluray.json", "w")
+    text_file = open(CONFIG_FILE, "w")
     text_file.write(data)
     text_file.close()
 
-if __name__ == "__main__":
 
-    stored_config = "bluray.json"
-    device = None
-    import os.path
-    if os.path.exists(stored_config):
-        with open(stored_config, 'r') as content_file:
+def load_device():
+    import os
+    sony_device = None
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as content_file:
             json_data = content_file.read()
-            device = SonyDevice.load_from_json(json_data)
-    else:
+            sony_device = SonyDevice.load_from_json(json_data)
+    return sony_device
+
+
+if __name__ == "__main__":
+    device = load_device()
+    if not device:
         # device must be on for registration
-        host = "10.0.0.102"
-        device = SonyDevice(host, "SonyApiLib Python Test")
+        host = "192.168.178.23"
+        device = SonyDevice(host, "Test123")
         device.register()
         pin = input("Enter the PIN displayed at your device: ")
-        device.send_authentication(pin)
-        save_device()
+        if device.send_authentication(pin):
+            save_device()
+        else:
+            print("Registration failed")
+            exit(1)
 
     # wake device
     is_on = device.get_power_status()
     if not is_on:
         device.power(True)
 
+    status = device.get_playing_status()
+
     apps = device.get_apps()
-
-    device.start_app(apps[0])
-
+    device.pause()
+    for app in device.apps:
+        if "youtube" in app.lower():
+            device.start_app(app)
+    device.get_playing_status()
     # Play media
     device.play()

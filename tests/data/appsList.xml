@@ -1,0 +1,194 @@
+<service>
+    <app>
+        <id>com.sony.videoexplorer</id>
+        <name>Video Explorer</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url/>
+    </app>
+    <app>
+        <id>com.sony.musicexplorer</id>
+        <name>Music Explorer</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url/>
+    </app>
+    <app>
+        <id>com.sony.videoplayer</id>
+        <name>Video Player</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url/>
+    </app>
+    <app>
+        <id>com.sony.musicplayer</id>
+        <name>Music Player</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url/>
+    </app>
+    <app>
+        <id>com.sony.videounlimited</id>
+        <name>PlayStation Video</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_575/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.4976</id>
+        <name>Amazon Prime Video</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_456/sub_1/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.type.NRDP</id>
+        <name>Netflix</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_30/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.3479</id>
+        <name>Rakuten TV</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_381/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.type.EU-TAGESSCHAU_6x3</id>
+        <name>Tagesschau</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_44/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.6317</id>
+        <name>Functions with Gracenote ended</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_684/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.4766</id>
+        <name>watchmi Themenkanäle</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_516/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.4742</id>
+        <name>Netzkino</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_513/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.5498</id>
+        <name>MUBI</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_153/sub_1/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.4340</id>
+        <name>WWE Network</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_496/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.4968</id>
+        <name>DW for Smart TV</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_551/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.type.ytleanback</id>
+        <name>YouTube</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_26/sub_1/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.4386</id>
+        <name>uStudio</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_109/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.3487</id>
+        <name>Meteonews TV</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_382/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.type.WW-BERLINPHIL_NBIV</id>
+        <name>Digital Concert Hall</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_55/sub_1/x100.png
+        </icon_url>
+    </app>
+    <app>
+        <id>com.sony.iptv.4834</id>
+        <name>Activate Enhanced Features</name>
+        <supportAction>
+            <action>start</action>
+        </supportAction>
+        <icon_url>
+http://static.internet.sony.tv/bivl-ww/static/service/icons/service_365/x100.png
+        </icon_url>
+    </app>
+</service>

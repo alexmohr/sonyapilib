@@ -1,31 +1,30 @@
 """
 SSDP Implementation
-
 """
-
-import socket
-from http.client import HTTPResponse
-from http.server import BaseHTTPRequestHandler
-from io import StringIO
 import email
+import logging
+import socket
+from io import StringIO
 
-class SSDPResponse():
-    """
-    Holds the response of a ssdp request
-    """
+_LOGGER = logging.getLogger(__name__)
+
+
+class SSDPResponse:
+    # pylint: disable=too-few-public-methods
+    """Holds the response of a ssdp request."""
 
     def __init__(self, response):
-        # pop the first line so we only process headers
-        # first line is http response
-        _, headers = response.split('\r\n', 1)
+        if not response:
+            return
 
         # construct a message from the request string
-        message = email.message_from_file(StringIO(headers))
+        message = email.message_from_file(StringIO(response))
 
         # construct a dictionary containing the headers
         headers = dict(message.items())
         self.location = headers["LOCATION"]
         self.usn = headers["USN"]
+        # pylint: disable=invalid-name
         self.st = headers["ST"]
         self.cache = headers["CACHE-CONTROL"].split("=")[1]
 
@@ -36,10 +35,29 @@ class SSDPResponse():
         return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
 
 class SSDPDiscovery():
-    def discover(self, service="ssdp:all", timeout=1, retries=5, mx=3):
-        """
-        Discovers the ssdp services.
-        """
+    # pylint: disable=too-few-public-methods
+    """Discover devices via the ssdp protocol."""
+
+    @staticmethod
+    def _parse_response(data):
+        responses = {}
+        lines = ""
+        http_ok = "HTTP/1.1 200 OK"
+        for line in data.split('\r\n'):
+            if http_ok in line and lines:
+                response = SSDPResponse(lines)
+                responses[response.location] = response
+                lines = ""
+            elif http_ok not in line:
+                line_content = line.split(":")
+                if len(line_content) >= 2 and line_content[1]:
+                    lines += line + '\r\n'
+        return list(responses.values())
+
+    @staticmethod
+    def discover(service="ssdp:all", timeout=1, retries=5, mx=3):
+        # pylint: disable=invalid-name
+        """Discovers the ssdp services."""
         socket.setdefaulttimeout(timeout)
 
         # fppp
@@ -50,29 +68,24 @@ class SSDPDiscovery():
             'MAN: "ssdp:discover"',
             'ST: {st}', 'MX: {mx}', '', ''])
         # using a dict to prevent duplicated entries.
-        responses = {}
         for _ in range(0, retries):
             sock = socket.socket(
                 socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
 
-            #msg = DISCOVERY_MSG % dict(service='id1', library=LIB_ID)
+            # msg = DISCOVERY_MSG % dict(service='id1', library=LIB_ID)
             for _ in range(0, retries):
                 # sending it more than once will
                 # decrease the probability of a timeout
                 sock.sendto(str.encode(message.format(
                     *host, st=service, mx=mx)), host)
 
+            data = ""
             while True:
                 try:
-                    response = SSDPResponse(bytes.decode(sock.recv(1024)))
-                    responses[response.location] = response
+                    data = data + bytes.decode(sock.recv(1024))
                 except socket.timeout:
                     break
-            return list(responses.values())
 
-if __name__ == '__main__':
-    disco = SSDPDiscovery();
-    for service in disco.discover():
-        print(service)
+            return SSDPDiscovery._parse_response(data)

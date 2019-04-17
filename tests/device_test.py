@@ -202,7 +202,7 @@ class SonyDeviceTest(unittest.TestCase):
         restored_device = SonyDevice.load_from_json(jdata)
         jdata_restored = restored_device.save_to_json()
         self.assertEqual(jdata, jdata_restored)
-        self.assertEqual(restored_device.uuid, device.client_id)
+        self.assertEqual(restored_device.client_id, device.client_id)
 
     def test_update_service_urls_error_response(self):
         device = self.create_device()
@@ -444,7 +444,7 @@ class SonyDeviceTest(unittest.TestCase):
         device._recreate_authentication()
 
         self.assertEqual(device.headers["Authorization"], "Basic OjEyMzQ=")
-        self.assertEqual(device.headers["X-CERS-DEVICE-ID"], device.get_device_id())
+        self.assertEqual(device.headers["X-CERS-DEVICE-ID"], device.client_id)
 
     def test_recreate_authentication_v4(self):
         device = self.create_device()

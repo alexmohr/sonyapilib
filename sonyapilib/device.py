@@ -94,7 +94,6 @@ class SonyDevice:
         self.apps = {}
 
         self.pin = None
-        self.name = None
         self.cookies = None
         self.mac = None
         self.api_version = 0
@@ -139,6 +138,8 @@ class SonyDevice:
 
     def save_to_json(self):
         """Save this device configuration into a json."""
+        # make sure object is up to date
+        self.init_device()
         return jsonpickle.dumps(self)
 
     def _update_service_urls(self):

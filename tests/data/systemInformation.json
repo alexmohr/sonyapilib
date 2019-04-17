@@ -1,0 +1,15 @@
+{
+  "id": 1,
+  "result": [
+    [
+      {
+        "option": "WOL",
+        "value": "10:08:B1:31:81:B5"
+      },
+      {
+        "option": "SupportedChineseSoftwareKeyboard",
+        "value": "no"
+      }
+    ]
+  ]
+}

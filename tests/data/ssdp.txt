@@ -1,0 +1,981 @@
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:75802409-bccb-40e7-9f6c-5C49796832C5
+USN: uuid:75802409-bccb-40e7-9f6c-5C49796832C5
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:InternetGatewayDevice:2
+USN: uuid:75802409-bccb-40e7-9f6c-5C49796832C5::urn:schemas-upnp-org:device:InternetGatewayDevice:2
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:75802409-bccb-40e7-9f6b-5C49796832C5
+USN: uuid:75802409-bccb-40e7-9f6b-5C49796832C5
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:WANDevice:2
+USN: uuid:75802409-bccb-40e7-9f6b-5C49796832C5::urn:schemas-upnp-org:device:WANDevice:2
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:75802409-bccb-40e7-9f6a-5C49796832C5
+USN: uuid:75802409-bccb-40e7-9f6a-5C49796832C5
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:WANConnectionDevice:2
+USN: uuid:75802409-bccb-40e7-9f6a-5C49796832C5::urn:schemas-upnp-org:device:WANConnectionDevice:2
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/fboxdesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: upnp:rootdevice
+USN: uuid:123402409-bccb-40e7-8e6c-5C49796832C5::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/fboxdesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:123402409-bccb-40e7-8e6c-5C49796832C5
+USN: uuid:123402409-bccb-40e7-8e6c-5C49796832C5
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/fboxdesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:fritzbox:1
+USN: uuid:123402409-bccb-40e7-8e6c-5C49796832C5::urn:schemas-upnp-org:device:fritzbox:1
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igddesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: upnp:rootdevice
+USN: uuid:75802409-bccb-40e7-8e6c-5C49796832C5::upnp:rootdevice
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igddesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:75802409-bccb-40e7-8e6c-5C49796832C5
+USN: uuid:75802409-bccb-40e7-8e6c-5C49796832C5
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igddesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1
+USN: uuid:75802409-bccb-40e7-8e6c-5C49796832C5::urn:schemas-upnp-org:device:InternetGatewayDevice:1
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igddesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:76802409-bccb-40e7-8e6b-5C49796832C5
+USN: uuid:76802409-bccb-40e7-8e6b-5C49796832C5
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igddesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:WANDevice:1
+USN: uuid:76802409-bccb-40e7-8e6b-5C49796832C5::urn:schemas-upnp-org:device:WANDevice:1
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igddesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:76802409-bccb-40e7-8e6a-5C49796832C5
+USN: uuid:76802409-bccb-40e7-8e6a-5C49796832C5
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igddesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:WANConnectionDevice:1
+USN: uuid:76802409-bccb-40e7-8e6a-5C49796832C5::urn:schemas-upnp-org:device:WANConnectionDevice:1
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/avmnexusdesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: upnp:rootdevice
+USN: uuid:535502409-bccb-40e7-8e6c-5C49796832C5::upnp:rootdevice
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/avmnexusdesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: uuid:535502409-bccb-40e7-8e6c-5C49796832C5
+USN: uuid:535502409-bccb-40e7-8e6c-5C49796832C5
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/avmnexusdesc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:device:avmnexus:1
+USN: uuid:535502409-bccb-40e7-8e6c-5C49796832C5::urn:schemas-upnp-org:device:avmnexus:1
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/l2tpv3.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-any-com:service:l2tpv3:1
+USN: uuid:95802409-bccb-40e7-8e6c-5C49796832C5::urn:schemas-any-com:service:l2tpv3:1
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-any-com:service:Any:1
+USN: uuid:75802409-bccb-40e7-9f6c-5C49796832C5::urn:schemas-any-com:service:Any:1
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1
+USN: uuid:75802409-bccb-40e7-9f6b-5C49796832C5::urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:service:WANDSLLinkConfig:1
+USN: uuid:75802409-bccb-40e7-9f6a-5C49796832C5::urn:schemas-upnp-org:service:WANDSLLinkConfig:1
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:service:WANIPConnection:2
+USN: uuid:75802409-bccb-40e7-9f6a-5C49796832C5::urn:schemas-upnp-org:service:WANIPConnection:2
+
+
+HTTP/1.1 200 OK
+LOCATION: http://10.0.0.1:49000/igd2desc.xml
+SERVER: core UPnP/1.0 AVM FRITZ!Box 7490 113.07.01
+CACHE-CONTROL: max-age=1800
+EXT:
+ST: urn:schemas-upnp-org:service:WANIPv6FirewallControl:1
+USN: uuid:75802409-bccb-40e7-9f6a-5C49796832C5::urn:schemas-upnp-org:service:WANIPv6FirewallControl:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: upnp:rootdevice
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::upnp:rootdevice
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:device:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:device:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:service:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: upnp:rootdevice
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: upnp:rootdevice
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::upnp:rootdevice
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:device:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:device:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:service:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: uuid:00000004-0000-1010-8000-3052cbcc16ee
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:schemas-upnp-org:device:Basic:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:schemas-upnp-org:device:Basic:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: upnp:rootdevice
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: upnp:rootdevice
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: upnp:rootdevice
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: upnp:rootdevice
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: upnp:rootdevice
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:dial-multiscreen-org:service:dial:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: upnp:rootdevice
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: uuid:00000004-0000-1010-8000-3052cbcc16ee
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:schemas-upnp-org:device:Basic:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:schemas-upnp-org:device:Basic:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:dial-multiscreen-org:service:dial:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: upnp:rootdevice
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: uuid:00000004-0000-1010-8000-3052cbcc16ee
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:schemas-upnp-org:device:Basic:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:schemas-upnp-org:device:Basic:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:dial-multiscreen-org:service:dial:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: upnp:rootdevice
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: uuid:00000004-0000-1010-8000-3052cbcc16ee
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:schemas-upnp-org:device:Basic:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:schemas-upnp-org:device:Basic:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:dial-multiscreen-org:service:dial:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: upnp:rootdevice
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::upnp:rootdevice
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: uuid:00000004-0000-1010-8000-3052cbcc16ee
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:schemas-upnp-org:device:Basic:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:schemas-upnp-org:device:Basic:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:35 GMT
+EXT:
+LOCATION: http://10.0.0.102:50201/dial.xml
+SERVER: Linux/3.10 UPnP/1.0 Sony-BDP/2.0
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:00000004-0000-1010-8000-3052cbcc16ee::urn:dial-multiscreen-org:service:dial:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: upnp:rootdevice
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::upnp:rootdevice
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:device:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:device:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:service:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: upnp:rootdevice
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::upnp:rootdevice
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:device:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:device:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:service:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: upnp:rootdevice
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::upnp:rootdevice
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:device:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:device:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Sat, 06 Apr 2019 16:37:36 GMT
+EXT:
+LOCATION: http://10.0.0.114:8008/ssdp/device-desc.xml
+OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
+01-NLS: a484efe2-1dd1-11b2-880a-85988afcb055
+SERVER: Linux/3.8.13+, UPnP/1.0, Portable SDK for UPnP devices/1.6.18
+X-User-Agent: redsonic
+ST: urn:dial-multiscreen-org:service:dial:1
+USN: uuid:946ac6b4-f481-9991-f18f-31de5b0e1e49::urn:dial-multiscreen-org:service:dial:1
+BOOTID.UPNP.ORG: 129
+CONFIGID.UPNP.ORG: 2
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:RenderingControl:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:RenderingControl:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:ConnectionManager:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:device:MediaRenderer:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:RenderingControl:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+HTTP/1.1 200 OK
+EXT:
+CACHE-CONTROL: max-age=1200
+SERVER: Arduino/1.0 UPNP/1.1 /
+USN: uuid:38323636-4558-4dda-9188-cda0e6381cfc
+ST: upnp:rootdevice
+LOCATION: http://10.0.0.144:80/description.xml
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:ConnectionManager:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:ConnectionManager:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:RenderingControl:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:RenderingControl:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:RenderingControl:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:AVTransport:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:AVTransport:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:ConnectionManager:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:AVTransport:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:AVTransport:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:AVTransport:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:AVTransport:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:ConnectionManager:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:ConnectionManager:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:AVTransport:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:AVTransport:1
+
+
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+EXT:
+LOCATION: http://10.0.0.151:8080/description.xml
+SERVER: KnOS/3.2 UPnP/1.0 DMP/3.5
+ST: urn:schemas-upnp-org:service:AVTransport:1
+USN: uuid:5f9ec1b3-ff59-19bb-8530-0006782430bb::urn:schemas-upnp-org:service:AVTransport:1

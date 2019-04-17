@@ -97,7 +97,7 @@ class SonyDevice:
         self.cookies = None
         self.mac = None
         self.api_version = 0
-        self.uuid = uuid.uuid4()
+        self.client_id = uuid.uuid4()
 
         ircc_base = "http://{0.host}:{0.ircc_port}".format(self)
         self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
@@ -548,7 +548,7 @@ class SonyDevice:
 
     def get_device_id(self):
         """Returns the id which is used for the registration."""
-        return "TVSideView:{0}".format(self.uuid)
+        return "TVSideView:{0}".format(self.client_id)
 
     def register(self):
         """

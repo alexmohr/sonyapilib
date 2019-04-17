@@ -8,7 +8,7 @@ from urllib.parse import (
 )
 
 import jsonpickle
-from requests import HTTPError, URLRequired
+from requests import HTTPError, URLRequired, RequestException
 
 from tests.testutil import read_file
 
@@ -173,7 +173,7 @@ class SonyDeviceTest(unittest.TestCase):
         device.init_device()
         self.assertEqual(mock_update_service_url.call_count, 1)
         self.assertEqual(mock_recreate_auth.call_count, 0)
-        self.assertEqual(mock_update_command.call_count, 0)
+        self.assertEqual(mock_update_command.call_count, 1)
         self.assertEqual(mock_update_applist.call_count, 0)
 
     @mock.patch('sonyapilib.device.SonyDevice._update_service_urls', side_effect=mock_nothing)
@@ -260,7 +260,8 @@ class SonyDeviceTest(unittest.TestCase):
 
     def test_parse_ircc_error(self):
         device = self.create_device()
-        device._parse_ircc()
+        with self.assertRaises(RequestException):
+            device._parse_ircc()
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_ircc(self, mock_get):
@@ -346,7 +347,7 @@ class SonyDeviceTest(unittest.TestCase):
     def test_update_commands_no_pin(self, mock_parse_cmd_list):
         device = self.create_device()
         device._update_commands()
-        self.assertEqual(mock_parse_cmd_list.call_count, 0)
+        self.assertEqual(mock_parse_cmd_list.call_count, 1)
 
     @mock.patch('sonyapilib.device.SonyDevice._parse_command_list', side_effect=mock_nothing)
     def test_update_commands_v3(self, mock_parse_cmd_list):

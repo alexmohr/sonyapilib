@@ -111,10 +111,10 @@ class SonyDevice:
     def init_device(self):
         """Update this object with data from the device"""
         self._update_service_urls()
+        self._update_commands()
 
         if self.pin:
             self._recreate_authentication()
-            self._update_commands()
             self._update_applist()
 
     @staticmethod
@@ -150,7 +150,7 @@ class SonyDevice:
 
         try:
             self._parse_dmr(response.text)
-            if self.api_version < 3:
+            if self.api_version <= 3:
                 self._parse_ircc()
                 self._parse_action_list()
                 self._parse_system_information()
@@ -175,12 +175,12 @@ class SonyDevice:
                     action.url,
                     quote(self.nickname),
                     quote(self.get_device_id()))
-
+                self.api_version = action.mode
                 if action.mode == 3:
                     action.url = action.url + "&wolSupport=true"
 
     def _parse_ircc(self):
-        response = self._send_http(self.ircc_url, method=HttpMethod.GET)
+        response = self._send_http(self.ircc_url, method=HttpMethod.GET, raise_errors=True)
         if not response:
             return
 
@@ -297,14 +297,10 @@ class SonyDevice:
     def _update_commands(self):
         """Update the list of commands."""
 
-        # need to be registered to do that
-        if not self.pin:
-            _LOGGER.error("Registration necessary to read command list.")
-            return
-
-        if self.api_version < 3:
+        if self.api_version <= 3:
             self._parse_command_list()
-        else:
+        elif self.api_version > 3 and self.pin:
+            _LOGGER.debug("Registration necessary to read command list.")
             self._parse_command_list_v4()
 
     def _parse_command_list_v4(self):
@@ -333,7 +329,13 @@ class SonyDevice:
 
     def _parse_command_list(self):
         """Parse the list of available command in devices with the legacy api."""
-        url = self._get_action("getRemoteCommandList").url
+        action_name = "getRemoteCommandList"
+        if action_name not in self.actions:
+            _LOGGER.debug("Action list not set in device, try calling init_device")
+            return
+
+        action = self.actions[action_name]
+        url = action.url
         response = self._send_http(url, method=HttpMethod.GET)
         if not response:
             _LOGGER.debug("Failed to get response for command list, device might be off")

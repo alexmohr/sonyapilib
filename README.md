@@ -8,7 +8,7 @@ Code has been taken from the following repositories.
 * https://github.com/KHerron/SonyAPILib
 * https://github.com/aparraga/braviarc
 
-This library is used as communication interface in a home assistant component to control media players, which can be found here: https://github.com/dilruacs/media_player.sony
+This library is used as communication interface in a home assistant component to control media players, which can be found here: https://github.com/alexmohr/media_player.sony
 
 At the moment not all functions offered by the api are implemented. If you miss a function feel free to create a pull request or open a feature request.
 

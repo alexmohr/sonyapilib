@@ -544,14 +544,11 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('sonyapilib.device.SonyDevice._send_command', side_effect=mock_nothing)
     def test_commands(self, mock_send_command):
         device = self.create_device()
-        methods = ["up", "confirm", "down", "right", "left", "home", "options", "returns", "num1", "num2", "num3",
-                   "num4",
-                   "num5", "num6", "num7", "num8", "num9", "num0", "display", "audio", "sub_title", "favorites",
-                   "yellow",
-                   "blue", "red", "green", "play", "stop", "pause", "rewind", "forward", "prev", "next", "replay",
-                   "advance",
+        methods = ["up", "confirm", "down", "right", "left", "home", "options", "returns", "num1", "num2", "num3", "num4",
+                   "num5", "num6", "num7", "num8", "num9", "num0", "display", "audio", "sub_title", "favorites", "yellow",
+                   "blue", "red", "green", "play", "stop", "pause", "rewind", "forward", "prev", "next", "replay", "advance",
                    "angle", "top_menu", "pop_up_menu", "eject", "karaoke", "netflix", "mode_3d", "zoom_in", "zoom_out",
-                   "browser_back", "browser_forward", "browser_bookmark_list", "list"]
+                   "browser_back", "browser_forward", "browser_bookmark_list", "list", "volume_up", "volume_down" , "mute"]
         for method in methods:
             cmd_name = ''.join(x.capitalize() or '_' for x in method.split('_'))
             # method cannot be named return

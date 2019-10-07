@@ -106,30 +106,47 @@ def mocked_requests_post(*args, **kwargs):
     if not url:
         raise URLRequired()
     elif url == REGISTRATION_URL_V4:
-            return MockResponse({}, 200)
+        return MockResponse({}, 200)
+
     elif url == REGISTRATION_URL_V4_FAIL:
         return MockResponse({"error": 402}, 200)
+
     elif url == REGISTRATION_URL_V4_FAIL_401:
         MockResponse(None, 401).raise_for_status()
+
     elif url == SOAP_URL:
         return MockResponse({}, 200, "data")
+
     elif url == urljoin(BASE_URL, 'system'):
         result = MockResponseJson({"status": "on"})
         return MockResponse({"result": [result]}, 200)
+
     elif APP_START_URL_LEGACY in url:
         return MockResponse(None, 200)
+
     elif APP_START_URL in url:
         return MockResponse(None, 200)
+
     elif url == AV_TRANSPORT_URL:
-        return MockResponse(None, 200, read_file('data/playing_status_legacy_playing.xml'))
+        return MockResponse(None,
+                            200,
+                            read_file(
+                                'data/playing_status_legacy_playing.xml'))
+
     elif url == AV_TRANSPORT_URL_NO_MEDIA:
-        return MockResponse(None, 200, read_file('data/playing_status_legacy_no_media.xml'))
+        return MockResponse(None,
+                            200,
+                            read_file(
+                                'data/playing_status_legacy_no_media.xml'))
+
     elif url == COMMAND_LIST_V4:
         json_data = jsonpickle.decode(read_file('data/commandList.json'))
         return MockResponse(json_data, 200, "")
+
     elif url == SYSTEM_INFORMATION_URL_V4:
         json_data = jsonpickle.decode(read_file('data/systemInformation.json'))
         return MockResponse(json_data, 200, "")
+
     else:
         raise ValueError("Unknown url requested: {}".format(url))
 
@@ -149,7 +166,7 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("data/getRemoteCommandList.xml"))
     elif url == APP_LIST_URL or url == APP_LIST_URL_V4:
         return MockResponse(None, 200, read_file("data/appsList.xml"))
-    elif url == REGISTRATION_URL_LEGACY: 
+    elif url == REGISTRATION_URL_LEGACY:
         return MockResponse({}, 200)
     elif url == REGISTRATION_URL_V3_FAIL_401:
         MockResponse(None, 401).raise_for_status()
@@ -417,7 +434,7 @@ class SonyDeviceTest(unittest.TestCase):
             "PlayStation Video", "Amazon Prime Video", "Netflix", "Rakuten TV",
             "Tagesschau", "Functions with Gracenote ended", "watchmi Themenkanäle",
             "Netzkino", "MUBI", "WWE Network", "DW for Smart TV", "YouTube",
-             "uStudio", "Meteonews TV", "Digital Concert Hall", "Activate Enhanced Features"
+            "uStudio", "Meteonews TV", "Digital Concert Hall", "Activate Enhanced Features"
         ]
 
         versions = [1, 2, 3, 4]
@@ -548,7 +565,7 @@ class SonyDeviceTest(unittest.TestCase):
                    "num5", "num6", "num7", "num8", "num9", "num0", "display", "audio", "sub_title", "favorites", "yellow",
                    "blue", "red", "green", "play", "stop", "pause", "rewind", "forward", "prev", "next", "replay", "advance",
                    "angle", "top_menu", "pop_up_menu", "eject", "karaoke", "netflix", "mode_3d", "zoom_in", "zoom_out",
-                   "browser_back", "browser_forward", "browser_bookmark_list", "list", "volume_up", "volume_down" , "mute"]
+                   "browser_back", "browser_forward", "browser_bookmark_list", "list", "volume_up", "volume_down", "mute"]
         for method in methods:
             cmd_name = ''.join(x.capitalize() or '_' for x in method.split('_'))
             # method cannot be named return
@@ -578,7 +595,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.add_register_to_device(device, version)
         if reg_url:
             device.actions["register"].url = reg_url
-        
+
         result = device.register()
         return [result, device]
 
@@ -618,8 +635,10 @@ class SonyDeviceTest(unittest.TestCase):
         device.actions[action.name] = action
         self.assertEqual(device._get_action(action.name), action)
 
-    @mock.patch('sonyapilib.device.SonyDevice._send_req_ircc', side_effect=mock_nothing)
-    @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice._send_req_ircc',
+                side_effect=mock_nothing)
+    @mock.patch('sonyapilib.device.SonyDevice.init_device',
+                side_effect=mock_nothing)
     def test_send_command_error(self, mock_init_device, mock_send_req_ircc):
         device = self.create_device()
         with self.assertRaises(ValueError):
@@ -701,7 +720,7 @@ class SonyDeviceTest(unittest.TestCase):
 
         device.av_transport_url = AV_TRANSPORT_URL
         self.assertEqual("PLAYING", device.get_playing_status())
-        
+
     @staticmethod
     def create_command_list(device):
         command = XmlApiObject({})

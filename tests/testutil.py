@@ -1,7 +1,7 @@
 import os.path
 
 __location__ = os.path.realpath(os.path.join(
-        os.getcwd(), os.path.dirname(__file__)))
+    os.getcwd(), os.path.dirname(__file__)))
 
 
 def read_file(file_name):
@@ -15,4 +15,3 @@ def read_file_bin(file_name, size, offset):
     with open(os.path.join(__location__, file_name), 'rb') as f:
         f.seek(offset)
         return f.read(size)
-

@@ -548,7 +548,7 @@ class SonyDeviceTest(unittest.TestCase):
                    "num5", "num6", "num7", "num8", "num9", "num0", "display", "audio", "sub_title", "favorites", "yellow",
                    "blue", "red", "green", "play", "stop", "pause", "rewind", "forward", "prev", "next", "replay", "advance",
                    "angle", "top_menu", "pop_up_menu", "eject", "karaoke", "netflix", "mode_3d", "zoom_in", "zoom_out",
-                   "browser_back", "browser_forward", "browser_bookmark_list", "list", "volume_up", "volume_down" , "mute_volume"]
+                   "browser_back", "browser_forward", "browser_bookmark_list", "list", "volume_up", "volume_down" , "mute"]
         for method in methods:
             cmd_name = ''.join(x.capitalize() or '_' for x in method.split('_'))
             # method cannot be named return
@@ -556,8 +556,6 @@ class SonyDeviceTest(unittest.TestCase):
                 cmd_name = "Return"
             elif method == "mode_3d":
                 cmd_name = "Mode3D"
-            elif method == "mute_volume":
-                cmd_name = "Mute"
 
             getattr(device, method)()
             self.assertEqual(mock_send_command.call_count, 1)

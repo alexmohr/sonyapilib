@@ -669,7 +669,7 @@ class SonyDevice:
         """Sends the command 'VolumeDown' to the connected device."""
         self._send_command('VolumeDown')
 
-    def mute_volume(self):
+    def mute(self):
         # pylint: disable=invalid-name
         """Sends the command 'Mute' to the connected device."""
         self._send_command('Mute')

@@ -2,10 +2,41 @@ language: python
 python:
   - "3.5"
 cache: pip
+stages:
+  - UnitTests
+  - coveralls
+  - linting
 install:
   - pip install -r test_requirements.txt
   - pip install .
-script:
-  - py.test tests/*_test.py --cov=sonyapilib
-  - pylint sonyapilib
-  - coveralls
+
+jobs:
+  include:
+    - stage: UnitTests
+      name: "Running unit tests"
+      script: py.test tests/*_test.py --cov=sonyapilib
+    - stage: coveralls
+      name: "Running coveralls"
+      script: coveralls
+
+    # Linting
+    - stage: linting
+      install: pip install pycodestyle
+      name: "Linting with pycodestyle"
+      script: find . -name \*.py -exec pycodestyle {} +
+    - stage: linting
+      install: pip install pydocstyle
+      name: "Linting with pydocstyle"
+      script: find . -name \*.py -exec pydocstyle {} +
+    - stage: linting
+      install: pip install pylint
+      name: "Linting with pylint"
+      script: find . -name \*.py -exec pylint {} +
+    - stage: linting
+      install: pip install pyflakes
+      name: "Linting with pyflakes"
+      script: find . -name \*.py -exec pyflakes {} +
+    - stage: linting
+      install: pip install flake8
+      name: "Linting with flake8"
+      script: find . -name \*.py -exec flake8 {} +

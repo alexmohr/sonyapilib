@@ -32,7 +32,9 @@ class SSDPResponse:
         """
         Defines how string representation looks
         """
-        return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
+        return "<SSDPResponse({location}, {st}, {usn})>"\
+            .format(**self.__dict__)
+
 
 class SSDPDiscovery():
     # pylint: disable=too-few-public-methods

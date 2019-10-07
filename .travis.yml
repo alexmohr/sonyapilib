@@ -23,7 +23,7 @@ jobs:
     - stage: linting
       install: pip install pycodestyle
       name: "Linting with pycodestyle"
-      script: find . -name \*.py -exec pycodestyle {} +
+      script: find . -name \*.py -exec pycodestyle --ignore=E501,E402 {} +
     - stage: linting
       install: pip install pydocstyle
       name: "Linting with pydocstyle"

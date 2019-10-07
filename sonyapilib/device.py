@@ -170,17 +170,20 @@ class SonyDevice:
             self.actions[action.name] = action
 
             if action.name == "register":
-                # the authentication later on is based on the device id and the mac
-                action.url = "{0}?name={1}&registrationType=initial&deviceId={2}".format(
-                    action.url,
-                    quote(self.nickname),
-                    quote(self.client_id))
+                # the authentication is based on the device id and the mac
+                action.url = \
+                    "{0}?name={1}&registrationType=initial&deviceId={2}"\
+                    .format(
+                        action.url,
+                        quote(self.nickname),
+                        quote(self.client_id))
                 self.api_version = action.mode
                 if action.mode == 3:
                     action.url = action.url + "&wolSupport=true"
 
     def _parse_ircc(self):
-        response = self._send_http(self.ircc_url, method=HttpMethod.GET, raise_errors=True)
+        response = self._send_http(
+            self.ircc_url, method=HttpMethod.GET, raise_errors=True)
         if not response:
             return
 
@@ -231,7 +234,8 @@ class SonyDevice:
 
     def _parse_system_information(self):
         response = self._send_http(
-            self._get_action("getSystemInformation").url, method=HttpMethod.GET)
+            self._get_action(
+                "getSystemInformation").url, method=HttpMethod.GET)
         if not response:
             return
 
@@ -328,17 +332,22 @@ class SonyDevice:
                           json.dumps(json_resp, indent=4))
 
     def _parse_command_list(self):
-        """Parse the list of available command in devices with the legacy api."""
+        """
+            Parse the list of available command
+            in devices with the legacy api.
+        """
         action_name = "getRemoteCommandList"
         if action_name not in self.actions:
-            _LOGGER.debug("Action list not set in device, try calling init_device")
+            _LOGGER.debug(
+                "Action list not set in device, try calling init_device")
             return
 
         action = self.actions[action_name]
         url = action.url
         response = self._send_http(url, method=HttpMethod.GET)
         if not response:
-            _LOGGER.debug("Failed to get response for command list, device might be off")
+            _LOGGER.debug(
+                "Failed to get response for command list, device might be off")
             return
 
         for command in find_in_xml(response.text, [("command", True)]):
@@ -353,7 +362,9 @@ class SonyDevice:
         else:
             url = 'http://{}/DIAL/sony/applist'.format(self.host)
             response = self._send_http(
-                url, method=HttpMethod.GET, cookies=self._recreate_auth_cookie())
+                url,
+                method=HttpMethod.GET,
+                cookies=self._recreate_auth_cookie())
 
         if response:
             for app in find_in_xml(response.text, [(".//app", True)]):
@@ -364,7 +375,10 @@ class SonyDevice:
                 self.apps[data.name] = data
 
     def _recreate_authentication(self):
-        """The default cookie is for URL/sony. For some commands we need it for the root path."""
+        """
+            The default cookie is for URL/sony.
+            For some commands we need it for the root path.
+        """
         registration_action = self._get_action("register")
         if any([not registration_action, registration_action.mode < 3]):
             return
@@ -521,9 +535,11 @@ class SonyDevice:
                 "Content-Type": "application/json"
             }
             response = self._send_http(registration_action.url,
-                                       method=HttpMethod.POST, headers=headers,
+                                       method=HttpMethod.POST,
+                                       headers=headers,
                                        auth=('', self.pin),
-                                       data=json.dumps(authorization), raise_errors=True)
+                                       data=json.dumps(authorization),
+                                       raise_errors=True)
 
         except requests.exceptions.RequestException as ex:
             return self._handle_register_error(ex)
@@ -547,7 +563,8 @@ class SonyDevice:
 
     def register(self):
         """
-        Register at the api. The name which will be displayed in the UI of the device.
+        Register at the api.
+        The name which will be displayed in the UI of the device.
         Make sure this name does not exist yet.
         For this the device must be put in registration mode.
         """
@@ -565,7 +582,8 @@ class SonyDevice:
             registration_result = self._register_v4(registration_action)
         else:
             raise ValueError(
-                "Registration mode {0} is not supported".format(registration_action.mode))
+                "Registration mode {0} is not supported"
+                .format(registration_action.mode))
 
         if registration_result is AuthenticationResult.SUCCESS:
             self.init_device()
@@ -613,14 +631,17 @@ class SonyDevice:
         if self.api_version < 4:
             url = self.actionlist_url
             try:
-                self._send_http(url, HttpMethod.GET, log_errors=False, raise_errors=True)
+                self._send_http(url, HttpMethod.GET,
+                                log_errors=False, raise_errors=True)
             except requests.exceptions.RequestException as ex:
                 _LOGGER.debug(ex)
                 return False
             return True
         try:
-            resp = self._send_http(urljoin(self.base_url, "system"), HttpMethod.POST,
-                                   json=self._create_api_json("getPowerStatus"))
+            resp = self._send_http(urljoin(self.base_url, "system"),
+                                   HttpMethod.POST,
+                                   json=self._create_api_json(
+                                       "getPowerStatus"))
             if not resp:
                 return False
             json_data = resp.json()
@@ -641,8 +662,10 @@ class SonyDevice:
             data = "LOCATION: {0}/run".format(url)
             self._send_http(url, HttpMethod.POST, data=data)
         else:
-            url = 'http://{}/DIAL/apps/{}'.format(self.host, self.apps[app_name].id)
-            self._send_http(url, HttpMethod.POST, cookies=self._recreate_auth_cookie())
+            url = 'http://{}/DIAL/apps/{}'.format(
+                self.host, self.apps[app_name].id)
+            self._send_http(url, HttpMethod.POST,
+                            cookies=self._recreate_auth_cookie())
 
     def power(self, power_on, broadcast='255.255.255.255'):
         """Powers the device on or shuts it off."""

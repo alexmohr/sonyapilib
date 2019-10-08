@@ -1,3 +1,4 @@
+"""Test implementation for devices"""
 import os.path
 import sys
 import unittest
@@ -509,9 +510,18 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
-    def test_register_fail_pin_needed(self, mocked_init_device, mock_request_get_401, mock_request_post_401):
-        self.verify_register_fail(3, AuthenticationResult.PIN_NEEDED, mocked_init_device, REGISTRATION_URL_V3_FAIL_401)
-        self.verify_register_fail(4, AuthenticationResult.PIN_NEEDED, mocked_init_device, REGISTRATION_URL_V4_FAIL_401)
+    def test_register_fail_pin_needed(self,
+                                      mocked_init_device,
+                                      mock_request_get_401,
+                                      mock_request_post_401):
+        self.verify_register_fail(3,
+                                  AuthenticationResult.PIN_NEEDED,
+                                  mocked_init_device,
+                                  REGISTRATION_URL_V3_FAIL_401)
+        self.verify_register_fail(4,
+                                  AuthenticationResult.PIN_NEEDED,
+                                  mocked_init_device,
+                                  REGISTRATION_URL_V4_FAIL_401)
 
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.get', side_effect=mocked_requests_get)
@@ -561,11 +571,16 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('sonyapilib.device.SonyDevice._send_command', side_effect=mock_nothing)
     def test_commands(self, mock_send_command):
         device = self.create_device()
-        methods = ["up", "confirm", "down", "right", "left", "home", "options", "returns", "num1", "num2", "num3", "num4",
-                   "num5", "num6", "num7", "num8", "num9", "num0", "display", "audio", "sub_title", "favorites", "yellow",
-                   "blue", "red", "green", "play", "stop", "pause", "rewind", "forward", "prev", "next", "replay", "advance",
-                   "angle", "top_menu", "pop_up_menu", "eject", "karaoke", "netflix", "mode_3d", "zoom_in", "zoom_out",
-                   "browser_back", "browser_forward", "browser_bookmark_list", "list", "volume_up", "volume_down", "mute"]
+        methods = ["up", "confirm", "down", "right", "left", "home",
+                   "options", "returns", "num1", "num2", "num3", "num4",
+                   "num5", "num6", "num7", "num8", "num9", "num0",
+                   "display", "audio", "sub_title", "favorites", "yellow",
+                   "blue", "red", "green", "play", "stop", "pause",
+                   "rewind", "forward", "prev", "next", "replay", "advance",
+                   "angle", "top_menu", "pop_up_menu", "eject", "karaoke",
+                   "netflix", "mode_3d", "zoom_in", "zoom_out",
+                   "browser_back", "browser_forward", "browser_bookmark_list",
+                   "list", "volume_up", "volume_down", "mute"]
         for method in methods:
             cmd_name = ''.join(x.capitalize() or '_' for x in method.split('_'))
             # method cannot be named return
@@ -723,21 +738,25 @@ class SonyDeviceTest(unittest.TestCase):
 
     @staticmethod
     def create_command_list(device):
+        """Create a list with commands"""
         command = XmlApiObject({})
         command.name = "test"
         device.commands[command.name] = command
 
     @staticmethod
     def create_device():
+        """Create a new device instance"""
         sonyapilib.device.TIMEOUT = 0.1
         device = SonyDevice("test", "test")
         device.cookies = jsonpickle.decode(read_file("data/cookies.json"))
         return device
 
     def verify_device_dmr(self, device):
+        """Make sure a dmr has been set"""
         self.assertEqual(device.av_transport_url, AV_TRANSPORT_URL)
 
     def verify_cookies(self, device):
+        """Make sure a cookie has been set"""
         self.assertTrue(device.cookies is not None)
 
 

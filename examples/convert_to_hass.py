@@ -1,3 +1,4 @@
+"""Converts the configuration for home assistant."""
 import json
 from sonyapilib.device import SonyDevice
 

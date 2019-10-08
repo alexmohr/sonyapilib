@@ -30,7 +30,10 @@ jobs:
       # do not lint docs for tests
       script: find sonyapilib -name \*.py -exec pydocstyle --add-ignore=D400 {} +
     - stage: linting
-      install: pip install pylint
+      install:
+        pip install pylint
+        pip install -r test_requirements.txt
+        pip install .
       name: "Linting with pylint"
       script: find sonyapilib -name \*.py -exec pylint {} +
     - stage: linting

@@ -27,11 +27,12 @@ jobs:
     - stage: linting
       install: pip install pydocstyle
       name: "Linting with pydocstyle"
-      script: find . -name \*.py -exec pydocstyle {} +
+      # do not lint docs for tests
+      script: find sonyapilib -name \*.py -exec pydocstyle --add-ignore=D400 {} +
     - stage: linting
       install: pip install pylint
       name: "Linting with pylint"
-      script: find . -name \*.py -exec pylint {} +
+      script: find sonyapilib -name \*.py -exec pylint {} +
     - stage: linting
       install: pip install pyflakes
       name: "Linting with pyflakes"
@@ -39,4 +40,4 @@ jobs:
     - stage: linting
       install: pip install flake8
       name: "Linting with flake8"
-      script: find . -name \*.py -exec flake8 {} +
+      script: find . -name \*.py -exec flake8 --ignore=E501,E402 {} +

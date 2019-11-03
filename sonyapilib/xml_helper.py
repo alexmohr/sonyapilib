@@ -3,7 +3,7 @@ import xml.etree.ElementTree
 
 
 def xml_search_helper(data, param):
-    """Performs find or findall on given xml with string from param."""
+    """Perform find or findall on given xml with string from param."""
     if isinstance(param, (tuple, list)) and param[1]:
         result = data.findall(param[0])
     else:
@@ -23,8 +23,10 @@ def iterate_search_data(data, param):
 
 
 def find_in_xml(data, search_params):
-    """Takes an xml from string or as xml.etree.ElementTree and an iterable of
-    strings (and/or tuples in case of findall) to search.
+    """Try to find an element in an xml
+
+    Take an xml from string or as xml.etree.ElementTree
+    and an iterable of strings (and/or tuples in case of findall) to search.
     The tuple should contain the string to search for and a true value.
     """
     if isinstance(data, str):

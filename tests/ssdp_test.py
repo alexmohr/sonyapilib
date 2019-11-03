@@ -1,3 +1,4 @@
+"""Test for simple service discovery protocol"""
 import os.path as path
 import sys
 import unittest
@@ -18,7 +19,7 @@ sys.path.pop(0)
 
 
 def mock_socket(*args, **kwargs):
-
+    """Mock class for request socket"""
     class MockSocket:
         def __init__(self):
             self.offset = 0
@@ -41,8 +42,11 @@ def mock_socket(*args, **kwargs):
 
 
 class SSDPDiscoveryTest(unittest.TestCase):
+    """SSDP discovery testing"""
+
     @mock.patch('socket.socket', side_effect=mock_socket)
     def test_discover(self, mock_socket):
+        """Test discovery of ssdp services"""
         discovery = SSDPDiscovery()
         services = discovery.discover()
         self.assertEqual(len(services), 9)

@@ -1,4 +1,4 @@
-"""Example found in the readme"""
+"""Example found in the readme."""
 from sonyapilib.device import SonyDevice
 
 if __name__ == "__main__":

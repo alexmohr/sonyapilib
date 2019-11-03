@@ -1,6 +1,4 @@
-"""
-SSDP Implementation
-"""
+"""SSDP Implementation"""
 import email
 import logging
 import socket
@@ -11,9 +9,10 @@ _LOGGER = logging.getLogger(__name__)
 
 class SSDPResponse:
     # pylint: disable=too-few-public-methods
-    """Holds the response of a ssdp request."""
+    """Hold the response of a ssdp request."""
 
     def __init__(self, response):
+        """Init the ssdp response with given data"""
         if not response:
             return
 
@@ -29,10 +28,10 @@ class SSDPResponse:
         self.cache = headers["CACHE-CONTROL"].split("=")[1]
 
     def __repr__(self):
-        """
-        Defines how string representation looks
-        """
-        return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
+        """Define how string representation looks"""
+        return "<SSDPResponse({location}, {st}, {usn})>"\
+            .format(**self.__dict__)
+
 
 class SSDPDiscovery():
     # pylint: disable=too-few-public-methods

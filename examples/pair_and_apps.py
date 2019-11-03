@@ -1,9 +1,11 @@
+"""Example script to pair the device and start an app."""
 from sonyapilib.device import SonyDevice
 
 CONFIG_FILE = "bluray.json"
 
 
 def save_device():
+    """Save the device to disk."""
     data = device.save_to_json()
     text_file = open(CONFIG_FILE, "w")
     text_file.write(data)
@@ -11,6 +13,7 @@ def save_device():
 
 
 def load_device():
+    """Restore the device from disk."""
     import os
     sony_device = None
     if os.path.exists(CONFIG_FILE):

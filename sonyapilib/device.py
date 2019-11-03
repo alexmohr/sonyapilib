@@ -1,6 +1,4 @@
-"""
-Sony Media player lib
-"""
+"""Sony Media player lib"""
 import base64
 import json
 import logging
@@ -30,14 +28,16 @@ WEBAPI_SERVICETYPE = "av:X_ScalarWebAPI_ServiceType"
 
 
 class AuthenticationResult(Enum):
-    """Stores the result of the authentication process."""
+    """Store the result of the authentication process."""
+
     SUCCESS = 0
     ERROR = 1
     PIN_NEEDED = 2
 
 
 class HttpMethod(Enum):
-    """Defines which http method is used."""
+    """Define which http method is used."""
+
     GET = "get"
     POST = "post"
 
@@ -47,6 +47,7 @@ class XmlApiObject:
     """Holds data for a device action or a command."""
 
     def __init__(self, xml_data):
+        """Init xml object with given data"""
         self.name = None
         self.mode = None
         self.url = None
@@ -170,17 +171,20 @@ class SonyDevice:
             self.actions[action.name] = action
 
             if action.name == "register":
-                # the authentication later on is based on the device id and the mac
-                action.url = "{0}?name={1}&registrationType=initial&deviceId={2}".format(
-                    action.url,
-                    quote(self.nickname),
-                    quote(self.client_id))
+                # the authentication is based on the device id and the mac
+                action.url = \
+                    "{0}?name={1}&registrationType=initial&deviceId={2}"\
+                    .format(
+                        action.url,
+                        quote(self.nickname),
+                        quote(self.client_id))
                 self.api_version = action.mode
                 if action.mode == 3:
                     action.url = action.url + "&wolSupport=true"
 
     def _parse_ircc(self):
-        response = self._send_http(self.ircc_url, method=HttpMethod.GET, raise_errors=True)
+        response = self._send_http(
+            self.ircc_url, method=HttpMethod.GET, raise_errors=True)
         if not response:
             return
 
@@ -231,7 +235,8 @@ class SonyDevice:
 
     def _parse_system_information(self):
         response = self._send_http(
-            self._get_action("getSystemInformation").url, method=HttpMethod.GET)
+            self._get_action(
+                "getSystemInformation").url, method=HttpMethod.GET)
         if not response:
             return
 
@@ -296,7 +301,6 @@ class SonyDevice:
 
     def _update_commands(self):
         """Update the list of commands."""
-
         if self.api_version <= 3:
             self._parse_command_list()
         elif self.api_version > 3 and self.pin:
@@ -331,14 +335,16 @@ class SonyDevice:
         """Parse the list of available command in devices with the legacy api."""
         action_name = "getRemoteCommandList"
         if action_name not in self.actions:
-            _LOGGER.debug("Action list not set in device, try calling init_device")
+            _LOGGER.debug(
+                "Action list not set in device, try calling init_device")
             return
 
         action = self.actions[action_name]
         url = action.url
         response = self._send_http(url, method=HttpMethod.GET)
         if not response:
-            _LOGGER.debug("Failed to get response for command list, device might be off")
+            _LOGGER.debug(
+                "Failed to get response for command list, device might be off")
             return
 
         for command in find_in_xml(response.text, [("command", True)]):
@@ -353,7 +359,9 @@ class SonyDevice:
         else:
             url = 'http://{}/DIAL/sony/applist'.format(self.host)
             response = self._send_http(
-                url, method=HttpMethod.GET, cookies=self._recreate_auth_cookie())
+                url,
+                method=HttpMethod.GET,
+                cookies=self._recreate_auth_cookie())
 
         if response:
             for app in find_in_xml(response.text, [(".//app", True)]):
@@ -364,7 +372,7 @@ class SonyDevice:
                 self.apps[data.name] = data
 
     def _recreate_authentication(self):
-        """The default cookie is for URL/sony. For some commands we need it for the root path."""
+        """Recreate auth authentication"""
         registration_action = self._get_action("register")
         if any([not registration_action, registration_action.mode < 3]):
             return
@@ -406,7 +414,6 @@ class SonyDevice:
     def _send_http(self, url, method, **kwargs):
         # pylint: disable=too-many-arguments
         """Send request command via HTTP json to Sony Bravia."""
-
         log_errors = kwargs.pop("log_errors", True)
         raise_errors = kwargs.pop("raise_errors", False)
         method = kwargs.pop("method", method.value)
@@ -453,7 +460,6 @@ class SonyDevice:
 
     def _send_req_ircc(self, params):
         """Send an IRCC command via HTTP to Sony Bravia."""
-
         data = """<u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1">
                     <IRCCCode>{0}</IRCCCode>
                   </u:X_SendIRCC>""".format(params)
@@ -521,9 +527,11 @@ class SonyDevice:
                 "Content-Type": "application/json"
             }
             response = self._send_http(registration_action.url,
-                                       method=HttpMethod.POST, headers=headers,
+                                       method=HttpMethod.POST,
+                                       headers=headers,
                                        auth=('', self.pin),
-                                       data=json.dumps(authorization), raise_errors=True)
+                                       data=json.dumps(authorization),
+                                       raise_errors=True)
 
         except requests.exceptions.RequestException as ex:
             return self._handle_register_error(ex)
@@ -536,8 +544,9 @@ class SonyDevice:
             return AuthenticationResult.SUCCESS
 
     def _recreate_auth_cookie(self):
-        """
-        The default cookie is for URL/sony.
+        """Recreate auth cookie for all urls
+
+        Default cookie is for URL/sony.
         For some commands we need it for the root path
         """
         # pylint: disable=abstract-class-instantiated
@@ -546,12 +555,12 @@ class SonyDevice:
         return cookies
 
     def register(self):
-        """
-        Register at the api. The name which will be displayed in the UI of the device.
+        """Register at the api.
+
+        The name which will be displayed in the UI of the device.
         Make sure this name does not exist yet.
         For this the device must be put in registration mode.
         """
-
         registration_result = AuthenticationResult.ERROR
         registration_action = registration_action = self._get_action(
             "register")
@@ -565,7 +574,8 @@ class SonyDevice:
             registration_result = self._register_v4(registration_action)
         else:
             raise ValueError(
-                "Registration mode {0} is not supported".format(registration_action.mode))
+                "Registration mode {0} is not supported"
+                .format(registration_action.mode))
 
         if registration_result is AuthenticationResult.SUCCESS:
             self.init_device()
@@ -590,7 +600,7 @@ class SonyDevice:
         return AuthenticationResult.SUCCESS == result
 
     def wakeonlan(self, broadcast='255.255.255.255'):
-        """Starts the device either via wakeonlan."""
+        """Start the device either via wakeonlan."""
         if self.mac:
             wakeonlan.send_magic_packet(self.mac, ip_address=broadcast)
 
@@ -609,18 +619,21 @@ class SonyDevice:
         return find_in_xml(content, [".//CurrentTransportState"]).text
 
     def get_power_status(self):
-        """Checks if the device is online."""
+        """Check if the device is online."""
         if self.api_version < 4:
             url = self.actionlist_url
             try:
-                self._send_http(url, HttpMethod.GET, log_errors=False, raise_errors=True)
+                self._send_http(url, HttpMethod.GET,
+                                log_errors=False, raise_errors=True)
             except requests.exceptions.RequestException as ex:
                 _LOGGER.debug(ex)
                 return False
             return True
         try:
-            resp = self._send_http(urljoin(self.base_url, "system"), HttpMethod.POST,
-                                   json=self._create_api_json("getPowerStatus"))
+            resp = self._send_http(urljoin(self.base_url, "system"),
+                                   HttpMethod.POST,
+                                   json=self._create_api_json(
+                                       "getPowerStatus"))
             if not resp:
                 return False
             json_data = resp.json()
@@ -641,8 +654,10 @@ class SonyDevice:
             data = "LOCATION: {0}/run".format(url)
             self._send_http(url, HttpMethod.POST, data=data)
         else:
-            url = 'http://{}/DIAL/apps/{}'.format(self.host, self.apps[app_name].id)
-            self._send_http(url, HttpMethod.POST, cookies=self._recreate_auth_cookie())
+            url = 'http://{}/DIAL/apps/{}'.format(
+                self.host, self.apps[app_name].id)
+            self._send_http(url, HttpMethod.POST,
+                            cookies=self._recreate_auth_cookie())
 
     def power(self, power_on, broadcast='255.255.255.255'):
         """Powers the device on or shuts it off."""
@@ -661,208 +676,208 @@ class SonyDevice:
 
     def volume_up(self):
         # pylint: disable=invalid-name
-        """Sends the command 'VolumeUp' to the connected device."""
+        """Send the command 'VolumeUp' to the connected device."""
         self._send_command('VolumeUp')
 
     def volume_down(self):
         # pylint: disable=invalid-name
-        """Sends the command 'VolumeDown' to the connected device."""
+        """Send the command 'VolumeDown' to the connected device."""
         self._send_command('VolumeDown')
 
     def mute(self):
         # pylint: disable=invalid-name
-        """Sends the command 'Mute' to the connected device."""
+        """Send the command 'Mute' to the connected device."""
         self._send_command('Mute')
 
     def up(self):
         # pylint: disable=invalid-name
-        """Sends the command 'up' to the connected device."""
+        """Send the command 'up' to the connected device."""
         self._send_command('Up')
 
     def confirm(self):
-        """Sends the command 'confirm' to the connected device."""
+        """Send the command 'confirm' to the connected device."""
         self._send_command('Confirm')
 
     def down(self):
-        """Sends the command 'down' to the connected device."""
+        """Send the command 'down' to the connected device."""
         self._send_command('Down')
 
     def right(self):
-        """Sends the command 'right' to the connected device."""
+        """Send the command 'right' to the connected device."""
         self._send_command('Right')
 
     def left(self):
-        """Sends the command 'left' to the connected device."""
+        """Send the command 'left' to the connected device."""
         self._send_command('Left')
 
     def home(self):
-        """Sends the command 'home' to the connected device."""
+        """Send the command 'home' to the connected device."""
         self._send_command('Home')
 
     def options(self):
-        """Sends the command 'options' to the connected device."""
+        """Send the command 'options' to the connected device."""
         self._send_command('Options')
 
     def returns(self):
-        """Sends the command 'returns' to the connected device."""
+        """Send the command 'returns' to the connected device."""
         self._send_command('Return')
 
     def num1(self):
-        """Sends the command 'num1' to the connected device."""
+        """Send the command 'num1' to the connected device."""
         self._send_command('Num1')
 
     def num2(self):
-        """Sends the command 'num2' to the connected device."""
+        """Send the command 'num2' to the connected device."""
         self._send_command('Num2')
 
     def num3(self):
-        """Sends the command 'num3' to the connected device."""
+        """Send the command 'num3' to the connected device."""
         self._send_command('Num3')
 
     def num4(self):
-        """Sends the command 'num4' to the connected device."""
+        """Send the command 'num4' to the connected device."""
         self._send_command('Num4')
 
     def num5(self):
-        """Sends the command 'num5' to the connected device."""
+        """Send the command 'num5' to the connected device."""
         self._send_command('Num5')
 
     def num6(self):
-        """Sends the command 'num6' to the connected device."""
+        """Send the command 'num6' to the connected device."""
         self._send_command('Num6')
 
     def num7(self):
-        """Sends the command 'num7' to the connected device."""
+        """Send the command 'num7' to the connected device."""
         self._send_command('Num7')
 
     def num8(self):
-        """Sends the command 'num8' to the connected device."""
+        """Send the command 'num8' to the connected device."""
         self._send_command('Num8')
 
     def num9(self):
-        """Sends the command 'num9' to the connected device."""
+        """Send the command 'num9' to the connected device."""
         self._send_command('Num9')
 
     def num0(self):
-        """Sends the command 'num0' to the connected device."""
+        """Send the command 'num0' to the connected device."""
         self._send_command('Num0')
 
     def display(self):
-        """Sends the command 'display' to the connected device."""
+        """Send the command 'display' to the connected device."""
         self._send_command('Display')
 
     def audio(self):
-        """Sends the command 'audio' to the connected device."""
+        """Send the command 'audio' to the connected device."""
         self._send_command('Audio')
 
     def sub_title(self):
-        """Sends the command 'subTitle' to the connected device."""
+        """Send the command 'subTitle' to the connected device."""
         self._send_command('SubTitle')
 
     def favorites(self):
-        """Sends the command 'favorites' to the connected device."""
+        """Send the command 'favorites' to the connected device."""
         self._send_command('Favorites')
 
     def yellow(self):
-        """Sends the command 'yellow' to the connected device."""
+        """Send the command 'yellow' to the connected device."""
         self._send_command('Yellow')
 
     def blue(self):
-        """Sends the command 'blue' to the connected device."""
+        """Send the command 'blue' to the connected device."""
         self._send_command('Blue')
 
     def red(self):
-        """Sends the command 'red' to the connected device."""
+        """Send the command 'red' to the connected device."""
         self._send_command('Red')
 
     def green(self):
-        """Sends the command 'green' to the connected device."""
+        """Send the command 'green' to the connected device."""
         self._send_command('Green')
 
     def play(self):
-        """Sends the command 'play' to the connected device."""
+        """Send the command 'play' to the connected device."""
         self._send_command('Play')
 
     def stop(self):
-        """Sends the command 'stop' to the connected device."""
+        """Send the command 'stop' to the connected device."""
         self._send_command('Stop')
 
     def pause(self):
-        """Sends the command 'pause' to the connected device."""
+        """Send the command 'pause' to the connected device."""
         self._send_command('Pause')
 
     def rewind(self):
-        """Sends the command 'rewind' to the connected device."""
+        """Send the command 'rewind' to the connected device."""
         self._send_command('Rewind')
 
     def forward(self):
-        """Sends the command 'forward' to the connected device."""
+        """Send the command 'forward' to the connected device."""
         self._send_command('Forward')
 
     def prev(self):
-        """Sends the command 'prev' to the connected device."""
+        """Send the command 'prev' to the connected device."""
         self._send_command('Prev')
 
     def next(self):
-        """Sends the command 'next' to the connected device."""
+        """Send the command 'next' to the connected device."""
         self._send_command('Next')
 
     def replay(self):
-        """Sends the command 'replay' to the connected device."""
+        """Send the command 'replay' to the connected device."""
         self._send_command('Replay')
 
     def advance(self):
-        """Sends the command 'advance' to the connected device."""
+        """Send the command 'advance' to the connected device."""
         self._send_command('Advance')
 
     def angle(self):
-        """Sends the command 'angle' to the connected device."""
+        """Send the command 'angle' to the connected device."""
         self._send_command('Angle')
 
     def top_menu(self):
-        """Sends the command 'top_menu' to the connected device."""
+        """Send the command 'top_menu' to the connected device."""
         self._send_command('TopMenu')
 
     def pop_up_menu(self):
-        """Sends the command 'pop_up_menu' to the connected device."""
+        """Send the command 'pop_up_menu' to the connected device."""
         self._send_command('PopUpMenu')
 
     def eject(self):
-        """Sends the command 'eject' to the connected device."""
+        """Send the command 'eject' to the connected device."""
         self._send_command('Eject')
 
     def karaoke(self):
-        """Sends the command 'karaoke' to the connected device."""
+        """Send the command 'karaoke' to the connected device."""
         self._send_command('Karaoke')
 
     def netflix(self):
-        """Sends the command 'netflix' to the connected device."""
+        """Send the command 'netflix' to the connected device."""
         self._send_command('Netflix')
 
     def mode_3d(self):
-        """Sends the command 'mode_3d' to the connected device."""
+        """Send the command 'mode_3d' to the connected device."""
         self._send_command('Mode3D')
 
     def zoom_in(self):
-        """Sends the command 'zoom_in' to the connected device."""
+        """Send the command 'zoom_in' to the connected device."""
         self._send_command('ZoomIn')
 
     def zoom_out(self):
-        """Sends the command 'zoom_out' to the connected device."""
+        """Send the command 'zoom_out' to the connected device."""
         self._send_command('ZoomOut')
 
     def browser_back(self):
-        """Sends the command 'browser_back' to the connected device."""
+        """Send the command 'browser_back' to the connected device."""
         self._send_command('BrowserBack')
 
     def browser_forward(self):
-        """Sends the command 'browser_forward' to the connected device."""
+        """Send the command 'browser_forward' to the connected device."""
         self._send_command('BrowserForward')
 
     def browser_bookmark_list(self):
-        """Sends the command 'browser_bookmarkList' to the connected device."""
+        """Send the command 'browser_bookmarkList' to the connected device."""
         self._send_command('BrowserBookmarkList')
 
     def list(self):
-        """Sends the command 'list' to the connected device."""
+        """Send the command 'list' to the connected device."""
         self._send_command('List')

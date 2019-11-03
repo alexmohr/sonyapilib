@@ -44,3 +44,4 @@ jobs:
       install: pip install flake8
       name: "Linting with flake8"
       script: find . -name \*.py -exec flake8 --ignore=E501,E402 {} +
+ 

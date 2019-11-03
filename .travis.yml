@@ -4,6 +4,7 @@ python:
 cache: pip
 stages:
   - UnitTests
+  - coveralls
   - linting
 install:
   - pip install -r test_requirements.txt
@@ -14,7 +15,6 @@ jobs:
     - stage: UnitTests
       name: "Running unit tests"
       script: py.test tests/*_test.py --cov=sonyapilib
-
     # Linting
     - stage: linting
       install: pip install pycodestyle
@@ -40,4 +40,7 @@ jobs:
       install: pip install flake8
       name: "Linting with flake8"
       script: find . -name \*.py -exec flake8 --ignore=E501,E402 {} +
+    - stage: coveralls
+      name: "Running coveralls"
+      script: coveralls
  

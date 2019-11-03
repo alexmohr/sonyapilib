@@ -4,7 +4,6 @@ python:
 cache: pip
 stages:
   - UnitTests
-  - coveralls
   - linting
 install:
   - pip install -r test_requirements.txt
@@ -15,9 +14,6 @@ jobs:
     - stage: UnitTests
       name: "Running unit tests"
       script: py.test tests/*_test.py --cov=sonyapilib
-    - stage: coveralls
-      name: "Running coveralls"
-      script: coveralls
 
     # Linting
     - stage: linting

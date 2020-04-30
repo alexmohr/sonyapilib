@@ -102,7 +102,7 @@ class MockResponse:
         raise error
 
 
-def mocked_requests_posts_empty(*args, **kwargs):
+def mocked_requests_empty(*args, **kwargs):
     return {}
 
 
@@ -333,7 +333,7 @@ class SonyDeviceTest(unittest.TestCase):
         device._parse_system_information()
         self.assertEqual(device.mac, "30-52-cb-cc-16-ee")
 
-    @mock.patch('requests.post', side_effect=mocked_requests_posts_empty)
+    @mock.patch('requests.post', side_effect=mocked_requests_empty)
     def test_parse_sys_info_error(self, mock_get):
         device = self.create_device()
         data = XmlApiObject({})

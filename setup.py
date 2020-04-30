@@ -35,7 +35,7 @@ setup(
         'wakeonlan'
     ],
     tests_require=[
-        'pytest>=3.6',
+        'pytest>=5.4',
         'pytest-pep8',
         'pytest-cov',
         'python-coveralls',

@@ -187,8 +187,6 @@ class SonyDevice:
     def _parse_ircc(self):
         response = self._send_http(
             self.ircc_url, method=HttpMethod.GET, raise_errors=True)
-        if not response:
-            return
 
         upnp_device = "{}device".format(URN_UPNP_DEVICE)
         # the action list contains everything the device supports

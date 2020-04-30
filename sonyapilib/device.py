@@ -532,7 +532,7 @@ class SonyDevice:
             if self.pin is None:
                 auth_pin = ''
             else:
-                auth_pin = self.pin
+                auth_pin = str(self.pin)
 
             response = self._send_http(registration_action.url,
                                        method=HttpMethod.POST,

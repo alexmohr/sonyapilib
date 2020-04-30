@@ -72,7 +72,8 @@ class SonyDevice:
     # pylint: disable=fixme
     """Contains all data for the device."""
 
-    def __init__(self, host, nickname, psk=None):
+    def __init__(self, host, nickname, psk = None,
+            app_port = 50202, dmr_port = 52323, ircc_port = 50001):
         """Init the device with the entry point."""
         self.host = host
         self.nickname = nickname
@@ -83,9 +84,9 @@ class SonyDevice:
         self.app_url = None
         self.psk = psk
 
-        self.app_port = 50202
-        self.dmr_port = 52323
-        self.ircc_port = 50001
+        self.app_port = app_port
+        self.dmr_port = dmr_port
+        self.ircc_port = ircc_port
 
         # actions are thing like getting status
         self.actions = {}

@@ -721,6 +721,7 @@ class SonyDeviceTest(unittest.TestCase):
         device = self.create_device()
         device.api_version = 4
         device.base_url = REQUESTS_ERROR
+        device.actionlist_url = ACTION_LIST_URL
         self.assertFalse(device.get_power_status())
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)

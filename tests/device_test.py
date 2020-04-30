@@ -181,6 +181,8 @@ def mocked_requests_get(*args, **kwargs):
         MockResponse(None, 401).raise_for_status()
     elif url == GET_REMOTE_CONTROLLER_INFO_URL:
         return MockResponse(None, 200)
+    elif url.startswith(REQUESTS_ERROR):
+        raise RequestException()
     else:
         raise ValueError("Unknown url requested: {}".format(url))
 
@@ -505,6 +507,13 @@ class SonyDeviceTest(unittest.TestCase):
         for version in versions:
             result = self.register_with_version(version)
             self.assertEqual(result[0], AuthenticationResult.SUCCESS)
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_register_no_auth_error(self, mocked_get):
+        device = self.create_device()
+        register_action = XmlApiObject({})
+        register_action.url = REQUESTS_ERROR
+        self.assertEqual(AuthenticationResult.ERROR, device._register_without_auth(register_action))
 
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.get', side_effect=mocked_requests_get)

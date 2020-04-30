@@ -497,16 +497,20 @@ class SonyDeviceTest(unittest.TestCase):
             self.register_with_version(5)
         self.assertEqual(mocked_init_device.call_count, 0)
 
-    def verify_register_fail(self, version, auth_result, mocked_init_device, url=None):
-        result = self.register_with_version(version, url)
+    def verify_register_fail(self, version, auth_result, mocked_init_device, url=None, pin=-1):
+        if pin != -1:
+            result = self.register_with_version(version, url)
+        else:
+            result = self.register_with_version(version, url, pin=pin)
         self.assertEqual(result[0], auth_result)
         self.assertEqual(mocked_init_device.call_count, 0)
 
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
-    def test_register_fail_http_timeout(self, mocked_init_device):
+    def test_register_fail_http_timeout(self, mocked_init_device, pin=-1):
         versions = [1, 2, 3, 4]
         for version in versions:
-            self.verify_register_fail(version, AuthenticationResult.ERROR, mocked_init_device)
+            if pin != -1:
+                self.verify_register_fail(version, AuthenticationResult.ERROR, mocked_init_device)
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
@@ -519,6 +523,11 @@ class SonyDeviceTest(unittest.TestCase):
                                   AuthenticationResult.PIN_NEEDED,
                                   mocked_init_device,
                                   REGISTRATION_URL_V3_FAIL_401)
+        self.verify_register_fail(4,
+                                  AuthenticationResult.PIN_NEEDED,
+                                  mocked_init_device,
+                                  REGISTRATION_URL_V4_FAIL_401,
+                                  pin=None)
         self.verify_register_fail(4,
                                   AuthenticationResult.PIN_NEEDED,
                                   mocked_init_device,
@@ -606,10 +615,10 @@ class SonyDeviceTest(unittest.TestCase):
             register_action.url = REGISTRATION_URL_V4
         device.actions["register"] = register_action
 
-    def register_with_version(self, version, reg_url=""):
+    def register_with_version(self, version, reg_url="", pin=1234):
         device = self.create_device()
         if version > 2:
-            device.pin = 1234
+            device.pin = pin
         self.add_register_to_device(device, version)
         if reg_url:
             device.actions["register"].url = reg_url

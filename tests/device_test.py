@@ -100,6 +100,8 @@ class MockResponse:
         error.response = self
         raise error
 
+def mocked_requests_posts_empty(*args, **kwargs):
+    return {}
 
 def mocked_requests_post(*args, **kwargs):
     url = args[0]
@@ -325,6 +327,15 @@ class SonyDeviceTest(unittest.TestCase):
         device._parse_system_information()
         self.assertEqual(device.mac, "30-52-cb-cc-16-ee")
 
+    @mock.patch('requests.post', side_effect=mocked_requests_posts_empty)
+    def test_parse_sys_info_error(self, mock_get):
+        device = self.create_device()
+        data = XmlApiObject({})
+        data.url = SYSTEM_INFORMATION_URL
+        device.actions["getSystemInformation"] = data
+        device._parse_system_information()
+        self.assertEqual(device.mac, None)
+
     def prepare_test_action_list(self):
         device = self.create_device()
         data = XmlApiObject({})
@@ -488,7 +499,6 @@ class SonyDeviceTest(unittest.TestCase):
         for version in versions:
             result = self.register_with_version(version)
             self.assertEqual(result[0], AuthenticationResult.SUCCESS)
-
 
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.get', side_effect=mocked_requests_get)

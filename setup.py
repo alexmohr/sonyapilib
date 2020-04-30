@@ -40,6 +40,6 @@ setup(
         'pytest-cov',
         'python-coveralls',
         'pylint',
-        'coverage>=4.4'
+        'coverage==4.5.4'
     ]
 )

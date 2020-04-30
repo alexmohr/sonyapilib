@@ -1,6 +1,6 @@
-pytest>=3.6
+pytest>=5.4
 pytest-pep8
 pytest-cov
 python-coveralls
 pylint
-coverage>=4.5
+coverage==4.5.2

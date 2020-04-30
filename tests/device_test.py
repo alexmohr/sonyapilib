@@ -489,6 +489,13 @@ class SonyDeviceTest(unittest.TestCase):
             result = self.register_with_version(version)
             self.assertEqual(result[0], AuthenticationResult.SUCCESS)
 
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_register_auth(self, mocked_get):
+        versions = [3, 4]
+        for version in versions:
+            result = self.register_with_version(version)
+            self.assertEqual(result[0], AuthenticationResult.SUCCESS)
+
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_register_not_supported(self, mocked_get, mocked_init_device):
@@ -607,6 +614,8 @@ class SonyDeviceTest(unittest.TestCase):
 
     def register_with_version(self, version, reg_url=""):
         device = self.create_device()
+        if version > 2:
+            device.pin = 1234
         self.add_register_to_device(device, version)
         if reg_url:
             device.actions["register"].url = reg_url

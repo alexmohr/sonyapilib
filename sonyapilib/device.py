@@ -527,10 +527,16 @@ class SonyDevice:
             headers = {
                 "Content-Type": "application/json"
             }
+
+            if self.pin is None:
+                auth_pin = ''
+            else:
+                auth_pin = self.pin
+                
             response = self._send_http(registration_action.url,
                                        method=HttpMethod.POST,
                                        headers=headers,
-                                       auth=('', self.pin),
+                                       auth=('', auth_pin),
                                        data=json.dumps(authorization),
                                        raise_errors=True)
 

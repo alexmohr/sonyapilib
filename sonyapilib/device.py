@@ -72,8 +72,9 @@ class SonyDevice:
     # pylint: disable=fixme
     """Contains all data for the device."""
 
-    def __init__(self, host, nickname, psk = None,
-            app_port = 50202, dmr_port = 52323, ircc_port = 50001):
+    def __init__(self, host, nickname, psk=None,
+                 app_port=50202, dmr_port=52323, ircc_port=50001):
+        # pylint: disable=too-many-arguments
         """Init the device with the entry point."""
         self.host = host
         self.nickname = nickname
@@ -532,7 +533,7 @@ class SonyDevice:
                 auth_pin = ''
             else:
                 auth_pin = self.pin
-                
+
             response = self._send_http(registration_action.url,
                                        method=HttpMethod.POST,
                                        headers=headers,

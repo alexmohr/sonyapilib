@@ -45,6 +45,7 @@ GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
 BASE_URL = 'http://test/sony'
 AV_TRANSPORT_URL = 'http://test:52323/upnp/control/AVTransport'
 AV_TRANSPORT_URL_NO_MEDIA = 'http://test2:52323/upnp/control/AVTransport'
+REQUESTS_ERROR = 'http://ERROR'
 
 
 def mock_request_error(*args, **kwargs):
@@ -100,8 +101,10 @@ class MockResponse:
         error.response = self
         raise error
 
+
 def mocked_requests_posts_empty(*args, **kwargs):
     return {}
+
 
 def mocked_requests_post(*args, **kwargs):
     url = args[0]
@@ -149,6 +152,9 @@ def mocked_requests_post(*args, **kwargs):
     elif url == SYSTEM_INFORMATION_URL_V4:
         json_data = jsonpickle.decode(read_file('data/systemInformation.json'))
         return MockResponse(json_data, 200, "")
+
+    elif url.startswith(REQUESTS_ERROR):
+        raise RequestException
 
     else:
         raise ValueError("Unknown url requested: {}".format(url))
@@ -708,6 +714,13 @@ class SonyDeviceTest(unittest.TestCase):
     def test_get_power_status_error(self, mocked_request_error):
         device = self.create_device()
         device.api_version = 4
+        self.assertFalse(device.get_power_status())
+
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_get_power_status_error2(self, mocked_requests_post):
+        device = self.create_device()
+        device.api_version = 4
+        device.base_url = REQUESTS_ERROR
         self.assertFalse(device.get_power_status())
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)

@@ -72,7 +72,9 @@ class SonyDevice:
     # pylint: disable=fixme
     """Contains all data for the device."""
 
-    def __init__(self, host, nickname, psk=None):
+    def __init__(self, host, nickname, psk=None,
+                 app_port=50202, dmr_port=52323, ircc_port=50001):
+        # pylint: disable=too-many-arguments
         """Init the device with the entry point."""
         self.host = host
         self.nickname = nickname
@@ -83,9 +85,9 @@ class SonyDevice:
         self.app_url = None
         self.psk = psk
 
-        self.app_port = 50202
-        self.dmr_port = 52323
-        self.ircc_port = 50001
+        self.app_port = app_port
+        self.dmr_port = dmr_port
+        self.ircc_port = ircc_port
 
         # actions are thing like getting status
         self.actions = {}
@@ -185,8 +187,6 @@ class SonyDevice:
     def _parse_ircc(self):
         response = self._send_http(
             self.ircc_url, method=HttpMethod.GET, raise_errors=True)
-        if not response:
-            return
 
         upnp_device = "{}device".format(URN_UPNP_DEVICE)
         # the action list contains everything the device supports
@@ -526,10 +526,16 @@ class SonyDevice:
             headers = {
                 "Content-Type": "application/json"
             }
+
+            if self.pin is None:
+                auth_pin = ''
+            else:
+                auth_pin = str(self.pin)
+
             response = self._send_http(registration_action.url,
                                        method=HttpMethod.POST,
                                        headers=headers,
-                                       auth=('', self.pin),
+                                       auth=('', auth_pin),
                                        data=json.dumps(authorization),
                                        raise_errors=True)
 

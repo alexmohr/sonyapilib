@@ -45,6 +45,7 @@ GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
 BASE_URL = 'http://test/sony'
 AV_TRANSPORT_URL = 'http://test:52323/upnp/control/AVTransport'
 AV_TRANSPORT_URL_NO_MEDIA = 'http://test2:52323/upnp/control/AVTransport'
+REQUESTS_ERROR = 'http://ERROR'
 
 
 def mock_request_error(*args, **kwargs):
@@ -101,6 +102,10 @@ class MockResponse:
         raise error
 
 
+def mocked_requests_empty(*args, **kwargs):
+    return {}
+
+
 def mocked_requests_post(*args, **kwargs):
     url = args[0]
     print("POST for URL: {}".format(url))
@@ -148,6 +153,9 @@ def mocked_requests_post(*args, **kwargs):
         json_data = jsonpickle.decode(read_file('data/systemInformation.json'))
         return MockResponse(json_data, 200, "")
 
+    elif url.startswith(REQUESTS_ERROR):
+        raise RequestException
+
     else:
         raise ValueError("Unknown url requested: {}".format(url))
 
@@ -173,6 +181,8 @@ def mocked_requests_get(*args, **kwargs):
         MockResponse(None, 401).raise_for_status()
     elif url == GET_REMOTE_CONTROLLER_INFO_URL:
         return MockResponse(None, 200)
+    elif url.startswith(REQUESTS_ERROR):
+        raise RequestException()
     else:
         raise ValueError("Unknown url requested: {}".format(url))
 
@@ -324,6 +334,15 @@ class SonyDeviceTest(unittest.TestCase):
         device.actions["getSystemInformation"] = data
         device._parse_system_information()
         self.assertEqual(device.mac, "30-52-cb-cc-16-ee")
+
+    @mock.patch('requests.post', side_effect=mocked_requests_empty)
+    def test_parse_sys_info_error(self, mock_get):
+        device = self.create_device()
+        data = XmlApiObject({})
+        data.url = SYSTEM_INFORMATION_URL
+        device.actions["getSystemInformation"] = data
+        device._parse_system_information()
+        self.assertEqual(device.mac, None)
 
     def prepare_test_action_list(self):
         device = self.create_device()
@@ -489,6 +508,13 @@ class SonyDeviceTest(unittest.TestCase):
             result = self.register_with_version(version)
             self.assertEqual(result[0], AuthenticationResult.SUCCESS)
 
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_register_no_auth_error(self, mocked_get):
+        device = self.create_device()
+        register_action = XmlApiObject({})
+        register_action.url = REQUESTS_ERROR
+        self.assertEqual(AuthenticationResult.ERROR, device._register_without_auth(register_action))
+
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_register_not_supported(self, mocked_get, mocked_init_device):
@@ -496,16 +522,20 @@ class SonyDeviceTest(unittest.TestCase):
             self.register_with_version(5)
         self.assertEqual(mocked_init_device.call_count, 0)
 
-    def verify_register_fail(self, version, auth_result, mocked_init_device, url=None):
-        result = self.register_with_version(version, url)
+    def verify_register_fail(self, version, auth_result, mocked_init_device, url=None, pin=-1):
+        if pin != -1:
+            result = self.register_with_version(version, url)
+        else:
+            result = self.register_with_version(version, url, pin=pin)
         self.assertEqual(result[0], auth_result)
         self.assertEqual(mocked_init_device.call_count, 0)
 
     @mock.patch('sonyapilib.device.SonyDevice.init_device', side_effect=mock_nothing)
-    def test_register_fail_http_timeout(self, mocked_init_device):
+    def test_register_fail_http_timeout(self, mocked_init_device, pin=-1):
         versions = [1, 2, 3, 4]
         for version in versions:
-            self.verify_register_fail(version, AuthenticationResult.ERROR, mocked_init_device)
+            if pin != -1:
+                self.verify_register_fail(version, AuthenticationResult.ERROR, mocked_init_device)
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('requests.post', side_effect=mocked_requests_post)
@@ -518,6 +548,11 @@ class SonyDeviceTest(unittest.TestCase):
                                   AuthenticationResult.PIN_NEEDED,
                                   mocked_init_device,
                                   REGISTRATION_URL_V3_FAIL_401)
+        self.verify_register_fail(4,
+                                  AuthenticationResult.PIN_NEEDED,
+                                  mocked_init_device,
+                                  REGISTRATION_URL_V4_FAIL_401,
+                                  pin=None)
         self.verify_register_fail(4,
                                   AuthenticationResult.PIN_NEEDED,
                                   mocked_init_device,
@@ -605,8 +640,10 @@ class SonyDeviceTest(unittest.TestCase):
             register_action.url = REGISTRATION_URL_V4
         device.actions["register"] = register_action
 
-    def register_with_version(self, version, reg_url=""):
+    def register_with_version(self, version, reg_url="", pin=1234):
         device = self.create_device()
+        if version > 2:
+            device.pin = pin
         self.add_register_to_device(device, version)
         if reg_url:
             device.actions["register"].url = reg_url
@@ -686,6 +723,14 @@ class SonyDeviceTest(unittest.TestCase):
     def test_get_power_status_error(self, mocked_request_error):
         device = self.create_device()
         device.api_version = 4
+        self.assertFalse(device.get_power_status())
+
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_get_power_status_error2(self, mocked_requests_post):
+        device = self.create_device()
+        device.api_version = 4
+        device.base_url = REQUESTS_ERROR
+        device.actionlist_url = ACTION_LIST_URL
         self.assertFalse(device.get_power_status())
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)

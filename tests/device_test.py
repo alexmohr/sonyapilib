@@ -781,6 +781,10 @@ class SonyDeviceTest(unittest.TestCase):
         device.av_transport_url = AV_TRANSPORT_URL
         self.assertEqual("PLAYING", device.get_playing_status())
 
+    def test_irrc_is_dmr(self):
+        dev = SonyDevice(host="none", nickname="none", ircc_port=42, dmr_port=42)
+        self.assertEqual(dev.dmr_url, dev.ircc_url)
+
     @staticmethod
     def create_command_list(device):
         """Create a list with commands"""

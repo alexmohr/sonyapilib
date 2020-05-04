@@ -101,8 +101,13 @@ class SonyDevice:
         self.mac = None
         self.api_version = 0
 
+    
         ircc_base = "http://{0.host}:{0.ircc_port}".format(self)
-        self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
+        if self.ircc_port == self.dmr_port:
+            self.ircc_url = self.dmr_url
+        else:
+            self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
+            
         self.irccscpd_url = urljoin(ircc_base, "/IRCCSCPD.xml")
 
         self.dmr_url = "http://{0.host}:{0.dmr_port}/dmr.xml".format(self)
@@ -382,7 +387,7 @@ class SonyDevice:
             ('%s:%s' % (username, self.pin)).encode()).decode().replace('\n', '')
 
         self.headers['Authorization'] = "Basic %s" % base64string
-        if registration_action.mode == 3:
+        if registration_action.mode < 4:
             self.headers['X-CERS-DEVICE-ID'] = self.client_id
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"

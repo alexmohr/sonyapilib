@@ -101,13 +101,12 @@ class SonyDevice:
         self.mac = None
         self.api_version = 0
 
-    
         ircc_base = "http://{0.host}:{0.ircc_port}".format(self)
         if self.ircc_port == self.dmr_port:
             self.ircc_url = self.dmr_url
         else:
             self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
-            
+
         self.irccscpd_url = urljoin(ircc_base, "/IRCCSCPD.xml")
 
         self.dmr_url = "http://{0.host}:{0.dmr_port}/dmr.xml".format(self)

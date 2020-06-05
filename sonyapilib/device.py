@@ -387,6 +387,7 @@ class SonyDevice:
         self.headers['Authorization'] = "Basic %s" % base64string
         if registration_action.mode < 4:
             self.headers['X-CERS-DEVICE-ID'] = self.client_id
+            self.headers['X-CERS-DEVICE-INFO'] = self.client_id
         elif registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 

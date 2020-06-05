@@ -19,7 +19,7 @@ CURRENT_DIR = os.path.dirname(__file__)
 setup(
     name='sonyapilib',
     packages=['sonyapilib'],  # this must be the same as the name above
-    version='0.4.3',
+    version='0.4.5',
     description='Lib to control sony devices with their soap api',
     author='Alexander Mohr',
     author_email='sonyapilib@mohr.io',
@@ -28,6 +28,9 @@ setup(
     download_url='https://codeload.github.com/alexmohr/sonyapilib/tar.gz/0.4.3',
     keywords=['soap', 'sony', 'api'],  # arbitrary keywords
     classifiers=[],
+    setup_requires =[
+        'wheel'
+    ],
     install_requires=[
         'jsonpickle',
         'setuptools',

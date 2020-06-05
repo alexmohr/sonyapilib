@@ -28,7 +28,7 @@ setup(
     download_url='https://codeload.github.com/alexmohr/sonyapilib/tar.gz/0.4.3',
     keywords=['soap', 'sony', 'api'],  # arbitrary keywords
     classifiers=[],
-    setup_requires = [
+    setup_requires=[
         'wheel'
     ],
     install_requires=[

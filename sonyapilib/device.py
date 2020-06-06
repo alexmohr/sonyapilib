@@ -219,7 +219,7 @@ class SonyDevice:
 
             service_location = service.find(
                 "{0}controlURL".format(URN_UPNP_DEVICE)).text
-            
+
             if service_location.startswith('http://'):
                 service_url = ''
             else:

@@ -601,7 +601,7 @@ class SonyDevice:
         registration_action = self._get_action("register")
 
         # they do not need a pin
-        if registration_action.mode < 3:
+        if registration_action.mode < 2:
             return True
 
         if not pin:

@@ -27,6 +27,7 @@ sys.path.pop(0)
 ACTION_LIST_URL = 'http://192.168.240.4:50002/actionList'
 DMR_URL = 'http://test:52323/dmr.xml'
 IRCC_URL = 'http://test:50001/Ircc.xml'
+IRCC_URL_NO_SCHEMA = 'http://test_no_schema:50001/Ircc.xml'
 SYSTEM_INFORMATION_URL = 'http://192.168.240.4:50002/getSystemInformation'
 SYSTEM_INFORMATION_URL_V4 = 'http://test/sony/system'
 GET_REMOTE_COMMAND_LIST_URL = 'http://192.168.240.4:50002/getRemoteCommandList'
@@ -167,6 +168,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("data/dmr_v3.xml"))
     elif url == IRCC_URL:
         return MockResponse(None, 200, read_file("data/ircc.xml"))
+    elif url == IRCC_URL_NO_SCHEMA:
+        return MockResponse(None, 200, read_file("data/ircc_no_schema.xml"))
     elif url == ACTION_LIST_URL:
         return MockResponse(None, 200, read_file("data/actionlist.xml"))
     elif url == SYSTEM_INFORMATION_URL:
@@ -294,6 +297,16 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_ircc(self, mock_get):
         device = self.create_device()
+        device._parse_ircc()
+        self.assertEqual(
+            device.actionlist_url, ACTION_LIST_URL)
+        self.assertEqual(
+            device.control_url, 'http://test:50001/upnp/control/IRCC')
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_parse_ircc_no_schema(self, mock_get):
+        device = self.create_device()
+        device.ircc_url = IRCC_URL_NO_SCHEMA
         device._parse_ircc()
         self.assertEqual(
             device.actionlist_url, ACTION_LIST_URL)

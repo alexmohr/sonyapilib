@@ -582,7 +582,7 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('sonyapilib.device.SonyDevice.register', side_effect=mock_nothing)
     @mock.patch('sonyapilib.device.SonyDevice._recreate_authentication', side_effect=mock_nothing)
     def test_send_authentication_no_auth(self, mock_register, mock_recreate_auth):
-        versions = [[1, True], [2, True], [3, False], [4, False]]
+        versions = [[1, True], [2, False], [3, False], [4, False]]
         for version in versions:
             device = self.create_device()
             self.add_register_to_device(device, version[0])

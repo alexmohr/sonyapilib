@@ -219,7 +219,11 @@ class SonyDevice:
 
             service_location = service.find(
                 "{0}controlURL".format(URN_UPNP_DEVICE)).text
-            service_url = lirc_url.scheme + "://" + lirc_url.netloc
+            
+            if service_location.startswith('http://'):
+                service_url = ''
+            else:
+                service_url = lirc_url.scheme + "://" + lirc_url.netloc
             self.control_url = service_url + service_location
 
     def _parse_system_information_v4(self):

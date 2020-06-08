@@ -485,7 +485,9 @@ class SonyDeviceTest(unittest.TestCase):
             device = self.create_device()
             self.add_register_to_device(device, version)
             device._recreate_authentication()
-            self.assertEqual(len(device.headers), 0)
+            self.assertEqual(len(device.headers), 2)
+            self.assertTrue(device.headers['X-CERS-DEVICE-ID'] == device.nickname)
+            self.assertTrue(device.headers['X-CERS-DEVICE-INFO'] == device.nickname)
 
     def test_recreate_authentication_v3(self):
         device = self.create_device()

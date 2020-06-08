@@ -111,6 +111,7 @@ class SonyDevice:
             self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
 
         self.irccscpd_url = urljoin(ircc_base, "/IRCCSCPD.xml")
+        self._add_headers()
 
     def init_device(self):
         """Update this object with data from the device"""

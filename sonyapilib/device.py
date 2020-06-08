@@ -117,6 +117,9 @@ class SonyDevice:
         self._update_service_urls()
         self._update_commands()
 
+        self.headers['X-CERS-DEVICE-ID'] = self.client_id
+        self.headers['X-CERS-DEVICE-INFO'] = self.client_id
+
         if self.pin:
             self._recreate_authentication()
             self._update_applist()
@@ -389,10 +392,7 @@ class SonyDevice:
             ('%s:%s' % (username, self.pin)).encode()).decode().replace('\n', '')
 
         self.headers['Authorization'] = "Basic %s" % base64string
-        if registration_action.mode < 4:
-            self.headers['X-CERS-DEVICE-ID'] = self.client_id
-            self.headers['X-CERS-DEVICE-INFO'] = self.client_id
-        elif registration_action.mode == 4:
+        if registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 
         if self.psk:

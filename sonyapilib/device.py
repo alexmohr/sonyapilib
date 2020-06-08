@@ -116,9 +116,7 @@ class SonyDevice:
         """Update this object with data from the device"""
         self._update_service_urls()
         self._update_commands()
-
-        self.headers['X-CERS-DEVICE-ID'] = self.client_id
-        self.headers['X-CERS-DEVICE-INFO'] = self.client_id
+        self._add_headers()
 
         if self.pin:
             self._recreate_authentication()
@@ -387,6 +385,7 @@ class SonyDevice:
         if any([not registration_action, registration_action.mode < 3]):
             return
 
+        self._add_headers()
         username = ''
         base64string = base64.encodebytes(
             ('%s:%s' % (username, self.pin)).encode()).decode().replace('\n', '')
@@ -556,6 +555,11 @@ class SonyDevice:
 
             self.cookies = response.cookies
             return AuthenticationResult.SUCCESS
+
+    def _add_headers(self):
+        """Add headers which all devices need"""
+        self.headers['X-CERS-DEVICE-ID'] = self.client_id
+        self.headers['X-CERS-DEVICE-INFO'] = self.client_id
 
     def _recreate_auth_cookie(self):
         """Recreate auth cookie for all urls

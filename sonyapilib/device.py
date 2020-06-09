@@ -111,11 +111,13 @@ class SonyDevice:
             self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
 
         self.irccscpd_url = urljoin(ircc_base, "/IRCCSCPD.xml")
+        self._add_headers()
 
     def init_device(self):
         """Update this object with data from the device"""
         self._update_service_urls()
         self._update_commands()
+        self._add_headers()
 
         if self.pin:
             self._recreate_authentication()
@@ -219,7 +221,11 @@ class SonyDevice:
 
             service_location = service.find(
                 "{0}controlURL".format(URN_UPNP_DEVICE)).text
-            service_url = lirc_url.scheme + "://" + lirc_url.netloc
+
+            if service_location.startswith('http://'):
+                service_url = ''
+            else:
+                service_url = lirc_url.scheme + "://" + lirc_url.netloc
             self.control_url = service_url + service_location
 
     def _parse_system_information_v4(self):
@@ -380,14 +386,13 @@ class SonyDevice:
         if any([not registration_action, registration_action.mode < 3]):
             return
 
+        self._add_headers()
         username = ''
         base64string = base64.encodebytes(
             ('%s:%s' % (username, self.pin)).encode()).decode().replace('\n', '')
 
         self.headers['Authorization'] = "Basic %s" % base64string
-        if registration_action.mode < 4:
-            self.headers['X-CERS-DEVICE-ID'] = self.client_id
-        elif registration_action.mode == 4:
+        if registration_action.mode == 4:
             self.headers['Connection'] = "keep-alive"
 
         if self.psk:
@@ -552,6 +557,11 @@ class SonyDevice:
             self.cookies = response.cookies
             return AuthenticationResult.SUCCESS
 
+    def _add_headers(self):
+        """Add headers which all devices need"""
+        self.headers['X-CERS-DEVICE-ID'] = self.client_id
+        self.headers['X-CERS-DEVICE-INFO'] = self.client_id
+
     def _recreate_auth_cookie(self):
         """Recreate auth cookie for all urls
 
@@ -596,7 +606,7 @@ class SonyDevice:
         registration_action = self._get_action("register")
 
         # they do not need a pin
-        if registration_action.mode < 3:
+        if registration_action.mode < 2:
             return True
 
         if not pin:

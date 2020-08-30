@@ -2,6 +2,7 @@
 import base64
 import json
 import logging
+import struct
 import xml.etree.ElementTree
 from enum import Enum
 from urllib.parse import (
@@ -40,6 +41,68 @@ class HttpMethod(Enum):
 
     GET = "get"
     POST = "post"
+
+
+class IrccCategory(Enum):
+    TV1 = 1
+    AUSYS3 = 80
+    TV1EEE = 119
+    TV1E = 164
+    AUSYS3E = 208
+    AUSYS3SE = 528
+    AUSYS3EE = 1552
+    DVD4 = 3578
+    DVD4E = 3834
+    BD1 = 7258
+
+
+IR_KEY_CODES = {
+    IrccCategory.BD1: (
+        ('Num1', 0),
+        ('Num2', 1),
+        ('Num3', 2),
+        ('Num4', 3),
+        ('Num5', 4),
+        ('Num6', 5),
+        ('Num7', 6),
+        ('Num8', 7),
+        ('Num9', 8),
+        ('Num0', 9),
+        ('Power', 21),
+        ('Eject', 22),
+        ('Stop', 24),
+        ('Pause', 25),
+        ('Play', 26),
+        ('Rewind', 27),
+        ('Forward', 28),
+        ('PopUpMenu', 41),
+        ('TopMenu', 44),
+        ('Up', 57),
+        ('Down', 58),
+        ('Left', 59),
+        ('Right', 60),
+        ('Confirm', 61),
+        ('Options', 63),
+        ('Display', 65),
+        ('Home', 66),
+        ('Return', 67),
+        ('Karaoke', 74),
+        ('Netflix', 75),
+        ('Mode3D', 77),
+        ('Next', 86),
+        ('Prev', 87),
+        ('Favorites', 94),
+        ('SubTitle', 99),
+        ('Audio', 100),
+        ('Angle', 101),
+        ('Blue', 102),
+        ('Red', 103),
+        ('Green', 104),
+        ('Yellow', 105),
+        ('Advance', 117),
+        ('Replay', 118),
+    )
+}
 
 
 class XmlApiObject:
@@ -111,6 +174,7 @@ class SonyDevice:
             self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
 
         self.irccscpd_url = urljoin(ircc_base, "/IRCCSCPD.xml")
+        self._ircc_categories = set()
         self._add_headers()
 
     def init_device(self):
@@ -151,17 +215,22 @@ class SonyDevice:
 
     def _update_service_urls(self):
         """Initialize the device by reading the necessary resources from it."""
-        response = self._send_http(self.dmr_url, method=HttpMethod.GET)
-        if not response:
-            _LOGGER.error("Failed to get DMR")
+        try:
+            response = self._send_http(self.dmr_url, method=HttpMethod.GET, raise_errors=True)
+        except requests.exceptions.ConnectionError:
+            response = None
+        except requests.exceptions.RequestException as exc:
+            _LOGGER.error("Failed to get DMR: %s: %s", type(exc), exc)
             return
 
         try:
-            self._parse_dmr(response.text)
+            if response:
+                self._parse_dmr(response.text)
             if self.api_version <= 3:
                 self._parse_ircc()
                 self._parse_action_list()
-                self._parse_system_information()
+                if self.api_version > 0:
+                    self._parse_system_information()
             else:
                 self._parse_system_information_v4()
 
@@ -177,12 +246,21 @@ class SonyDevice:
             action = XmlApiObject(element.attrib)
             self.actions[action.name] = action
 
+            if action.mode is None:
+                action.mode = self.api_version
+            if action.url is None and action.name:
+                action.url = urljoin(self.actionlist_url, "?action={}".format(action.name))
+                separator = "&"
+            else:
+                separator = "?"
+
             if action.name == "register":
                 # the authentication is based on the device id and the mac
                 action.url = \
-                    "{0}?name={1}&registrationType=initial&deviceId={2}"\
+                    "{0}{1}name={2}&registrationType=initial&deviceId={3}"\
                     .format(
                         action.url,
+                        separator,
                         quote(self.nickname),
                         quote(self.client_id))
                 self.api_version = action.mode
@@ -227,6 +305,22 @@ class SonyDevice:
             else:
                 service_url = lirc_url.scheme + "://" + lirc_url.netloc
             self.control_url = service_url + service_location
+
+        categories = find_in_xml(
+            response.text,
+            [upnp_device,
+             "{}X_IRCC_DeviceInfo".format(URN_SONY_AV),
+             "{}X_IRCC_CategoryList".format(URN_SONY_AV),
+             ("{}X_IRCC_Category".format(URN_SONY_AV), True)]
+        )
+
+        for category in categories:
+            category_info = category.find(
+                "{}X_CategoryInfo".format(URN_SONY_AV))
+            if category_info is None:
+                continue
+
+            self._ircc_categories.add(category_info.text)
 
     def _parse_system_information_v4(self):
         url = urljoin(self.base_url, "system")
@@ -310,7 +404,9 @@ class SonyDevice:
 
     def _update_commands(self):
         """Update the list of commands."""
-        if self.api_version <= 3:
+        if self.api_version == 0:
+            self._use_builtin_command_list()
+        elif self.api_version <= 3:
             self._parse_command_list()
         elif self.api_version > 3 and self.pin:
             _LOGGER.debug("Registration necessary to read command list.")
@@ -359,6 +455,29 @@ class SonyDevice:
         for command in find_in_xml(response.text, [("command", True)]):
             name = command.get("name")
             self.commands[name] = XmlApiObject(command.attrib)
+
+    def _use_builtin_command_list(self):
+        for encoded_str in self._ircc_categories:
+            fmt, category_id = struct.unpack(">HI", base64.b64decode(encoded_str))
+            try:
+                category = IrccCategory(category_id)
+            except ValueError:
+                _LOGGER.warning("Unknown IRCC category identifier: %d", category_id)
+                continue
+
+            code_list = IR_KEY_CODES.get(category)
+            if code_list is None:
+                _LOGGER.warning("No command list available for %s", category)
+                continue
+
+            for name, code in code_list:
+                value = base64.b64encode(struct.pack(">IIIB", fmt, category_id, code, 3))
+                data = XmlApiObject({
+                    "name": name,
+                    "type": "ircc",
+                    "value": value.decode("ascii"),
+                })
+                self.commands[name] = data
 
     def _update_applist(self):
         """Update the list of apps which are supported by the device."""

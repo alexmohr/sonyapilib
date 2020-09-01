@@ -812,6 +812,7 @@ class SonyDeviceTest(unittest.TestCase):
         """Create a new device instance"""
         sonyapilib.device.TIMEOUT = 0.1
         device = SonyDevice("test", "test")
+        device.api_version = 3
         device.cookies = jsonpickle.decode(read_file("data/cookies.json"))
         return device
 

@@ -44,6 +44,8 @@ class HttpMethod(Enum):
 
 
 class IrccCategory(Enum):
+    """Device categories used by IRCC."""
+
     TV1 = 1
     AUSYS3 = 80
     TV1EEE = 119

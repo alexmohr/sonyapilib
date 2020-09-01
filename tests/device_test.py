@@ -399,6 +399,13 @@ class SonyDeviceTest(unittest.TestCase):
         device._update_commands()
         self.assertEqual(mock_parse_cmd_list.call_count, 1)
 
+    @mock.patch('sonyapilib.device.SonyDevice._use_builtin_command_list', side_effect=mock_nothing)
+    def test_update_commands_v0(self, mock_parse_cmd_list):
+        device = self.create_device()
+        device.api_version = 0
+        device._update_commands()
+        self.assertEqual(mock_parse_cmd_list.call_count, 1)
+
     @mock.patch('sonyapilib.device.SonyDevice._parse_command_list', side_effect=mock_nothing)
     def test_update_commands_v3(self, mock_parse_cmd_list):
         device = self.create_device()

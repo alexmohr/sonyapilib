@@ -30,7 +30,7 @@ jobs:
         - pip install -r test_requirements.txt
         - pip install .
       name: "Linting with pylint"
-      script: find sonyapilib -name \*.py -exec pylint {} +
+      script: find sonyapilib -name \*.py -exec pylint -d C0302 {} +
     - stage: linting
       install: pip install pyflakes
       name: "Linting with pyflakes"

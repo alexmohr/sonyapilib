@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actionList>
+  <action name="register" mode="3" />
+  <action name="getText" />
+  <action name="sendText" />
+  <action name="getContentInformation" />
+  <action name="getSystemInformation" />
+  <action name="getRemoteCommandList" />
+  <action name="getStatus" />
+  <action name="getHistoryList" />
+  <action name="getContentUrl" />
+  <action name="sendContentUrl" />
+</actionList>

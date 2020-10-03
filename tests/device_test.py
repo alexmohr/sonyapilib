@@ -25,9 +25,11 @@ sys.path.pop(0)
 
 
 ACTION_LIST_URL = 'http://192.168.240.4:50002/actionList'
+ACTION_LIST_URL_2 = 'http://192.168.240.4:50002/actionList2'
 DMR_URL = 'http://test:52323/dmr.xml'
 IRCC_URL = 'http://test:50001/Ircc.xml'
 IRCC_URL_NO_SCHEMA = 'http://test_no_schema:50001/Ircc.xml'
+IRCC_URL_MISSING_INFO = 'http://test_missing_info:50001/Ircc.xml'
 SYSTEM_INFORMATION_URL = 'http://192.168.240.4:50002/getSystemInformation'
 SYSTEM_INFORMATION_URL_V4 = 'http://test/sony/system'
 GET_REMOTE_COMMAND_LIST_URL = 'http://192.168.240.4:50002/getRemoteCommandList'
@@ -48,6 +50,22 @@ AV_TRANSPORT_URL = 'http://test:52323/upnp/control/AVTransport'
 AV_TRANSPORT_URL_NO_MEDIA = 'http://test2:52323/upnp/control/AVTransport'
 REQUESTS_ERROR = 'http://ERROR'
 
+ACTION_LIST = [
+    "getText",
+    "sendText",
+    "getContentInformation",
+    "getSystemInformation",
+    "getRemoteCommandList",
+    "getStatus",
+    "getHistoryList",
+    "getContentUrl",
+    "sendContentUrl"
+]
+
+
+def mocked_return_none(*args, **kwargs):
+    return None
+
 
 def mock_request_error(*args, **kwargs):
     raise HTTPError()
@@ -55,6 +73,10 @@ def mock_request_error(*args, **kwargs):
 
 def mock_error(*args, **kwargs):
     raise Exception()
+
+
+def mock_request_exception(*args, **kwargs):
+    raise RequestException("Test Exception")
 
 
 def mock_nothing(*args, **kwargs):
@@ -168,10 +190,14 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 200, read_file("data/dmr_v3.xml"))
     elif url == IRCC_URL:
         return MockResponse(None, 200, read_file("data/ircc.xml"))
+    elif url == IRCC_URL_MISSING_INFO:
+        return MockResponse(None, 200, read_file("data/ircc_missing_info.xml"))
     elif url == IRCC_URL_NO_SCHEMA:
         return MockResponse(None, 200, read_file("data/ircc_no_schema.xml"))
     elif url == ACTION_LIST_URL:
         return MockResponse(None, 200, read_file("data/actionlist.xml"))
+    elif url == ACTION_LIST_URL_2:
+        return MockResponse(None, 200, read_file("data/actionlist_no_url.xml"))
     elif url == SYSTEM_INFORMATION_URL:
         return MockResponse(None, 200, read_file("data/getSysteminformation.xml"))
     elif url == GET_REMOTE_COMMAND_LIST_URL:
@@ -246,6 +272,12 @@ class SonyDeviceTest(unittest.TestCase):
         device._update_service_urls()
         self.assertEqual(mock_error.call_count, 1)
 
+    @mock.patch('sonyapilib.device.SonyDevice._send_http', side_effect=mock_request_exception)
+    def test_update_service_urls_request_exception(self, mock_request_exception):
+        device = self.create_device()
+        device._update_service_urls()
+        self.assertEqual(mock_request_exception.call_count, 1)
+
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('sonyapilib.device.SonyDevice._parse_ircc', side_effect=mock_nothing)
     @mock.patch('sonyapilib.device.SonyDevice._parse_action_list', side_effect=mock_nothing)
@@ -313,6 +345,16 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(
             device.control_url, 'http://test:50001/upnp/control/IRCC')
 
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_parse_ircc_no_missing_info(self, mock_get):
+        device = self.create_device()
+        device.ircc_url = IRCC_URL_MISSING_INFO
+        device._parse_ircc()
+        self.assertEqual(
+            device.actionlist_url, ACTION_LIST_URL)
+        self.assertEqual(
+            device.control_url, 'http://test:50001/upnp/control/IRCC')
+
     def test_parse_action_list_error(self):
         # just make sure nothing crashes
         device = self.create_device()
@@ -322,22 +364,26 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_action_list(self, mock_get):
         device = self.create_device()
-        # must be set before prior methods are not called.
+        # must be set before methods are not called.
         device.actionlist_url = ACTION_LIST_URL
         device._parse_action_list()
         self.assertEqual(device.actions["register"].mode, 3)
-        actions = ["getText",
-                   "sendText",
-                   "getContentInformation",
-                   "getSystemInformation",
-                   "getRemoteCommandList",
-                   "getStatus",
-                   "getHistoryList",
-                   "getContentUrl",
-                   "sendContentUrl"]
+
         base_url = "http://192.168.240.4:50002/"
-        for action in actions:
+        for action in ACTION_LIST:
             self.assertEqual(device.actions[action].url, base_url + action)
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_parse_action_list_without_url(self, mock_get):
+        device = self.create_device()
+        # must be set before methods are not called.
+        device.actionlist_url = ACTION_LIST_URL_2
+        device._parse_action_list()
+        self.assertEqual(device.actions["register"].mode, 3)
+
+        for action in ACTION_LIST:
+            action_url = "{}?action={}".format(ACTION_LIST_URL_2, action)
+            self.assertEqual(device.actions[action].url, action_url)
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_parse_system_information(self, mock_get):
@@ -396,6 +442,13 @@ class SonyDeviceTest(unittest.TestCase):
     @mock.patch('sonyapilib.device.SonyDevice._parse_command_list', side_effect=mock_nothing)
     def test_update_commands_no_pin(self, mock_parse_cmd_list):
         device = self.create_device()
+        device._update_commands()
+        self.assertEqual(mock_parse_cmd_list.call_count, 1)
+
+    @mock.patch('sonyapilib.device.SonyDevice._use_builtin_command_list', side_effect=mock_nothing)
+    def test_update_commands_v0(self, mock_parse_cmd_list):
+        device = self.create_device()
+        device.api_version = 0
         device._update_commands()
         self.assertEqual(mock_parse_cmd_list.call_count, 1)
 
@@ -800,6 +853,40 @@ class SonyDeviceTest(unittest.TestCase):
         dev = SonyDevice(host="none", nickname="none", ircc_port=42, dmr_port=42)
         self.assertEqual(dev.dmr_url, dev.ircc_url)
 
+    def test_parse_use_built_in_command_list_invalid_category(self):
+        device = self.create_device()
+        device._ircc_categories = ["MTIzNDU2"]
+
+        device._use_builtin_command_list()
+        self.assertEqual(0, len(device.commands))
+
+    def test_parse_use_built_in_command_list(self):
+        device = self.create_device()
+        device._ircc_categories = ["AAMAABxa"]
+
+        device._use_builtin_command_list()
+        commands = ["Confirm", "Up", "Down", "Right", "Left", "Home", "Options",
+                    "Return", "Num1", "Num2", "Num3", "Num4", "Num5", "Num6", "Num7",
+                    "Num8", "Num9", "Num0", "Power", "Display", "Audio", "SubTitle",
+                    "Favorites", "Yellow", "Blue", "Red", "Green", "Play", "Stop",
+                    "Pause", "Rewind", "Forward", "Prev", "Next", "Replay", "Advance",
+                    "Angle", "TopMenu", "PopUpMenu", "Eject", "Karaoke", "Netflix",
+                    "Mode3D"]
+
+        for cmd in commands:
+            self.assertTrue(cmd in device.commands)
+
+    def test_handle_register_error_not_http(self):
+        ex = Exception()
+        device = self.create_device()
+        res = device._handle_register_error(ex)
+        self.assertEqual(res, AuthenticationResult.ERROR)
+
+    @mock.patch('sonyapilib.device.SonyDevice._send_http', side_effect=mocked_return_none)
+    def test_parse_system_info_v4_no_response(self, mocked_request):
+        device = self.create_device()
+        device._parse_system_information_v4()
+
     @staticmethod
     def create_command_list(device):
         """Create a list with commands"""
@@ -812,6 +899,7 @@ class SonyDeviceTest(unittest.TestCase):
         """Create a new device instance"""
         sonyapilib.device.TIMEOUT = 0.1
         device = SonyDevice("test", "test")
+        device.api_version = 3
         device.cookies = jsonpickle.decode(read_file("data/cookies.json"))
         return device
 

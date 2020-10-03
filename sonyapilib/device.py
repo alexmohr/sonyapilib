@@ -293,10 +293,8 @@ class SonyDevice:
             service_id = service.find(
                 "{0}serviceId".format(URN_UPNP_DEVICE))
 
-            if any([
-                    service_id is None,
-                    URN_SONY_IRCC not in service_id.text,
-            ]):
+            if service_id is None or \
+                    URN_SONY_IRCC not in service_id.text:
                 continue
 
             service_location = service.find(

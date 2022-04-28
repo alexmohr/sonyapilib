@@ -21,11 +21,19 @@ class SSDPResponse:
 
         # construct a dictionary containing the headers
         headers = dict(message.items())
-        self.location = headers["LOCATION"]
+        if "Location" in headers:
+            self.location = headers["Location"]
+        else:
+            self.location = headers["LOCATION"]
+
+        if "Cache-Control" in headers:
+            self.cache = headers["Cache-Control"].split("=")[1]
+        else:
+            self.cache = headers["CACHE-CONTROL"].split("=")[1]
+            
         self.usn = headers["USN"]
         # pylint: disable=invalid-name
         self.st = headers["ST"]
-        self.cache = headers["CACHE-CONTROL"].split("=")[1]
 
     def __repr__(self):
         """Define how string representation looks"""

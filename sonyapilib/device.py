@@ -738,8 +738,8 @@ class SonyDevice:
         return AuthenticationResult.SUCCESS == result
 
     def wakeonlan(self, broadcast=None):
-	    """Start the device via wakeonlan."""
-	    broadcast = '255.255.255.255' if not broadcast else broadcast
+        """Start the device via wakeonlan."""
+        broadcast = broadcast or '255.255.255.255'
         if self.mac:
             wakeonlan.send_magic_packet(self.mac, ip_address=broadcast)
 

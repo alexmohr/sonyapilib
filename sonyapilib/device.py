@@ -156,6 +156,16 @@ class SonyDevice:
         self.dmr_port = dmr_port
         self.ircc_port = ircc_port
 
+        # information about target system
+        self.friendly_name = None
+        self.manufacturer = None
+        self.manufacturer_url = None
+        self.model_description = None
+        self.model_name = None
+        self.model_url = None
+        self.model_number = None
+        self.icons = None
+
         # actions are thing like getting status
         self.actions = {}
         self.headers = {}
@@ -168,16 +178,17 @@ class SonyDevice:
         self.mac = None
         self.api_version = 0
 
-        self.dmr_url = f"http://{self.host}:{self.dmr_port}/dmr.xml"
+        self.dmr_base = f"http://{self.host}:{self.dmr_port}"
+        self.dmr_url = f"{self.dmr_base}/dmr.xml"
         self.app_url = f"http://{self.host}:{self.app_port}"
         self.base_url = f"http://{self.host}/sony/"
-        ircc_base = f"http://{self.host}:{self.ircc_port}"
+        self.ircc_base = f"http://{self.host}:{self.ircc_port}"
         if self.ircc_port == self.dmr_port:
             self.ircc_url = self.dmr_url
         else:
-            self.ircc_url = urljoin(ircc_base, "/Ircc.xml")
+            self.ircc_url = urljoin(self.ircc_base, "/Ircc.xml")
 
-        self.irccscpd_url = urljoin(ircc_base, "/IRCCSCPD.xml")
+        self.irccscpd_url = urljoin(self.ircc_base, "/IRCCSCPD.xml")
         self._ircc_categories = set()
         self._add_headers()
 
@@ -272,6 +283,12 @@ class SonyDevice:
             self.ircc_url, method=HttpMethod.GET, raise_errors=True)
 
         upnp_device = f"{URN_UPNP_DEVICE}device"
+
+        self._set_value('ircc_base', f"http://{self.host}:{self.ircc_port}")
+
+        self._parse_system_info(response.text, self.ircc_base,
+                                upnp_device=upnp_device)
+
         # the action list contains everything the device supports
         self.actionlist_url = find_in_xml(
             response.text,
@@ -320,6 +337,62 @@ class SonyDevice:
 
             self._ircc_categories.add(category_info.text)
 
+    def _parse_system_info(self, text, base_url, upnp_device=None):
+        upnp_device = upnp_device or f"{URN_UPNP_DEVICE}device"
+
+        self._set_value('friendly_name', self._find_device_info(
+            text, "friendlyName",
+            upnp_device=upnp_device
+        ))
+        self._set_value('manufacturer', self._find_device_info(
+            text, "manufacturer",
+            upnp_device=upnp_device
+        ))
+        self._set_value('manufacturer_url', self._find_device_info(
+            text, "manufacturerURL",
+            upnp_device=upnp_device
+        ))
+        self._set_value('model_description', self._find_device_info(
+            text, "modelDescription",
+            upnp_device=upnp_device
+        ))
+        self._set_value('model_name', self._find_device_info(
+            text, "modelName",
+            upnp_device=upnp_device
+        ))
+        self._set_value('model_url', self._find_device_info(
+            text, "modelURL",
+            upnp_device=upnp_device
+        ))
+        self._set_value('model_number', self._find_device_info(
+            text, "modelNumber",
+            upnp_device=upnp_device
+        ))
+
+        if hasattr(self, 'icons') and self.icons:
+            return
+
+        icons = find_in_xml(
+            text,
+            [upnp_device,
+             f"{URN_UPNP_DEVICE}iconList",
+             (f"{URN_UPNP_DEVICE}icon", True),
+             f"{URN_UPNP_DEVICE}url"])
+
+        self.icons = [f"{base_url}{icon.text}" for icon in icons]
+
+    @staticmethod
+    def _find_device_info(text, info, upnp_device=None):
+        upnp_device = upnp_device or f"{URN_UPNP_DEVICE}device"
+
+        element = find_in_xml(
+            text,
+            [upnp_device,
+             f"{URN_UPNP_DEVICE}{info}"]
+        )
+
+        return element.text if element is not None else None
+
     def _parse_system_information_v4(self):
         url = urljoin(self.base_url, "system")
         json_data = self._create_api_json("getSystemSupportedFunction")
@@ -350,6 +423,10 @@ class SonyDevice:
                         "functionItem").attrib["value"]
 
     def _parse_dmr(self, data):
+        self._set_value('dmr_base', f"http://{self.host}:{self.dmr_port}")
+
+        self._parse_system_info(data, self.dmr_base)
+
         lirc_url = urlparse(self.ircc_url)
         xml_data = xml.etree.ElementTree.fromstring(data)
 
@@ -693,6 +770,12 @@ class SonyDevice:
         cookies = requests.cookies.RequestsCookieJar()
         cookies.set("auth", self.cookies.get("auth"))
         return cookies
+
+    def _set_value(self, attribute, value):
+        if not hasattr(self, attribute):
+            setattr(self, attribute, value)
+        elif value and not getattr(self, attribute):
+            setattr(self, attribute, value)
 
     def register(self):
         """Register at the api.

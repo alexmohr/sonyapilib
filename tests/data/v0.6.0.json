@@ -1,0 +1,679 @@
+{
+	"py/object": "sonyapilib.device.SonyDevice",
+	"host": "test",
+	"nickname": "test",
+	"client_id": "test",
+	"actionlist_url": "http://192.168.240.4:50002/actionList",
+	"control_url": "http://test:50001/upnp/control/IRCC",
+	"av_transport_url": "http://test:52323/upnp/control/AVTransport",
+	"rendering_control_url": "http://test:52323/upnp/control/RenderingControl",
+	"app_url": "http://test:50202",
+	"psk": null,
+	"app_port": 50202,
+	"dmr_port": 52323,
+	"ircc_port": 50001,
+	"friendly_name": "Blu-ray Disc Player",
+	"manufacturer": "Sony Corporation",
+	"manufacturer_url": "http://www.sony.net/",
+	"model_description": null,
+	"model_name": "BDP-S5500",
+	"model_url": null,
+	"model_number": "BDP-2015",
+	"icons": [
+		"http://test:52323/bdp_ax_device_icon_large.jpg",
+		"http://test:52323/bdp_ax_device_icon_large.png",
+		"http://test:52323/bdp_ax_device_icon_small.jpg",
+		"http://test:52323/bdp_ax_device_icon_small.png"
+	],
+	"actions": {
+		"register": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "register",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/register?name=test&registrationType=initial&deviceId=test&wolSupport=true",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"getText": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "getText",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/getText",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"sendText": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "sendText",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/sendText",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"getContentInformation": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "getContentInformation",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/getContentInformation",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"getSystemInformation": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "getSystemInformation",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/getSystemInformation",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"getRemoteCommandList": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "getRemoteCommandList",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/getRemoteCommandList",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"getStatus": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "getStatus",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/getStatus",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"getHistoryList": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "getHistoryList",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/getHistoryList",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"getContentUrl": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "getContentUrl",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/getContentUrl",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		},
+		"sendContentUrl": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "sendContentUrl",
+			"mode": 3,
+			"url": "http://192.168.240.4:50002/sendContentUrl",
+			"type": null,
+			"value": null,
+			"mac": null,
+			"id": null
+		}
+	},
+	"headers": {
+		"X-CERS-DEVICE-ID": "test",
+		"X-CERS-DEVICE-INFO": "test"
+	},
+	"commands": {
+		"Confirm": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Confirm",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAA9Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Up": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Up",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAA5Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Down": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Down",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAA6Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Right": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Right",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAA8Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Left": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Left",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAA7Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Home": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Home",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABCAw==",
+			"mac": null,
+			"id": null
+		},
+		"Options": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Options",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAA/Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Return": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Return",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABDAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num1": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num1",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAAAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num2": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num2",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAABAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num3": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num3",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAACAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num4": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num4",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAADAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num5": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num5",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAEAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num6": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num6",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAFAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num7": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num7",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAGAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num8": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num8",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAHAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num9": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num9",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAIAw==",
+			"mac": null,
+			"id": null
+		},
+		"Num0": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Num0",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAJAw==",
+			"mac": null,
+			"id": null
+		},
+		"Power": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Power",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAVAw==",
+			"mac": null,
+			"id": null
+		},
+		"Display": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Display",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABBAw==",
+			"mac": null,
+			"id": null
+		},
+		"Audio": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Audio",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABkAw==",
+			"mac": null,
+			"id": null
+		},
+		"SubTitle": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "SubTitle",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABjAw==",
+			"mac": null,
+			"id": null
+		},
+		"Favorites": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Favorites",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABeAw==",
+			"mac": null,
+			"id": null
+		},
+		"Yellow": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Yellow",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABpAw==",
+			"mac": null,
+			"id": null
+		},
+		"Blue": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Blue",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABmAw==",
+			"mac": null,
+			"id": null
+		},
+		"Red": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Red",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABnAw==",
+			"mac": null,
+			"id": null
+		},
+		"Green": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Green",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABoAw==",
+			"mac": null,
+			"id": null
+		},
+		"Play": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Play",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAaAw==",
+			"mac": null,
+			"id": null
+		},
+		"Stop": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Stop",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAYAw==",
+			"mac": null,
+			"id": null
+		},
+		"Pause": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Pause",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAZAw==",
+			"mac": null,
+			"id": null
+		},
+		"Rewind": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Rewind",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAbAw==",
+			"mac": null,
+			"id": null
+		},
+		"Forward": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Forward",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAcAw==",
+			"mac": null,
+			"id": null
+		},
+		"Prev": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Prev",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABXAw==",
+			"mac": null,
+			"id": null
+		},
+		"Next": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Next",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABWAw==",
+			"mac": null,
+			"id": null
+		},
+		"Replay": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Replay",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAB2Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Advance": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Advance",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAB1Aw==",
+			"mac": null,
+			"id": null
+		},
+		"Angle": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Angle",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABlAw==",
+			"mac": null,
+			"id": null
+		},
+		"TopMenu": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "TopMenu",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAsAw==",
+			"mac": null,
+			"id": null
+		},
+		"PopUpMenu": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "PopUpMenu",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAApAw==",
+			"mac": null,
+			"id": null
+		},
+		"Eject": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Eject",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAAAWAw==",
+			"mac": null,
+			"id": null
+		},
+		"Karaoke": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Karaoke",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABKAw==",
+			"mac": null,
+			"id": null
+		},
+		"Netflix": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Netflix",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABLAw==",
+			"mac": null,
+			"id": null
+		},
+		"Mode3D": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "Mode3D",
+			"mode": null,
+			"url": null,
+			"type": "ircc",
+			"value": "AAAAAwAAHFoAAABNAw==",
+			"mac": null,
+			"id": null
+		},
+		"ZoomIn": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "ZoomIn",
+			"mode": null,
+			"url": null,
+			"type": "url",
+			"value": "http://10.0.0.102:50002/setBrowse?action=zoomIn",
+			"mac": null,
+			"id": null
+		},
+		"ZoomOut": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "ZoomOut",
+			"mode": null,
+			"url": null,
+			"type": "url",
+			"value": "http://10.0.0.102:50002/setBrowse?action=zoomOut",
+			"mac": null,
+			"id": null
+		},
+		"BrowserBack": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "BrowserBack",
+			"mode": null,
+			"url": null,
+			"type": "url",
+			"value": "http://10.0.0.102:50002/setBrowse?action=back",
+			"mac": null,
+			"id": null
+		},
+		"BrowserForward": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "BrowserForward",
+			"mode": null,
+			"url": null,
+			"type": "url",
+			"value": "http://10.0.0.102:50002/setBrowse?action=forward",
+			"mac": null,
+			"id": null
+		},
+		"BrowserBookmarkList": {
+			"py/object": "sonyapilib.device.XmlApiObject",
+			"name": "BrowserBookmarkList",
+			"mode": null,
+			"url": null,
+			"type": "url",
+			"value": "http://10.0.0.102:50002/getBrowse?action=bookmarkList",
+			"mac": null,
+			"id": null
+		}
+	},
+	"apps": {},
+	"pin": null,
+	"cookies": {
+		"py/object": "requests.cookies.RequestsCookieJar",
+		"py/state": {
+			"_cookies": {
+				"192.168.170.23": {
+					"/sony/": {
+						"auth": {
+							"py/object": "http.cookiejar.Cookie",
+							"_rest": {},
+							"comment": null,
+							"comment_url": null,
+							"discard": false,
+							"domain": "192.168.170.23",
+							"domain_initial_dot": false,
+							"domain_specified": false,
+							"expires": 1556462645,
+							"name": "auth",
+							"path": "/sony/",
+							"path_specified": true,
+							"port": null,
+							"port_specified": false,
+							"rfc2109": false,
+							"secure": false,
+							"value": "b2d0ff57a51b475cb3d1a9b7516f366ed2b4ffe0164cd0fd560ff6ceb28b101a",
+							"version": 0
+						}
+					}
+				}
+			},
+			"_now": 1555253045,
+			"_policy": {
+				"py/object": "http.cookiejar.DefaultCookiePolicy",
+				"_allowed_domains": null,
+				"_blocked_domains": {
+					"py/tuple": []
+				},
+				"_now": 1555253045,
+				"hide_cookie2": false,
+				"netscape": true,
+				"rfc2109_as_netscape": null,
+				"rfc2965": false,
+				"strict_domain": false,
+				"strict_ns_domain": 0,
+				"strict_ns_set_initial_dollar": false,
+				"strict_ns_set_path": false,
+				"strict_ns_unverifiable": false,
+				"strict_rfc2965_unverifiable": true
+			}
+		}
+	},
+	"mac": "30-52-cb-cc-16-ee",
+	"api_version": 3,
+	"dmr_base": "http://test:52323",
+	"dmr_url": "http://test:52323/dmr.xml",
+	"base_url": "http://test/sony/",
+	"ircc_base": "http://test:50001",
+	"ircc_url": "http://test:50001/Ircc.xml",
+	"irccscpd_url": "http://test:50001/IRCCSCPD.xml",
+	"_ircc_categories": {
+		"py/set": []
+	}
+}

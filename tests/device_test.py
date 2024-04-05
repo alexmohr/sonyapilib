@@ -20,7 +20,7 @@ sys.path.insert(0, current_dir[:current_dir.rfind(os.path.sep)])
 # otherwise it must be installed after every change
 import sonyapilib.device  # import  to change timeout
 from sonyapilib.ssdp import SSDPResponse
-from sonyapilib.device import SonyDevice, XmlApiObject, AuthenticationResult
+from sonyapilib.device import SonyDevice, XmlApiObject, AuthenticationResult, HttpMethod
 sys.path.pop(0)
 
 
@@ -280,6 +280,22 @@ class SonyDeviceTest(unittest.TestCase):
         device._update_service_urls()
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_load_v0_5_0_json_file(self, mocked_requests_post, mocked_requests_get):
+        content = read_file("data/v0.5.0.json")
+        device = SonyDevice.load_from_json(content)
+
+        self.verify_json_load_fields(device)
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_load_v0_6_0_json_file(self, mocked_requests_post, mocked_requests_get):
+        content = read_file("data/v0.6.0.json")
+        device = SonyDevice.load_from_json(content)
+
+        self.verify_json_load_fields(device)
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
     @mock.patch('sonyapilib.device.SonyDevice._parse_ircc', side_effect=mock_error)
     def test_update_service_urls_error_processing(self, mock_error, mocked_requests_get):
         device = self.create_device()
@@ -368,6 +384,42 @@ class SonyDeviceTest(unittest.TestCase):
             device.actionlist_url, ACTION_LIST_URL)
         self.assertEqual(
             device.control_url, 'http://test:50001/upnp/control/IRCC')
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_find_device_info_none_upnp_device(self, mock_get):
+        device = self.create_device()
+        response = device._send_http(device.ircc_url, method=HttpMethod.GET, raise_errors=True)
+
+        self.assertEqual(device._find_device_info(response.text, "friendlyName"), "Blu-ray Disc Player")
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_parse_system_info_none_upnp_device(self, mock_get):
+        device = self.create_device()
+        response = device._send_http(device.ircc_url, method=HttpMethod.GET, raise_errors=True)
+
+        device._parse_system_info(response.text, device.ircc_base)
+
+        self.verify_system_info_fields(device)
+
+    def test_set_value(self):
+        device = self.create_device()
+        self.assertEqual(hasattr(device, "test"), False)
+
+        device._set_value("test", None)
+        self.assertEqual(hasattr(device, "test"), True)
+
+        device._set_value("test", "test1")
+        self.assertEqual(getattr(device, "test"), "test1")
+
+        device._set_value("test", "test2")
+        self.assertEqual(getattr(device, "test"), "test1")
+
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_system_info(self, mock_get):
+        device = self.create_device()
+        device._parse_ircc()
+
+        self.verify_system_info_fields(device)
 
     def test_parse_action_list_error(self):
         # just make sure nothing crashes
@@ -932,6 +984,45 @@ class SonyDeviceTest(unittest.TestCase):
         device.api_version = 3
         device.cookies = jsonpickle.decode(read_file("data/cookies.json"))
         return device
+
+    def verify_json_load_fields(self, device):
+        """Make sure all "new" fields are present in the json."""
+        self.assertEqual(device.rendering_control_url, "http://test:52323/upnp/control/RenderingControl")
+        self.assertEqual(device.dmr_base, "http://test:52323")
+        self.assertEqual(device.ircc_base, "http://test:50001")
+
+        self.verify_system_info_fields(device, "BDP-S5500", "BDP-2015", [
+            "http://test:52323/bdp_ax_device_icon_large.jpg",
+            "http://test:52323/bdp_ax_device_icon_large.png",
+            "http://test:52323/bdp_ax_device_icon_small.jpg",
+            "http://test:52323/bdp_ax_device_icon_small.png"
+        ])
+
+    def verify_system_info_fields(
+            self,
+            device,
+            model_name="Blu-ray Disc Player",
+            model_number=None,
+            icons=None
+    ):
+        """Make sure all system fields are present in the device."""
+        if not icons:
+            icons = [
+                "http://test:50001/bdp_ax3d_device_icon_large.jpg",
+                "http://test:50001/bdp_ax3d_device_icon_large.png",
+                "http://test:50001/bdp_ax3d_device_icon_small.jpg",
+                "http://test:50001/bdp_ax3d_device_icon_small.png"
+            ]
+
+        self.assertEqual(device.friendly_name, "Blu-ray Disc Player")
+        self.assertEqual(device.manufacturer, "Sony Corporation")
+        self.assertEqual(device.manufacturer_url, "http://www.sony.net/")
+        self.assertEqual(device.model_description, None)
+        self.assertEqual(device.model_name, model_name)
+        self.assertEqual(device.model_url, None)
+        self.assertEqual(device.model_number, model_number)
+
+        self.assertEqual(device.icons, icons)
 
     def verify_device_dmr(self, device):
         """Make sure a dmr has been set"""

@@ -30,7 +30,7 @@ class SSDPResponse:
             self.cache = headers["Cache-Control"].split("=")[1]
         else:
             self.cache = headers["CACHE-CONTROL"].split("=")[1]
-            
+
         self.usn = headers["USN"]
         # pylint: disable=invalid-name
         self.st = headers["ST"]

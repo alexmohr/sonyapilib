@@ -1,0 +1,68 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  UnitTests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.10" ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/test_requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      run: |
+        pip install -r test_requirements.txt
+        pip install .
+    - name: Run unit tests
+      run: |
+        py.test tests/*_test.py
+
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/test_requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Linting with pycodestyle
+      run: |
+        pip install pycodestyle
+        find . -name \*.py -exec pycodestyle --ignore=E501,E402 {} +
+    - name: Linting with pydocstyle
+      run: |
+        pip install pydocstyle
+        find sonyapilib -name \*.py -exec pydocstyle --add-ignore=D400 {} +
+    - name: Linting with pylint
+      run: |
+        pip install pylint
+        pip install -r test_requirements.txt
+        pip install .
+        find sonyapilib -name \*.py -exec pylint -d C0302 {} +
+    - name: Linting with pyflakes
+      run: |
+        pip install pyflakes
+        find . -name \*.py -exec pyflakes {} +
+    - name: Linting with flake8
+      run: |
+        pip install flake8
+        find . -name \*.py -exec flake8 --ignore=E501,E402 {} +

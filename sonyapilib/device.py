@@ -361,15 +361,12 @@ class SonyDevice:
                 service_id = service.find(
                     f"{URN_UPNP_DEVICE}serviceId")
                 service_id_text = service_id.text
-                # print(service_id_text)
 
                 if "urn:upnp-org:serviceId:AVTransport" in service_id_text:
                     transport_location = service.find(
                         f"{URN_UPNP_DEVICE}controlURL").text
                     self.av_transport_url = f"{lirc_url.scheme}://{lirc_url.netloc.split(':')[0]}"\
                         f":{self.dmr_port}{transport_location}"
-
-                    # print(self.av_transport_url)
                 elif "urn:upnp-org:serviceId:RenderingControl" in service_id_text:
                     transport_location = service.find(
                         f"{URN_UPNP_DEVICE}controlURL").text
@@ -377,8 +374,6 @@ class SonyDevice:
                     self.rendering_control_url = \
                         f"{lirc_url.scheme}://{lirc_url.netloc.split(':')[0]}" \
                         f":{self.dmr_port}{transport_location}"
-
-                    # print(self.rendering_control_url)
 
         # this is only true for v4 devices.
         if WEBAPI_SERVICETYPE not in data:

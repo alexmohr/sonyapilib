@@ -41,7 +41,6 @@ setup(
         'pytest>=5.4',
         'pytest-pep8',
         'pytest-cov',
-        'python-coveralls',
         'pylint',
         'coverage==4.5.4'
     ]

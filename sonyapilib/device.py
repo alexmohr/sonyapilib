@@ -374,7 +374,8 @@ class SonyDevice:
                     transport_location = service.find(
                         f"{URN_UPNP_DEVICE}controlURL").text
 
-                    self.rendering_control_url = f"{lirc_url.scheme}://{lirc_url.netloc.split(':')[0]}" \
+                    self.rendering_control_url = \
+                        f"{lirc_url.scheme}://{lirc_url.netloc.split(':')[0]}" \
                         f":{self.dmr_port}{transport_location}"
 
                     # print(self.rendering_control_url)
@@ -764,7 +765,7 @@ class SonyDevice:
 
     def get_volume(self):
         """Get device volume."""
-        data = f"""<m:GetVolume xmlns:m="urn:schemas-upnp-org:service:RenderingControl:1">
+        data = """<m:GetVolume xmlns:m="urn:schemas-upnp-org:service:RenderingControl:1">
             <InstanceID>0</InstanceID>
             <Channel>Master</Channel>
             </m:GetVolume>"""

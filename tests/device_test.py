@@ -177,8 +177,6 @@ def mocked_requests_post(*args, **kwargs):
                                 'data/get_volume.xml'))
 
     elif url == RENDERING_CONTROL_URL_SET_VOLUME:
-        # return MockResponse(None, 500)
-
         return MockResponse(None,
                             200,
                             read_file(
@@ -878,9 +876,6 @@ class SonyDeviceTest(unittest.TestCase):
         device = self.create_device()
 
         device.rendering_control_url = RENDERING_CONTROL_URL_SET_VOLUME
-        # self.assertEqual(False, device.set_volume(-10))
-        # self.assertEqual(False, device.set_volume(200))
-
         self.assertEqual(True, device.set_volume(50))
         self.assertEqual(True, device.set_volume(0))
 

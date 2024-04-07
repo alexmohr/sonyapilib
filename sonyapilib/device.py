@@ -758,11 +758,13 @@ class SonyDevice:
             return "OFF"
         return find_in_xml(content, [".//CurrentTransportState"]).text
 
-    def get_volume(self):
+    def get_volume(self, channel=None, instance_id=0):
         """Get device volume."""
-        data = """<m:GetVolume xmlns:m="urn:schemas-upnp-org:service:RenderingControl:1">
-            <InstanceID>0</InstanceID>
-            <Channel>Master</Channel>
+        channel = channel or "Master"
+
+        data = f"""<m:GetVolume xmlns:m="urn:schemas-upnp-org:service:RenderingControl:1">
+            <InstanceID>{instance_id}</InstanceID>
+            <Channel>{channel}</Channel>
             </m:GetVolume>"""
 
         action = "urn:schemas-upnp-org:service:RenderingControl:1#GetVolume"
@@ -774,6 +776,26 @@ class SonyDevice:
             return -1
 
         return int(find_in_xml(content, [".//CurrentVolume"]).text)
+
+    def set_volume(self, volume, channel=None, instance_id=0):
+        """Set device volume."""
+        channel = channel or "Master"
+
+        data = f"""<m:SetVolume xmlns:m="urn:schemas-upnp-org:service:RenderingControl:1">
+            <InstanceID>{instance_id}</InstanceID>
+            <Channel>{channel}</Channel>
+            <DesiredVolume>{volume}</DesiredVolume>
+            </m:SetVolume>"""
+
+        action = "urn:schemas-upnp-org:service:RenderingControl:1#SetVolume"
+
+        content = self._post_soap_request(
+            url=self.rendering_control_url, params=data, action=action)
+
+        if not content:
+            return False
+
+        return "SetVolumeResponse" in content
 
     def get_power_status(self):
         """Check if the device is online."""

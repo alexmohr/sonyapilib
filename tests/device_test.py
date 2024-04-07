@@ -48,7 +48,8 @@ GET_REMOTE_CONTROLLER_INFO_URL = "http://test/getRemoteControllerInfo"
 BASE_URL = 'http://test/sony'
 AV_TRANSPORT_URL = 'http://test:52323/upnp/control/AVTransport'
 AV_TRANSPORT_URL_NO_MEDIA = 'http://test2:52323/upnp/control/AVTransport'
-RENDERING_CONTROL_URL = 'http://test:52323/upnp/control/RenderingControl'
+RENDERING_CONTROL_URL_GET_VOLUME = 'http://test:52323/upnp/control/RenderingControl'
+RENDERING_CONTROL_URL_SET_VOLUME = 'http://test2:52323/upnp/control/RenderingControl'
 REQUESTS_ERROR = 'http://ERROR'
 
 ACTION_LIST = [
@@ -169,11 +170,19 @@ def mocked_requests_post(*args, **kwargs):
                             read_file(
                                 'data/playing_status_legacy_no_media.xml'))
 
-    elif url == RENDERING_CONTROL_URL:
+    elif url == RENDERING_CONTROL_URL_GET_VOLUME:
         return MockResponse(None,
                             200,
                             read_file(
-                                'data/volume.xml'))
+                                'data/get_volume.xml'))
+
+    elif url == RENDERING_CONTROL_URL_SET_VOLUME:
+        # return MockResponse(None, 500)
+
+        return MockResponse(None,
+                            200,
+                            read_file(
+                                'data/set_volume.xml'))
 
     elif url == COMMAND_LIST_V4:
         json_data = jsonpickle.decode(read_file('data/commandList.json'))
@@ -857,12 +866,23 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual("PLAYING", device.get_playing_status())
 
     @mock.patch('requests.post', side_effect=mocked_requests_post)
-    def test_volume(self, mocked_requests_post):
+    def test_get_volume(self, mocked_requests_post):
         device = self.create_device()
         self.assertEqual(-1, device.get_volume())
 
-        device.rendering_control_url = RENDERING_CONTROL_URL
+        device.rendering_control_url = RENDERING_CONTROL_URL_GET_VOLUME
         self.assertEqual(64, device.get_volume())
+
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_set_volume(self, mocked_requests_post):
+        device = self.create_device()
+
+        device.rendering_control_url = RENDERING_CONTROL_URL_SET_VOLUME
+        # self.assertEqual(False, device.set_volume(-10))
+        # self.assertEqual(False, device.set_volume(200))
+
+        self.assertEqual(True, device.set_volume(50))
+        self.assertEqual(True, device.set_volume(0))
 
     def test_irrc_is_dmr(self):
         dev = SonyDevice(host="none", nickname="none", ircc_port=42, dmr_port=42)

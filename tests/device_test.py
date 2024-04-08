@@ -990,6 +990,7 @@ class SonyDeviceTest(unittest.TestCase):
         self.assertEqual(device.rendering_control_url, "http://test:52323/upnp/control/RenderingControl")
         self.assertEqual(device.dmr_base, "http://test:52323")
         self.assertEqual(device.ircc_base, "http://test:50001")
+        self.assertEqual(device.broadcast_address, "255.255.255.255")
 
         self.verify_system_info_fields(device, "BDP-S5500", "BDP-2015", [
             "http://test:52323/bdp_ax_device_icon_large.jpg",

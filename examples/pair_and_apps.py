@@ -7,9 +7,8 @@ CONFIG_FILE = "bluray.json"
 def save_device():
     """Save the device to disk."""
     data = device.save_to_json()
-    text_file = open(CONFIG_FILE, "w")
-    text_file.write(data)
-    text_file.close()
+    with open(CONFIG_FILE, "w", encoding="utf-8") as text_file:
+        text_file.write(data)
 
 
 def load_device():
@@ -17,7 +16,7 @@ def load_device():
     import os
     sony_device = None
     if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as content_file:
+        with open(CONFIG_FILE, 'r', encoding='utf-8') as content_file:
             json_data = content_file.read()
             sony_device = SonyDevice.load_from_json(json_data)
     return sony_device
